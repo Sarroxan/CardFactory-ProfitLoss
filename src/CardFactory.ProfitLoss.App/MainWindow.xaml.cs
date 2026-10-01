@@ -406,15 +406,21 @@ public partial class MainWindow : Window
         _availableUpdate = update;
         UpdateButton.ToolTip = "Version " + UpdateService.Display(update.Version) + " is available";
         UpdateButton.Visibility = Visibility.Visible;
+
+        // Offer it straight away, once per launch: update now, or Later and carry on (the
+        // Update button stays for later). Not over a Refresh already in progress.
+        if (RetrievalOverlay.Visibility != Visibility.Visible && IsLoaded) ShowUpdateDialog();
     }
 
-    private void UpdateButton_Click(object sender, RoutedEventArgs e)
+    private void ShowUpdateDialog()
     {
         if (_availableUpdate is null) return;
         var dialog = new UpdateWindow(_availableUpdate) { Owner = this };
         dialog.ShowDialog();
         if (dialog.Installed) Application.Current.Shutdown();
     }
+
+    private void UpdateButton_Click(object sender, RoutedEventArgs e) => ShowUpdateDialog();
 
     private void MenuButton_Click(object sender, RoutedEventArgs e)
     {

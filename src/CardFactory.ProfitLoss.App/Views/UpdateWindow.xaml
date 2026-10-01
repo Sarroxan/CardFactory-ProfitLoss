@@ -51,6 +51,57 @@
                            FontSize="12" LineHeight="19" TextWrapping="Wrap" />
             </ScrollViewer>
 
+            <!-- Progress design P2: three steps, the bar on the download. Hidden until Update. -->
+            <Border x:Name="ProgressPanel" Visibility="Collapsed" Margin="0,14,0,0" Padding="12,8"
+                    Background="#FBFCFD" BorderBrush="#E3EAF3" BorderThickness="1" CornerRadius="12">
+                <StackPanel>
+                    <Grid Height="26">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Grid Width="18" Height="18" HorizontalAlignment="Left">
+                            <Ellipse x:Name="Step0Ring" Stroke="#C9D6E6" StrokeThickness="1.5" />
+                            <Ellipse x:Name="Step0Done" Fill="#0B7A35" Visibility="Collapsed" />
+                            <Path x:Name="Step0Tick" Data="M4,10 L8,14 L16,6" Stroke="White" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  StrokeLineJoin="Round" Width="10" Height="10" Stretch="Uniform" Visibility="Collapsed" />
+                        </Grid>
+                        <TextBlock x:Name="Step0Label" Grid.Column="1" Text="Downloading" VerticalAlignment="Center" Foreground="#98A6B8"
+                                   FontFamily="Arial" FontSize="12" FontWeight="Bold" />
+                        <TextBlock x:Name="Step0Detail" Grid.Column="2" VerticalAlignment="Center" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10.5" />
+                    </Grid>
+                    <ProgressBar x:Name="DownloadBar" Height="8" Minimum="0" Maximum="100" Value="0" Margin="28,2,0,8">
+                        <ProgressBar.Template>
+                            <ControlTemplate TargetType="ProgressBar">
+                                <Grid>
+                                    <Border x:Name="PART_Track" Background="#E6EDF6" CornerRadius="4" />
+                                    <Border x:Name="PART_Indicator" Background="{StaticResource CfBlue}" CornerRadius="4" HorizontalAlignment="Left" />
+                                </Grid>
+                            </ControlTemplate>
+                        </ProgressBar.Template>
+                    </ProgressBar>
+                    <Grid Height="26">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Grid Width="18" Height="18" HorizontalAlignment="Left">
+                            <Ellipse x:Name="Step1Ring" Stroke="#C9D6E6" StrokeThickness="1.5" />
+                            <Ellipse x:Name="Step1Done" Fill="#0B7A35" Visibility="Collapsed" />
+                            <Path x:Name="Step1Tick" Data="M4,10 L8,14 L16,6" Stroke="White" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  StrokeLineJoin="Round" Width="10" Height="10" Stretch="Uniform" Visibility="Collapsed" />
+                        </Grid>
+                        <TextBlock x:Name="Step1Label" Grid.Column="1" Text="Checking the download" VerticalAlignment="Center" Foreground="#98A6B8"
+                                   FontFamily="Arial" FontSize="12" FontWeight="Bold" />
+                    </Grid>
+                    <Grid Height="26">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Grid Width="18" Height="18" HorizontalAlignment="Left">
+                            <Ellipse x:Name="Step2Ring" Stroke="#C9D6E6" StrokeThickness="1.5" />
+                            <Ellipse x:Name="Step2Done" Fill="#0B7A35" Visibility="Collapsed" />
+                            <Path x:Name="Step2Tick" Data="M4,10 L8,14 L16,6" Stroke="White" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  StrokeLineJoin="Round" Width="10" Height="10" Stretch="Uniform" Visibility="Collapsed" />
+                        </Grid>
+                        <TextBlock x:Name="Step2Label" Grid.Column="1" Text="Installing and restarting" VerticalAlignment="Center" Foreground="#98A6B8"
+                                   FontFamily="Arial" FontSize="12" FontWeight="Bold" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
             <TextBlock x:Name="StatusText" Margin="0,12,0,0" Foreground="{StaticResource CfMuted}" FontFamily="Arial"
                        FontSize="10" TextWrapping="Wrap"
                        Text="The app downloads the update, checks it, and restarts. Your settings stay as they are." />

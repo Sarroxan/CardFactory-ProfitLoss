@@ -11,6 +11,9 @@ namespace CardFactory.ProfitLoss.App.Services;
 
 public sealed record UpdateInfo(Version Version, string Tag, string Notes, string ZipUrl, string ChecksumUrl);
 
+/// <summary>Step 0 downloading (with bytes), 1 checking the download, 2 installing and restarting.</summary>
+public sealed record UpdateProgress(int Step, long Bytes = 0, long Total = 0);
+
 /// <summary>
 /// Checks this repository's GitHub releases for a newer numbered version, and installs it.
 /// Only full releases tagged vX.Y.Z count; test builds are never published as releases. The repository is public, so no token is involved.
@@ -79,20 +82,37 @@ public static class UpdateService
     }
 
     /// <summary>Downloads, verifies and swaps in the update, then starts it. The caller shuts down.</summary>
-    public static async Task ApplyAsync(UpdateInfo update, IProgress<string> progress)
+    public static async Task ApplyAsync(UpdateInfo update, IProgress<UpdateProgress> progress)
     {
         var current = Environment.ProcessPath ?? throw new InvalidOperationException("Could not tell where the app is running from.");
         var work = Path.Combine(Path.GetTempPath(), "CardFactory-ProfitLoss-update");
         if (Directory.Exists(work)) Directory.Delete(work, true);
         Directory.CreateDirectory(work);
 
-        progress.Report("Downloading version " + Display(update.Version) + "…");
+        progress.Report(new UpdateProgress(0));
         var zipPath = Path.Combine(work, ZipName);
-        await using (var download = await Http.GetStreamAsync(update.ZipUrl))
-        await using (var file = File.Create(zipPath))
-            await download.CopyToAsync(file);
+        using (var response = await Http.GetAsync(update.ZipUrl, HttpCompletionOption.ResponseHeadersRead))
+        {
+            response.EnsureSuccessStatusCode();
+            var total = response.Content.Headers.ContentLength ?? 0;
+            await using var download = await response.Content.ReadAsStreamAsync();
+            await using var file = File.Create(zipPath);
+            var buffer = new byte[81920];
+            long done = 0, lastReported = 0;
+            int read;
+            while ((read = await download.ReadAsync(buffer)) > 0)
+            {
+                await file.WriteAsync(buffer.AsMemory(0, read));
+                done += read;
+                if (done - lastReported >= 256 * 1024 || done == total)
+                {
+                    lastReported = done;
+                    progress.Report(new UpdateProgress(0, done, total));
+                }
+            }
+        }
 
-        progress.Report("Checking the download…");
+        progress.Report(new UpdateProgress(1));
         var expected = (await Http.GetStringAsync(update.ChecksumUrl)).Trim().Split(' ', '\t', '\r', '\n')[0].ToLowerInvariant();
         string actual;
         await using (var file = File.OpenRead(zipPath))
@@ -110,7 +130,7 @@ public static class UpdateService
             entry.ExtractToFile(newExe, true);
         }
 
-        progress.Report("Installing…");
+        progress.Report(new UpdateProgress(2));
         var old = current + ".old";
         File.Move(current, old, true);
         try
