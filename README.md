@@ -44,8 +44,9 @@ There is no need for a Windows machine. Pushing to `main` triggers
 `.github/workflows/build.yml`, which builds on a GitHub-hosted Windows
 runner, runs the tests, and publishes a self-contained `win-x64` build.
 
-Download it from the **latest-test** pre-release on the repository's Releases
-page. Each build replaces it.
+Install a numbered release from the repository's **Releases** page. Each push
+also leaves a test build on its run in the **Actions** tab (under Artifacts, kept
+for 14 days) for trying changes before they are released.
 
 Locally (on Windows, with the .NET 8 SDK):
 
@@ -60,8 +61,8 @@ The machine running the app needs the **Microsoft Edge WebView2 Runtime**.
 
 ## Releasing an update
 
-Every push to `main` refreshes the **latest-test** pre-release, for testing. The
-app's updater never offers that - only numbered releases. To publish one:
+Test builds never reach the updater - it only offers numbered releases. To
+publish one:
 
 1. Set the new number in `Directory.Build.props` (`Version`, `AssemblyVersion`,
    `FileVersion`), commit and push.
