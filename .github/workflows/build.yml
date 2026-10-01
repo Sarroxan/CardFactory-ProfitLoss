@@ -11,11 +11,8 @@ on:
 permissions:
   contents: write
 
-# Stage 6A.79: every run replaces the same rolling "latest-test" release. Pushing
-# several commits close together started that many runs at once, and they raced to
-# delete and recreate one release - one lost and reported a red build even though
-# the compile, tests and package had all passed. Only the newest commit matters, so
-# supersede rather than race.
+# Pushing several commits close together starts a run for each; only the newest
+# matters, so newer runs supersede older ones rather than racing.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

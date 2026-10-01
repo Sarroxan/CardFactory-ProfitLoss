@@ -13,8 +13,7 @@ public sealed record UpdateInfo(Version Version, string Tag, string Notes, strin
 
 /// <summary>
 /// Checks this repository's GitHub releases for a newer numbered version, and installs it.
-/// Only full releases tagged vX.Y.Z count - the rolling "latest-test" build is a
-/// pre-release and is never offered. The repository is public, so no token is involved.
+/// Only full releases tagged vX.Y.Z count; test builds are never published as releases. The repository is public, so no token is involved.
 ///
 /// Installing: download the release zip, check it against the release's .sha256 file,
 /// take the exe out of it, rename the running exe aside (Windows allows renaming a running
