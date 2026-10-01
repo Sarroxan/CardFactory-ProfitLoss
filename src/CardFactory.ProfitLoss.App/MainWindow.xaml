@@ -215,6 +215,27 @@
                                    Margin="7,0,0,0" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Update design U3: a yellow "Update" pill, shown only when a newer release
+                             exists. Yellow because it is something to act on. Opens UpdateWindow (U2). -->
+                        <Button x:Name="UpdateButton" Visibility="Collapsed" Click="UpdateButton_Click" Height="24"
+                                Margin="0,0,8,0" VerticalAlignment="Center" Cursor="Hand" FocusVisualStyle="{x:Null}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="UpdatePill" Background="{StaticResource CfYellow}" CornerRadius="12" Padding="9,0,11,0">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="M10,3 L10,13 M6,9 L10,13 L14,9 M4,16 L16,16" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2"
+                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                  Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                                            <TextBlock Text="Update" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                       FontFamily="Arial" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="UpdatePill" Property="Background" Value="#FFD84D" /></Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
                         <!-- Stage 6B.68 (M3): a labelled "Menu" pill in the Add person style, so it no
                              longer looks like a third window button beside minimise and close. -->
                         <Button x:Name="MenuButton" ToolTip="Menu" Click="MenuButton_Click" Width="68" Height="24"

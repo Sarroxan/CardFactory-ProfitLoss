@@ -3,6 +3,9 @@ name: Build Card Factory Profit & Loss
 on:
   push:
     branches: [ "main" ]
+    # Numbered releases: pushing a tag vX.Y.Z also publishes that build as a full
+    # release, which is what the app's updater offers.
+    tags: [ "v*" ]
   workflow_dispatch: {}
 
 permissions:
@@ -87,13 +90,43 @@ jobs:
 
       # Builds are delivered through a SINGLE rolling pre-release, not workflow
       # artifacts and not a growing list of releases:
-      #   * artifact upload fails on this private repo - the per-account Actions
+      #   * artifact upload failed while this repo was private - the per-account Actions
       #     artifact storage quota is exhausted, and it fails even for a few bytes;
       #   * a new release per push would pile up untested builds.
       # The tag below is deleted and recreated each run, so there is never more
       # than one entry, and it is marked as a pre-release because nothing here has
       # been confirmed against live Flooid yet. When a build IS confirmed working,
-      # cut a proper versioned release from it by hand.
+      # tag it vX.Y.Z (see "Publish version release") and it becomes a full release.
+      # The updater only offers full releases. The tag must match <Version> in
+      # Directory.Build.props, so the version the app reports and the release it came
+      # from can never disagree, and the release carries a .sha256 that the updater checks
+      # every download against. Release notes are the annotated tag's message.
+      - name: Publish version release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          [xml]$props = Get-Content Directory.Build.props
+          $version = @($props.Project.PropertyGroup | ForEach-Object { $_.Version } | Where-Object { $_ })[0]
+          if ("v$version" -ne $tag) { Write-Error "Tag $tag does not match Version $version in Directory.Build.props"; exit 1 }
+
+          $hash = (Get-FileHash CardFactory-ProfitLoss-win-x64.zip -Algorithm SHA256).Hash.ToLower()
+          [IO.File]::WriteAllText("CardFactory-ProfitLoss-win-x64.zip.sha256", "$hash  CardFactory-ProfitLoss-win-x64.zip")
+
+          $notes = ""
+          $ref = gh api "repos/${{ github.repository }}/git/ref/tags/$tag" | ConvertFrom-Json
+          if ($ref.object.type -eq "tag") {
+            $notes = (gh api "repos/${{ github.repository }}/git/tags/$($ref.object.sha)" | ConvertFrom-Json).message
+          }
+          if (-not $notes) { $notes = "Improvements and fixes." }
+          [IO.File]::WriteAllText("release-notes.md", $notes)
+
+          gh release create $tag CardFactory-ProfitLoss-win-x64.zip CardFactory-ProfitLoss-win-x64.zip.sha256 `
+            --title "Card Factory Profit & Loss $version" --notes-file release-notes.md --latest
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
       - name: Clear the build failure notice
         if: success()
         shell: pwsh

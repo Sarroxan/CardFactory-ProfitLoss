@@ -73,6 +73,7 @@ public partial class MainWindow : Window
 
         if (_loadedAutoState) return;
         _loadedAutoState = true;
+        _ = CheckForUpdateAsync();   // once per launch, in the background
         if (DataContext is not MainViewModel viewModel) return;
 
         try
@@ -394,6 +395,25 @@ public partial class MainWindow : Window
             _flooidLoginWindow.ConnectionStatusChanged -= FlooidLoginWindow_ConnectionStatusChanged;
             _flooidLoginWindow = null;
         }
+    }
+
+    private UpdateInfo? _availableUpdate;
+
+    private async Task CheckForUpdateAsync()
+    {
+        var update = await UpdateService.CheckAsync();
+        if (update is null) return;
+        _availableUpdate = update;
+        UpdateButton.ToolTip = "Version " + UpdateService.Display(update.Version) + " is available";
+        UpdateButton.Visibility = Visibility.Visible;
+    }
+
+    private void UpdateButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_availableUpdate is null) return;
+        var dialog = new UpdateWindow(_availableUpdate) { Owner = this };
+        dialog.ShowDialog();
+        if (dialog.Installed) Application.Current.Shutdown();
     }
 
     private void MenuButton_Click(object sender, RoutedEventArgs e)

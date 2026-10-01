@@ -8,6 +8,7 @@ public partial class App : Application
     // left on the desktop into the app's own folder.
     protected override void OnStartup(StartupEventArgs e)
     {
+        Services.UpdateService.FinishPendingUpdate(e.Args);   // after an update: wait for the old copy, remove it
         Infrastructure.AppFiles.MoveOffDesktop();
         base.OnStartup(e);
     }

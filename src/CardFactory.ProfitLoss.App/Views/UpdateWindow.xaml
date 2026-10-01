@@ -1,0 +1,66 @@
+<Window x:Class="CardFactory.ProfitLoss.App.Views.UpdateWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Update available"
+        Width="430"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False">
+    <!-- Update design U2: the dialogs' navy band, what changed, then Later / Update and restart. -->
+    <Border Margin="12"
+            Padding="22"
+            Background="White"
+            BorderBrush="{StaticResource CfLine}"
+            BorderThickness="1"
+            CornerRadius="20">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="5" Opacity="0.20" Color="#183153" />
+        </Border.Effect>
+        <StackPanel>
+            <Border Margin="-22,-22,-22,0" Padding="22,16,22,16"
+                    Background="{StaticResource CfDeepBlue}" CornerRadius="19,19,0,0">
+                <Grid MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" Background="#FFF6C9" CornerRadius="12">
+                            <Path Data="M10,3 L10,13 M6,9 L10,13 L14,9 M4,16 L16,16" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.9"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                  Width="20" Height="20" Stretch="Uniform" />
+                        </Border>
+                        <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Update available" Foreground="White" FontFamily="Arial" FontSize="18" FontWeight="Bold" />
+                            <TextBlock x:Name="VersionText" Foreground="#C9D6E8" FontFamily="Arial" FontSize="10" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Button x:Name="CloseButton" Grid.Column="1" Width="30" Height="30" Content="×" FontSize="18"
+                            Style="{StaticResource NavyBandCloseButtonStyle}" Click="Later_Click" />
+                </Grid>
+            </Border>
+
+            <TextBlock Text="WHAT'S NEW" Margin="0,18,0,6" Foreground="{StaticResource CfMuted}"
+                       FontFamily="Arial" FontSize="9.5" FontWeight="Bold" />
+            <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <TextBlock x:Name="NotesText" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial"
+                           FontSize="12" LineHeight="19" TextWrapping="Wrap" />
+            </ScrollViewer>
+
+            <TextBlock x:Name="StatusText" Margin="0,12,0,0" Foreground="{StaticResource CfMuted}" FontFamily="Arial"
+                       FontSize="10" TextWrapping="Wrap"
+                       Text="The app downloads the update, checks it, and restarts. Your settings stay as they are." />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+                <Button x:Name="LaterButton" Content="Later" Width="88" Height="34"
+                        Style="{StaticResource ModernSecondaryButtonStyle}" Click="Later_Click" />
+                <Button x:Name="UpdateNowButton" Content="Update and restart" Height="34" MinWidth="150" Margin="8,0,0,0" Padding="16,0"
+                        Tag="NoGlyph" Style="{StaticResource FlooidActionButtonStyle}" Click="UpdateNow_Click" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

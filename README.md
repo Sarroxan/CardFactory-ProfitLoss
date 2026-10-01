@@ -58,6 +58,27 @@ dotnet publish src/CardFactory.ProfitLoss.App/CardFactory.ProfitLoss.App.csproj 
 
 The machine running the app needs the **Microsoft Edge WebView2 Runtime**.
 
+## Releasing an update
+
+Every push to `main` refreshes the **latest-test** pre-release, for testing. The
+app's updater never offers that - only numbered releases. To publish one:
+
+1. Set the new number in `Directory.Build.props` (`Version`, `AssemblyVersion`,
+   `FileVersion`), commit and push.
+2. Tag that commit with an annotated tag whose message is the "What's new" text,
+   and push the tag:
+
+   ```bash
+   git tag -a v1.0.1 -m "• Faster Gift Cards retrieval
+   • Fix for the back office window size"
+   git push origin v1.0.1
+   ```
+
+The build checks the tag matches the version, then publishes release `v1.0.1`
+with the app and a `.sha256` checksum. Running copies see it at their next launch
+(a yellow **Update** button in the title bar), check the download against the
+checksum, replace themselves and restart.
+
 ---
 
 ## Known limitations
