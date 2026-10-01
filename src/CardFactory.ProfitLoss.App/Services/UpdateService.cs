@@ -11,6 +11,9 @@ namespace CardFactory.ProfitLoss.App.Services;
 
 public sealed record UpdateInfo(Version Version, string Tag, string Notes, string ZipUrl, string ChecksumUrl);
 
+/// <summary>Reached: GitHub answered and the latest release was read. Update: newer than this copy, or null.</summary>
+public sealed record UpdateCheck(bool Reached, UpdateInfo? Update);
+
 /// <summary>Step 0 downloading (with bytes), 1 checking the download, 2 installing and restarting.</summary>
 public sealed record UpdateProgress(int Step, long Bytes = 0, long Total = 0);
 
@@ -44,21 +47,21 @@ public static class UpdateService
 
     public static string Display(Version v) => v.Major + "." + v.Minor + "." + v.Build;
 
-    /// <summary>The newest release if it is newer than this copy; null otherwise or on any failure.</summary>
-    public static async Task<UpdateInfo?> CheckAsync()
+    /// <summary>Whether GitHub could be read, and the newest release if it is newer than this copy.</summary>
+    public static async Task<UpdateCheck> CheckAsync()
     {
         try
         {
             using var response = await Http.GetAsync("https://api.github.com/repos/" + Repository + "/releases/latest");
-            if (!response.IsSuccessStatusCode) { Log("check: GitHub answered " + (int)response.StatusCode); return null; }
+            if (!response.IsSuccessStatusCode) { Log("check: GitHub answered " + (int)response.StatusCode); return new UpdateCheck(false, null); }
 
             using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             var root = json.RootElement;
             var tag = root.GetProperty("tag_name").GetString() ?? string.Empty;
-            if (!Version.TryParse(tag.TrimStart('v', 'V'), out var parsed)) { Log("check: latest tag '" + tag + "' is not a version"); return null; }
+            if (!Version.TryParse(tag.TrimStart('v', 'V'), out var parsed)) { Log("check: latest tag '" + tag + "' is not a version"); return new UpdateCheck(false, null); }
 
             var latest = Normalise(parsed);
-            if (latest <= CurrentVersion) { Log("check: up to date (" + Display(CurrentVersion) + ", latest " + Display(latest) + ")"); return null; }
+            if (latest <= CurrentVersion) { Log("check: up to date (" + Display(CurrentVersion) + ", latest " + Display(latest) + ")"); return new UpdateCheck(true, null); }
 
             string? zip = null, checksum = null;
             foreach (var asset in root.GetProperty("assets").EnumerateArray())
@@ -68,16 +71,16 @@ public static class UpdateService
                 if (name == ZipName) zip = url;
                 else if (name == ZipName + ".sha256") checksum = url;
             }
-            if (zip is null || checksum is null) { Log("check: " + tag + " is missing its zip or checksum"); return null; }
+            if (zip is null || checksum is null) { Log("check: " + tag + " is missing its zip or checksum"); return new UpdateCheck(false, null); }
 
             var notes = root.TryGetProperty("body", out var body) ? body.GetString() ?? string.Empty : string.Empty;
             Log("check: " + Display(latest) + " available (this is " + Display(CurrentVersion) + ")");
-            return new UpdateInfo(latest, tag, notes.Trim(), zip, checksum);
+            return new UpdateCheck(true, new UpdateInfo(latest, tag, notes.Trim(), zip, checksum));
         }
         catch (Exception ex)
         {
             Log("check failed: " + ex.Message);
-            return null;
+            return new UpdateCheck(false, null);
         }
     }
 

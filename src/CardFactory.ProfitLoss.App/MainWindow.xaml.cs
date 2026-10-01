@@ -401,11 +401,28 @@ public partial class MainWindow : Window
 
     private async Task CheckForUpdateAsync()
     {
-        var update = await UpdateService.CheckAsync();
-        if (update is null) return;
+        var current = UpdateService.Display(UpdateService.CurrentVersion);
+        VersionChip.Content = "v" + current;
+        VersionChip.ToolTip = "Checking for updates…";
+
+        var check = await UpdateService.CheckAsync();
+        if (!check.Reached)
+        {
+            VersionChip.ToolTip = "Version " + current + " · could not check for updates";
+            return;
+        }
+        if (check.Update is not { } update)
+        {
+            VersionChip.Tag = "UpToDate";
+            VersionChip.Content = "Up to date · v" + current;
+            VersionChip.ToolTip = "This is the latest version";
+            return;
+        }
+
         _availableUpdate = update;
-        UpdateButton.ToolTip = "Version " + UpdateService.Display(update.Version) + " is available";
-        UpdateButton.Visibility = Visibility.Visible;
+        VersionChip.Tag = "Available";
+        VersionChip.Content = "Update available · v" + UpdateService.Display(update.Version);
+        VersionChip.ToolTip = "You have " + current + ". Click to update.";
 
         // Offer it straight away, once per launch: update now, or Later and carry on (the
         // Update button stays for later). Not over a Refresh already in progress.
@@ -420,7 +437,10 @@ public partial class MainWindow : Window
         if (dialog.Installed) Application.Current.Shutdown();
     }
 
-    private void UpdateButton_Click(object sender, RoutedEventArgs e) => ShowUpdateDialog();
+    private void VersionChip_Click(object sender, RoutedEventArgs e)
+    {
+        if (Equals(VersionChip.Tag, "Available")) ShowUpdateDialog();
+    }
 
     private void MenuButton_Click(object sender, RoutedEventArgs e)
     {

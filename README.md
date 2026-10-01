@@ -78,7 +78,10 @@ publish one:
 The build checks the tag matches the version, then publishes release `v1.0.1`
 with the app and a `.sha256` checksum. Running copies see it at their next launch
 (a yellow **Update** button in the title bar), check the download against the
-checksum, replace themselves and restart.
+checksum, replace themselves and restart. The version chip in the title bar shows
+the running version and whether it is up to date.
+
+Changes are gathered and released together rather than one release per change.
 
 ---
 
