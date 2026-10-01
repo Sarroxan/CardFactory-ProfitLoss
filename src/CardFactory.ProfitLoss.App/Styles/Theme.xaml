@@ -1,0 +1,962 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Exact palette from the approved audited HTML. -->
+    <SolidColorBrush x:Key="CfBlue" Color="#004EA1" />
+    <SolidColorBrush x:Key="CfDeepBlue" Color="#00376E" />
+    <SolidColorBrush x:Key="CfBlueSoft" Color="#EAF2FF" />
+    <SolidColorBrush x:Key="CfYellow" Color="#FFC907" />
+    <SolidColorBrush x:Key="CfPaper" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="CfInk" Color="#183153" />
+    <SolidColorBrush x:Key="CfMuted" Color="#667891" />
+    <SolidColorBrush x:Key="CfLine" Color="#D4DEEA" />
+    <SolidColorBrush x:Key="CfLineSoft" Color="#EDF1F6" />
+    <SolidColorBrush x:Key="CfPanelSoft" Color="#F7F9FC" />
+    <SolidColorBrush x:Key="CfGood" Color="#0B7A35" />
+    <SolidColorBrush x:Key="CfGoodBackground" Color="#EAF7EF" />
+    <SolidColorBrush x:Key="CfBad" Color="#B3262D" />
+    <SolidColorBrush x:Key="CfBadBackground" Color="#FDECEF" />
+    <SolidColorBrush x:Key="CfFormulaBackground" Color="#FFFDF4" />
+    <SolidColorBrush x:Key="CfFormulaLine" Color="#F0DE94" />
+
+    <Style TargetType="Window">
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="Foreground" Value="{StaticResource CfInk}" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+    </Style>
+
+    <!-- HTML-like small labels. Fixed Chewy headings are rendered from the original embedded font as high-DPI artwork. -->
+    <Style x:Key="HtmlFieldLabelStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="8" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+    </Style>
+
+    <Style x:Key="HtmlWatermarkTextBoxStyle" TargetType="TextBox">
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="8,3" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="BorderBrush" Value="#CFDBEA" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="CaretBrush" Value="{StaticResource CfBlue}" />
+        <Setter Property="SelectionBrush" Value="#BFD8F5" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10">
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center" />
+                            <TextBlock x:Name="Watermark"
+                                       Text="{TemplateBinding Tag}"
+                                       Foreground="#92A3BA"
+                                       FontFamily="Arial"
+                                       FontSize="10.5"
+                                       FontWeight="SemiBold"
+                                       Margin="9,0"
+                                       VerticalAlignment="Center"
+                                       Visibility="Collapsed"
+                                       IsHitTestVisible="False" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Watermark" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="#AFC4DE" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource CfBlue}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Stage 6B.09: the target labels were 268x40 palette PNGs drawn at 67x10 - a
+         quarter of their size - so the capitals landed at about 6px and there were not
+         enough pixels left to form the letters. That is why they were unreadable, and no
+         render setting fixes it. Live text instead. WPF has no letter-spacing on
+         TextBlock, so this is plain bold rather than the tracked small caps of the
+         artwork; at 10px it is sharp, which the artwork was not. -->
+    <Style x:Key="TargetLabelTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource CfBlue}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="11,0,0,0" />
+    </Style>
+
+    <Style x:Key="HtmlTargetTextBoxStyle" TargetType="TextBox">
+        <Setter Property="Height" Value="25" />
+        <!-- Stage 6B.07: concept NN. Removing the yellow underline in 6B.06 left a label
+             floating over white space, which reads as a figure you cannot change. The rule
+             had been doing the "you can type here" job by accident. An inset filled field
+             does it properly, without a colour carrying the meaning. Padding 2 to 8 so the
+             text is not flush against the new edge. -->
+        <Setter Property="Padding" Value="8,0" />
+        <!-- Stage 6B.09: back to white. The blue label strip above now gives the card its
+             structure, so an inset filled field as well would be two treatments doing one
+             job. The focus state below still says clearly when you are in it. -->
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="CaretBrush" Value="{StaticResource CfBlue}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Field"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="Transparent"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                    <Grid>
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="Center" />
+                        <TextBlock x:Name="Watermark"
+                                   Text="{TemplateBinding Tag}"
+                                   Foreground="#92A3BA"
+                                   FontFamily="Arial"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Visibility="Collapsed"
+                                   IsHitTestVisible="False" />
+                    </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!-- Focus turns the field white with a blue edge. Once something looks
+                             like an input it has to behave like one when you are in it. -->
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Field" Property="Background" Value="#F1F6FC" />
+                            <Setter TargetName="Field" Property="BorderBrush" Value="{StaticResource CfBlue}" />
+                        </Trigger>
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Watermark" Property="Visibility" Value="Visible" />
+                            <Setter Property="HorizontalContentAlignment" Value="Center" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="HtmlGridInputStyle" TargetType="TextBox">
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="7,3" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="BorderBrush" Value="#CFDAE8" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="CaretBrush" Value="{StaticResource CfBlue}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="B"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="12">
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="#AFC4DE" /></Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="{StaticResource CfBlue}" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="HtmlRemoveButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource CfBadBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource CfBad}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Height" Value="23" />
+        <Setter Property="MinWidth" Value="55" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="B" Background="{TemplateBinding Background}" CornerRadius="7" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#F9DDE1" /></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Opacity" Value="0.78" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="HtmlMetricTextStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Style.Triggers>
+            <Trigger Property="Tag" Value="Good"><Setter Property="Foreground" Value="{StaticResource CfGood}" /></Trigger>
+            <Trigger Property="Tag" Value="Bad"><Setter Property="Foreground" Value="{StaticResource CfBad}" /></Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="HtmlTotalResultBoxStyle" TargetType="Border">
+        <Setter Property="Width" Value="78" />
+        <Setter Property="Height" Value="28" />
+        <!-- Stage 6B.06: was a 2px yellow ring on a cream field. These sit directly under
+             the totals row and were the loudest yellow on the page while carrying figures
+             nobody clicks. Quiet field, thin grey edge; the numbers still colour themselves
+             green or red through HtmlMetricTextStyle, which is what actually matters here. -->
+        <Setter Property="Background" Value="#F7F9FC" />
+        <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+    </Style>
+
+
+    <!-- Stage 6A.25: Team Performance scrollbar. Slim, rounded, yellow, and intentionally arrow-free. -->
+    <Style x:Key="CfTeamScrollThumbStyle" TargetType="Thumb">
+        <Setter Property="Background" Value="{StaticResource CfYellow}" />
+        <Setter Property="BorderBrush" Value="#DCAF00" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="MinHeight" Value="24" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Border x:Name="ThumbBody"
+                            Margin="1.5,1"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="5" />
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ThumbBody" Property="Background" Value="#F1BB00" />
+                            <Setter TargetName="ThumbBody" Property="BorderBrush" Value="#C99B00" />
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="ThumbBody" Property="Background" Value="#DFAA00" />
+                            <Setter TargetName="ThumbBody" Property="BorderBrush" Value="{StaticResource CfDeepBlue}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CfTeamScrollBarStyle" TargetType="ScrollBar">
+        <Setter Property="Width" Value="10" />
+        <Setter Property="MinWidth" Value="10" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource CfYellow}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollBar">
+                    <Grid Width="10" Background="Transparent">
+                        <Border Margin="2,1"
+                                Background="#FFF9DD"
+                                BorderBrush="#F2E6B5"
+                                BorderThickness="1"
+                                CornerRadius="5" />
+                        <Track x:Name="PART_Track"
+                               Orientation="Vertical"
+                               IsDirectionReversed="True"
+                               Margin="0,1">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}"
+                                              Background="Transparent"
+                                              BorderThickness="0"
+                                              Opacity="0" />
+                            </Track.DecreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource CfTeamScrollThumbStyle}" />
+                            </Track.Thumb>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}"
+                                              Background="Transparent"
+                                              BorderThickness="0"
+                                              Opacity="0" />
+                            </Track.IncreaseRepeatButton>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Generic controls used by the in-app Flooid overlay. -->
+    <Style x:Key="ModernPrimaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource CfBlue}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderBrush" Value="{StaticResource CfBlue}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="B" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#0E5BB8" /></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#00376E" /></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.42" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ModernSecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernPrimaryButtonStyle}">
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
+    </Style>
+
+    <!-- Stage 6A.26: restrained destructive action used only for resetting saved app settings. -->
+    <Style x:Key="DangerOutlineButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="#FFF9F9" />
+        <Setter Property="Foreground" Value="{StaticResource CfBad}" />
+        <Setter Property="BorderBrush" Value="#E3A7AC" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="12,7" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="DangerBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="9"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="DangerBorder" Property="Background" Value="#FFF0F1" />
+                            <Setter TargetName="DangerBorder" Property="BorderBrush" Value="#D57A82" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="DangerBorder" Property="Opacity" Value="0.78" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Modern custom menu. All menu glyphs are vector Paths in MainWindow.xaml. -->
+    <Style x:Key="ModernMenuTileStyle" TargetType="Button">
+        <Setter Property="Background" Value="#FBFDFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10" />
+        <Setter Property="MinHeight" Value="62" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="B" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#F1F7FF" /><Setter TargetName="B" Property="BorderBrush" Value="#BBD0E9" /></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#E8F2FF" /></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.52" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="BranchMenuTileStyle" TargetType="Button" BasedOn="{StaticResource ModernMenuTileStyle}">
+        <Setter Property="Background" Value="#F6FAFF" />
+    </Style>
+
+    <Style x:Key="MenuIconBadgeStyle" TargetType="Border">
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="Background" Value="#FFF6C9" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="MenuTileTitleStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <Style x:Key="MenuTileHintStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="8" />
+        <Setter Property="Margin" Value="0,2,0,0" />
+    </Style>
+
+
+    <Style x:Key="CalendarWeekHeaderStyle" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="8" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <Style x:Key="ThemedPeriodDateButtonStyle" TargetType="Button">
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="BorderBrush" Value="#CFDBEA" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="9,0,6,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="DateButtonBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="9"
+                            Padding="{TemplateBinding Padding}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="24" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter VerticalAlignment="Center" />
+                            <Border Grid.Column="1"
+                                    Width="20" Height="20"
+                                    HorizontalAlignment="Right"
+                                    Background="#EAF2FF"
+                                    CornerRadius="6">
+                                <Grid Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Path Data="M2,3.5 L10,3.5 M3.5,1.5 L3.5,4.5 M8.5,1.5 L8.5,4.5 M2,3.5 L2,10 L10,10 L10,3.5 Z"
+                                          Stroke="{StaticResource CfDeepBlue}"
+                                          StrokeThickness="1.15"
+                                          StrokeLineJoin="Round"
+                                          Fill="Transparent" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="DateButtonBorder" Property="BorderBrush" Value="{StaticResource CfYellow}" />
+                            <Setter TargetName="DateButtonBorder" Property="Background" Value="#FFFDF4" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="DateButtonBorder" Property="Background" Value="#FFF8D8" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="DateButtonBorder" Property="BorderBrush" Value="{StaticResource CfDeepBlue}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="HtmlDatePickerStyle" TargetType="DatePicker">
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DatePicker">
+                    <Border x:Name="B" Background="White" BorderBrush="#CFDBEA" BorderThickness="1" CornerRadius="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="30"/></Grid.ColumnDefinitions>
+                            <DatePickerTextBox x:Name="PART_TextBox"
+                                               Grid.Column="0"
+                                               Background="Transparent"
+                                               BorderThickness="0"
+                                               Padding="8,2"
+                                               FontFamily="Arial"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource CfDeepBlue}"
+                                               VerticalContentAlignment="Center" />
+                            <Button x:Name="PART_Button" Grid.Column="1" Focusable="False" Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand">
+                                <Grid Width="13" Height="13">
+                                    <Path Data="M2,3.5 L11,3.5 M3.5,1.5 L3.5,4.5 M9.5,1.5 L9.5,4.5 M2,3.5 L2,11 L11,11 L11,3.5 Z"
+                                          Stroke="{StaticResource CfMuted}" StrokeThickness="1.15" StrokeLineJoin="Round" Fill="Transparent" />
+                                </Grid>
+                            </Button>
+                            <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True" StaysOpen="False">
+                                <Border Margin="0,4,0,0" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="10" Padding="5">
+                                    <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.14" Color="#183153" /></Border.Effect>
+                                    <Calendar x:Name="PART_Calendar" />
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="#AFC4DE" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+    <!-- Stage 6A.32: Branch Performance and compact themed navigation. -->
+    <Style x:Key="BranchHeaderButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="#F7FBFF" />
+        <Setter Property="BorderBrush" Value="#C9DAED" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="B" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="14">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#EEF6FF" /><Setter TargetName="B" Property="BorderBrush" Value="#9CB9DA" /></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#E5F1FF" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Stage 6B.67 (B1): Branch's Performance / Gift Cards as halves of a split card, like
+         ModeCardSegmentStyle but for Buttons whose Tag="Active" is set in code. Outer
+         corners 9 = the card's 10 less its 1px border. -->
+    <Style x:Key="BranchSplitLeftStyle" TargetType="Button">
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Half" Background="{TemplateBinding Background}" CornerRadius="9,0,0,9">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Half" Property="Background" Value="#F5F9FF" /></Trigger>
+                        <Trigger Property="Tag" Value="Active">
+                            <Setter TargetName="Half" Property="Background" Value="{StaticResource CfBlue}" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="BranchSplitRightStyle" TargetType="Button">
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Half" Background="{TemplateBinding Background}" CornerRadius="0,9,9,0">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Half" Property="Background" Value="#F5F9FF" /></Trigger>
+                        <Trigger Property="Tag" Value="Active">
+                            <Setter TargetName="Half" Property="Background" Value="{StaticResource CfBlue}" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="BranchTabButtonStyle" TargetType="Button">
+        <Setter Property="Height" Value="22" />
+        <Setter Property="MinWidth" Value="86" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="8.5" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="B" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#F2F7FD" /></Trigger>
+                        <Trigger Property="Tag" Value="Active"><Setter TargetName="B" Property="Background" Value="{StaticResource CfBlue}" /><Setter TargetName="B" Property="BorderBrush" Value="{StaticResource CfBlue}" /><Setter Property="Foreground" Value="White" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Stage 6A.85: "Update from Flooid" is the one action on each section header, and
+         it was borrowing BranchTabButtonStyle - a white tab. On the Team header that put
+         a white box on the blue bar; on the Branch header it sat beside Performance and
+         Gift Cards looking like a third tab. It now uses the app's own accent: Card
+         Factory yellow with deep blue text, which reads correctly on both the CfBlue
+         section bar and the pale nav row, and matches the yellow already used on every
+         section border, the formula strip and the Branch Total footer.
+
+         The box is deliberately unchanged - same height, same padding, same 8px radius,
+         same font - so nothing on either header moves. Only the colours differ. -->
+    <Style x:Key="FlooidActionButtonStyle" TargetType="Button">
+        <Setter Property="Height" Value="24" />
+        <!-- Stage 6A.87: back down from 104. "Refresh" is far shorter than the old
+             "Update from Flooid", so the glyph and its 6px gap still fit in 78. -->
+        <Setter Property="MinWidth" Value="78" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="Background" Value="{StaticResource CfYellow}" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="BorderBrush" Value="#E0AC00" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="8.5" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="B"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8"
+                            Padding="{TemplateBinding Padding}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <!-- Stage 6A.91: the standard two-arrow refresh mark, the chosen design. It is the shape
+                                 every application uses for refresh, so it needs no learning,
+                                 and stroked arcs read more clearly at this size than the solid
+                                 block that preceded them.
+
+                                 Geometry converted from Tabler Icons "refresh" (MIT), which is
+                                 drawn on a 24x24 grid: two arcs of the same circle facing
+                                 opposite ways, each with a right-angle tick at its open end
+                                 forming the arrowhead. Four subpaths, each starting with its
+                                 own M so nothing joins arc to tick.
+
+                                 Stroked from Foreground, so it follows the text colour in every
+                                 state. Drawn at 13 with a 1.5 stroke: WPF does not scale stroke
+                                 thickness with Stretch, so the thickness is in final pixels -
+                                 1.5 at 13 is slightly heavier than Tabler's own 2 at 24, which
+                                 is deliberate, since the previous mark was called hard to see. -->
+                            <Path x:Name="Glyph"
+                                  Data="M20,11 A8.1,8.1 0 0 0 4.5,9 M4,5 V9 H8 M4,13 A8.1,8.1 0 0 0 19.5,15 M20,19 V15 H16"
+                                  Stroke="{TemplateBinding Foreground}"
+                                  StrokeThickness="1.5"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  StrokeLineJoin="Round"
+                                  Fill="Transparent"
+                                  Width="13" Height="13"
+                                  Stretch="Uniform"
+                                  Margin="0,0,6,0"
+                                  VerticalAlignment="Center" />
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="B" Property="Background" Value="#FFD640" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="B" Property="Background" Value="#EDB800" />
+                            <Setter TargetName="B" Property="BorderBrush" Value="#C99A00" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="B" Property="Opacity" Value="0.45" />
+                        </Trigger>
+                        <!-- Stage 6B.25: the Sign in button borrows this style, and was carrying
+                             the refresh arrows with it - a refresh mark on a sign-in button.
+                             Tag="NoGlyph" drops the mark and keeps everything else. -->
+                        <Trigger Property="Tag" Value="NoGlyph">
+                            <Setter TargetName="Glyph" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Stage 6B.05: concept FF. An underline tab rather
+         than a filled segment. The application's own title sits over a yellow rule, so
+         this repeats a device the header already uses instead of adding a box to it -
+         which is what "blocky" meant. There is no fill and no border: the active tab is
+         deep blue over a 3px yellow rule, the inactive one is muted with a transparent
+         rule of the same height, so nothing shifts when the selection changes. -->
+    <!-- Stage 6B.29: menu rows. The menu was a grid of bordered cards, each with a
+         hand-drawn Path icon in a badge. Cards suit a grid of equals; this is a short
+         list of actions, and rows read faster. It also retires nine more hand-drawn
+         glyphs, which are the same fiddly geometry that went wrong twice on Refresh. -->
+    <!-- Stage 6B.31: the sign-in card used stock WPF TextBox and PasswordBox chrome -
+         square, grey, 3D - next to a themed yellow button, which is why it read as older
+         than the rest of the application. Same treatment as the target fields: pale field,
+         thin edge, 8px radius, blue edge on focus. -->
+    <!-- Stage 6B.66 (sign-in design S3): a person / padlock icon inside each field, and
+         the edge the same colour as the fill so the fields read as soft shapes; the blue
+         focus edge is unchanged. -->
+    <Style x:Key="SignInFieldStyle" TargetType="TextBox">
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="CaretBrush" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="Background" Value="#F3F7FD" />
+        <Setter Property="BorderBrush" Value="#F3F7FD" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Field" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                        <Grid>
+                            <Path Data="M10,10 A3.5,3.5 0 1 0 10,3 A3.5,3.5 0 1 0 10,10 M3.5,17.5 C4.5,13.5 15.5,13.5 16.5,17.5" Stroke="#7F92AB" StrokeThickness="1.7" StrokeLineJoin="Round"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="32,0,10,0" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Field" Property="Background" Value="White" />
+                            <Setter TargetName="Field" Property="BorderBrush" Value="{StaticResource CfBlue}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SignInPasswordStyle" TargetType="PasswordBox">
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="CaretBrush" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="Background" Value="#F3F7FD" />
+        <Setter Property="BorderBrush" Value="#F3F7FD" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="PasswordBox">
+                    <Border x:Name="Field" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                        <Grid>
+                            <Path Data="M5,9 L15,9 L15,17 L5,17 Z M7,9 L7,6.5 A3,3 0 0 1 13,6.5 L13,9" Stroke="#7F92AB" StrokeThickness="1.7" StrokeLineJoin="Round"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="32,0,10,0" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Field" Property="Background" Value="White" />
+                            <Setter TargetName="Field" Property="BorderBrush" Value="{StaticResource CfBlue}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="MenuRowButtonStyle" TargetType="Button">
+        <Setter Property="Height" Value="34" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Row" Background="{TemplateBinding Background}" CornerRadius="7" Padding="12,0">
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Row" Property="Background" Value="#EEF4FB" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="#B6C4D6" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Stage 6B.61: the × on a dialog's navy header band. The default button chrome
+         turns pale on hover, which would hide a white ×. -->
+    <Style x:Key="NavyBandCloseButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="CloseBack" Background="{TemplateBinding Background}" CornerRadius="9">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="CloseBack" Property="Background" Value="#1A4C82" /></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="CloseBack" Property="Background" Value="#0F4376" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Stage 6B.60: the tabs sit on the navy header now. Inactive #9FB6D6 (light blue),
+         hover and active white; the active tab keeps its yellow rule, hover shows a faint
+         white one. Used only by the two header tabs. -->
+    <Style x:Key="SectionTabButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#9FB6D6" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="3" />
+                        </Grid.RowDefinitions>
+                        <ContentPresenter Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,5" />
+                        <!-- Always present, transparent when inactive, so the label never moves. -->
+                        <!-- Stage 6B.08: inset 22 rather than 4. With "Team Performance" the rule
+                             would otherwise be a ~160px yellow bar, which after 6B.06 reserved yellow
+                             for the controls you act on would make it the loudest thing in the header.
+                             Under the middle of the label it still reads as the active tab. -->
+                        <Border x:Name="Rule" Grid.Row="1" Background="Transparent" CornerRadius="2" Margin="22,0" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter TargetName="Rule" Property="Background" Value="#335F8E" />
+                        </Trigger>
+                        <!-- After hover on purpose: the active tab keeps its yellow rule when
+                             the pointer crosses it. -->
+                        <Trigger Property="Tag" Value="Active">
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter TargetName="Rule" Property="Background" Value="{StaticResource CfYellow}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="BranchTableHeaderTextStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="7.8" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Stage 6B.49 (concept A): Team Performance's value size - 12 bold, as
+         HtmlMetricTextStyle - in the Branch hourly and Gift Cards tables. Row heights are
+         unchanged. Used only by those two tables. -->
+    <Style x:Key="BranchMetricTextStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="BranchSummaryLabelStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="6.6" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="BranchSummaryValueStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="9" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+</ResourceDictionary>

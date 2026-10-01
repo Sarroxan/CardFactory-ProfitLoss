@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>CardFactory.ProfitLoss</AssemblyName>
+    <RootNamespace>CardFactory.ProfitLoss.App</RootNamespace>
+    <ApplicationTitle>Card Factory Profit &amp; Loss Calculator</ApplicationTitle>
+    <ApplicationIcon>Assets\CardFactory.ProfitLoss.ico</ApplicationIcon>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Web.WebView2" />
+    <!-- Stage 6B.19: DPAPI, for the optional remembered Flooid password. -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\CardFactory.ProfitLoss.ico" />
+    <None Remove="Assets\HeaderSmiley.png" />
+    <None Remove="Assets\PerformanceTitleTextExact.png" />
+    <None Remove="Assets\SectionSmiley.png" />
+    <None Remove="Assets\TeamTitleTextExact.png" />
+    <None Remove="Assets\BranchTitleTextExact.png" />
+    <None Remove="Assets\HeaderLogoTitle.png" />
+    <Resource Include="Assets\CardFactory.ProfitLoss.ico" />
+    <Resource Include="Assets\HeaderSmiley.png" />
+    <Resource Include="Assets\PerformanceTitleTextExact.png" />
+    <Resource Include="Assets\SectionSmiley.png" />
+    <Resource Include="Assets\TeamTitleTextExact.png" />
+    <Resource Include="Assets\BranchTitleTextExact.png" />
+    <Resource Include="Assets\HeaderLogoTitle.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CardFactory.ProfitLoss.Core\CardFactory.ProfitLoss.Core.csproj" />
+    <ProjectReference Include="..\CardFactory.ProfitLoss.Flooid\CardFactory.ProfitLoss.Flooid.csproj" />
+    <ProjectReference Include="..\CardFactory.ProfitLoss.ReportParsing\CardFactory.ProfitLoss.ReportParsing.csproj" />
+    <ProjectReference Include="..\CardFactory.ProfitLoss.Storage\CardFactory.ProfitLoss.Storage.csproj" />
+  </ItemGroup>
+</Project>

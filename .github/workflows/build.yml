@@ -1,0 +1,219 @@
+name: Build Card Factory Profit & Loss
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+# Stage 6A.79: every run replaces the same rolling "latest-test" release. Pushing
+# several commits close together started that many runs at once, and they raced to
+# delete and recreate one release - one lost and reported a red build even though
+# the compile, tests and package had all passed. Only the newest commit matters, so
+# supersede rather than race.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore CardFactory.ProfitLoss.sln
+
+      - name: Run tests
+        run: dotnet test CardFactory.ProfitLoss.sln --configuration Release --no-restore
+
+      - name: Publish app
+        shell: pwsh
+        run: |
+          # Stage 6B.13: output is captured so a failure can be reported somewhere
+          # readable. The run log lives on a storage host, and the check-run
+          # annotations API needs a Checks permission the working token does not have,
+          # so a red build previously said only "Publish app failed" with no compiler
+          # error anywhere reachable. Two stages were spent guessing at one.
+          dotnet publish src/CardFactory.ProfitLoss.App/CardFactory.ProfitLoss.App.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            --output publish 2>&1 | Tee-Object -FilePath build-output.txt
+          if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
+
+      - name: Report build errors
+        if: failure()
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The compiler errors go into a prerelease. An issue was tried first, but reading
+          # issues needs an Issues permission the working token does not have, whereas
+          # releases are readable with contents alone.
+          #
+          # Stage 6B.16: one rolling tag rather than one per run. A tag per run meant
+          # build-error-85 and build-error-86 were still sitting above latest-test on the
+          # releases page days after the build was fixed, so the first thing anyone saw
+          # was a stale failure notice. Only the most recent failure is of any use - the
+          # older ones describe code that no longer exists.
+          if (-not (Test-Path build-output.txt)) { exit 0 }
+          $errors = Select-String -Path build-output.txt -Pattern "error [A-Z]+[0-9]+|: error" |
+                    Select-Object -ExpandProperty Line -Unique |
+                    Select-Object -First 40
+          if (-not $errors) { $errors = Get-Content build-output.txt | Select-Object -Last 40 }
+          $body = "Run $env:GITHUB_RUN_NUMBER on commit $env:GITHUB_SHA.`n`n" +
+                  '```' + "`n" + ($errors -join "`n") + "`n" + '```'
+          gh release delete build-error --yes --cleanup-tag 2>$null
+          gh release create build-error `
+            --title "Build failure - run $env:GITHUB_RUN_NUMBER" `
+            --notes $body `
+            --prerelease
+
+      - name: Package build
+        shell: pwsh
+        run: Compress-Archive -Path publish/* -DestinationPath CardFactory-ProfitLoss-win-x64.zip -Force
+
+      # Builds are delivered through a SINGLE rolling pre-release, not workflow
+      # artifacts and not a growing list of releases:
+      #   * artifact upload fails on this private repo - the per-account Actions
+      #     artifact storage quota is exhausted, and it fails even for a few bytes;
+      #   * a new release per push would pile up untested builds.
+      # The tag below is deleted and recreated each run, so there is never more
+      # than one entry, and it is marked as a pre-release because nothing here has
+      # been confirmed against live Flooid yet. When a build IS confirmed working,
+      # cut a proper versioned release from it by hand.
+      - name: Clear the build failure notice
+        if: success()
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Stage 6B.16: a green build removes the failure notice. Without this the notice
+          # outlives the fault and reads as if the build is still broken. Deletion is best
+          # effort - failing to remove a notice must never fail a build that compiled.
+          gh release delete build-error --yes --cleanup-tag 2>$null
+          exit 0
+
+      - name: Replace rolling test build
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Stage 6A.88: the release is never deleted. It used to be deleted and recreated,
+          # so any failure in the create left no download at all.
+          #
+          # Stage 6B.32: every gh call now has its output captured and reported. This step
+          # ran green about 45 times and then failed twice in a row on run 104 with nothing
+          # readable in the log. Guessing at which of three gh commands broke, on a runner
+          # image that updates itself weekly, is not a diagnosis.
+          #
+          # Updating the title and notes is also no longer fatal. The asset is what people
+          # download; cosmetic metadata must not fail a build that compiled and packaged.
+          $title = "Latest test build (UNVERIFIED)"
+          $notes = "Automated build of commit $env:GITHUB_SHA (run $env:GITHUB_RUN_NUMBER).`n`nNot yet confirmed working against live Flooid - for testing only."
+          $report = @()
+
+          $report += "gh version: " + (gh --version 2>&1 | Out-String)
+
+          $out = gh release view latest-test 2>&1 | Out-String
+          $report += "view exit $LASTEXITCODE"
+          if ($LASTEXITCODE -ne 0) {
+            $out = gh release create latest-test --title $title --notes $notes --prerelease 2>&1 | Out-String
+            $report += "create exit $LASTEXITCODE`n$out"
+            if ($LASTEXITCODE -ne 0) { $fatal = "create" }
+          }
+
+          # Stage 6B.33: delete the asset, then upload, then PROVE it landed.
+          #
+          # --clobber was silently doing nothing while returning success. The asset on
+          # latest-test was created 22/09 19:04:47 by run 102; runs 103 and 105 both
+          # reported success and updated the release notes, so the page said "run 105"
+          # over a file built by run 102. Everything from 6B.30 onwards was never in a
+          # download, and nothing anywhere said so.
+          #
+          # An exit code is not evidence that a file changed. The size of what was
+          # uploaded is.
+          $localSize = (Get-Item CardFactory-ProfitLoss-win-x64.zip).Length
+          $report += "local asset size: $localSize"
+
+          if (-not $fatal) {
+            $out = gh release delete-asset latest-test CardFactory-ProfitLoss-win-x64.zip --yes 2>&1 | Out-String
+            $report += "delete-asset exit $LASTEXITCODE`n$out"
+
+            # Stage 6B.34: if the asset cannot be deleted, recreate the release.
+            #
+            # Run 106 reported, from gh 2.100.0:
+            #   delete-asset exit 1  HTTP 404 Not Found .../releases/assets/582049275
+            #   upload exit 1        asset under the same name already exists
+            # The asset is listed by the API and 404s when addressed by its own id - an
+            # orphaned record, most likely left by run 104's failed upload. That is also
+            # why --clobber quietly did nothing: it removes the old asset first, got the
+            # 404, and gave up without reporting it.
+            #
+            # An asset that cannot be deleted cannot be replaced, so the release goes
+            # instead. The tag is kept - no --cleanup-tag - so the download URL and any
+            # bookmark survive.
+            if ($LASTEXITCODE -ne 0) {
+              $out = gh release delete latest-test --yes 2>&1 | Out-String
+              $report += "delete release exit $LASTEXITCODE`n$out"
+              $out = gh release create latest-test --title $title --notes $notes --prerelease 2>&1 | Out-String
+              $report += "recreate exit $LASTEXITCODE`n$out"
+              if ($LASTEXITCODE -ne 0) { $fatal = "recreate" }
+            }
+
+            if (-not $fatal) {
+              $out = gh release upload latest-test CardFactory-ProfitLoss-win-x64.zip 2>&1 | Out-String
+              $report += "upload exit $LASTEXITCODE`n$out"
+              if ($LASTEXITCODE -ne 0) { $fatal = "upload" }
+            }
+          }
+
+          if (-not $fatal) {
+            $out = gh release view latest-test --json assets 2>&1 | Out-String
+            $report += "view assets exit $LASTEXITCODE`n$out"
+            try {
+              $remote = ($out | ConvertFrom-Json).assets | Where-Object { $_.name -eq 'CardFactory-ProfitLoss-win-x64.zip' }
+            } catch { $remote = $null }
+
+            $report += "assets seen: " + (($remote | Measure-Object).Count)
+
+            if (-not $remote) {
+              $fatal = "verify - no asset on the release"
+            } elseif ([int64]$remote.size -ne [int64]$localSize) {
+              $fatal = "verify - published size " + $remote.size + " does not match the build's " + $localSize
+            } else {
+              $report += "verified: published size matches the build"
+            }
+          }
+
+          # Best effort from here. A failure updating the notes is recorded, not fatal.
+          $out = gh release edit latest-test --title $title --notes $notes 2>&1 | Out-String
+          $report += "edit exit $LASTEXITCODE`n$out"
+
+          # Stage 6B.35: the log is published every time, pass or fail.
+          #
+          # Run 107 reported success and left a release with no asset on it at all - which
+          # the size check above should have caught and did not. The success path had just
+          # deleted the only report, so there was nothing to read and nothing to reason
+          # from. A log that exists only when something is known to have gone wrong is
+          # useless precisely when the detection itself is what is wrong.
+          $outcome = if ($fatal) { "FAILED - " + $fatal } else { "ok" }
+          $body = "Run $env:GITHUB_RUN_NUMBER publish: $outcome`n`n``````n" + ($report -join "`n") + "`n``````"
+
+          gh release delete publish-log --yes --cleanup-tag 2>$null
+          gh release create publish-log --title "Publish log - run $env:GITHUB_RUN_NUMBER" --notes $body --prerelease 2>$null
+
+          if ($fatal) { throw "could not publish the build: $fatal" }
+          exit 0

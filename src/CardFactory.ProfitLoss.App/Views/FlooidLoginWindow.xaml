@@ -1,0 +1,341 @@
+<Window x:Class="CardFactory.ProfitLoss.App.Views.FlooidLoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="Flooid Sign In"
+        Width="860"
+        Height="650"
+        MinWidth="400"
+        MinHeight="380"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        ShowInTaskbar="False"
+        Background="White"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        SourceInitialized="Window_SourceInitialized"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing"
+        Closed="Window_Closed">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="0"
+                            ResizeBorderThickness="7"
+                            CornerRadius="22"
+                            GlassFrameThickness="0"
+                            UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <Style x:Key="PopupChromeButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="34" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ChromeButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="9">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ChromeButtonBorder" Property="Background" Value="#1A4C82" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ChromeButtonBorder" Property="Background" Value="#0F4376" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border x:Name="WindowFrame"
+            Background="White"
+            BorderBrush="#C7D6E7"
+            BorderThickness="1"
+            CornerRadius="22">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="54" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="38" />
+            </Grid.RowDefinitions>
+
+            <!-- Stage 6B.61: navy, matching the main window's header. -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource CfDeepBlue}"
+                    CornerRadius="21,21,0,0"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid Margin="12,0,10,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Stage 6B.66 (icon I1): the app's own smiley, as in the main window, in
+                         place of the arrow mark. -->
+                    <Image Width="36" Height="36" Source="/Assets/HeaderSmiley.png" VerticalAlignment="Center" Margin="0,0,10,0"
+                           RenderOptions.BitmapScalingMode="HighQuality" />
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="Flooid / Beanstore Sign In"
+                                   Foreground="White"
+                                   FontFamily="Arial"
+                                   FontSize="14"
+                                   FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <Ellipse x:Name="StatusDot" Width="7" Height="7" Fill="#9AA8B8" VerticalAlignment="Center" Margin="0,0,5,0" />
+                            <TextBlock x:Name="StatusText"
+                                       Text="Preparing secure sign-in…"
+                                       Foreground="#C9D6E8"
+                                       FontFamily="Arial"
+                                       FontSize="9" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource PopupChromeButtonStyle}" ToolTip="Refresh" Click="Refresh_Click" Margin="0,0,4,0">
+                            <Path Data="M14,5 A6,6 0 1 0 15,12 M14,5 L14,1 M14,5 L10,5"
+                                  Stroke="White"
+                                  StrokeThickness="1.6"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  Fill="Transparent"
+                                  Width="17" Height="17" Stretch="Uniform" />
+                        </Button>
+                        <Button Style="{StaticResource PopupChromeButtonStyle}" ToolTip="Close" Click="Close_Click">
+                            <Path Data="M4,4 L14,14 M14,4 L4,14"
+                                  Stroke="White"
+                                  StrokeThickness="1.8"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  Width="16" Height="16" Stretch="Uniform" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border x:Name="FlooidViewHost" Grid.Row="1"
+                    Margin="12,12,12,8"
+                    Background="White"
+                    BorderBrush="#D6E2EF"
+                    BorderThickness="1"
+                    CornerRadius="15"
+                    ClipToBounds="True">
+                <views:FlooidView x:Name="FlooidView" xmlns:views="clr-namespace:CardFactory.ProfitLoss.App.Views" ConnectionStatusChanged="FlooidView_ConnectionStatusChanged" />
+            </Border>
+
+            <!-- Stage 6B.18: our own sign-in card, drawn over Flooid's page rather than
+                 instead of it. The page underneath is still the real one and still holds
+                 the session - this only fills its two fields and clicks its button. If
+                 anything is not as expected the card gets out of the way and the real page
+                 is right there, which is why it overlays rather than replaces.
+
+                 Shown only when the browser is actually sitting on /authserver/login. Any
+                 other page - an expired session landing somewhere else, a Flooid change -
+                 and this stays hidden. -->
+            <Grid x:Name="CustomLoginPanel"
+                  Grid.Row="1"
+                  Margin="12,12,12,8"
+                  Background="#F3F6FA"
+                  Visibility="Collapsed">
+                <!-- Stage 6B.66 (design S3): a thin navy strip across the top of the card, and
+                     soft fields with icons (SignInFieldStyle / SignInPasswordStyle). -->
+                <Border Background="White"
+                        BorderBrush="#D6E2EF"
+                        BorderThickness="1"
+                        CornerRadius="16"
+                        Width="320"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                    <StackPanel>
+                    <Border Height="5" Background="{StaticResource CfDeepBlue}" CornerRadius="15,15,0,0" />
+                    <Grid Margin="22,16,22,18">
+                    <StackPanel x:Name="SignInForm">
+                        <TextBlock Text="Sign in to Flooid"
+                                   FontFamily="Arial" FontSize="15" FontWeight="Bold"
+                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,12" />
+
+                        <Border x:Name="LoginErrorBox"
+                                Background="#FDF2F2" BorderBrush="#F3C9C9" BorderThickness="1"
+                                CornerRadius="8" Padding="9,6" Margin="0,0,0,12"
+                                Visibility="Collapsed">
+                            <TextBlock x:Name="LoginErrorText" TextWrapping="Wrap"
+                                       FontFamily="Arial" FontSize="11" Foreground="#B03A3A" />
+                        </Border>
+
+                        <TextBlock Text="USERNAME" FontFamily="Arial" FontSize="9.5" FontWeight="Bold"
+                                   Foreground="{StaticResource CfMuted}" Margin="0,0,0,4" />
+                        <TextBox x:Name="LoginUsernameBox" MaxLength="60"
+                                 Style="{StaticResource SignInFieldStyle}" Margin="0,0,0,11" />
+
+                        <TextBlock Text="PASSWORD" FontFamily="Arial" FontSize="9.5" FontWeight="Bold"
+                                   Foreground="{StaticResource CfMuted}" Margin="0,0,0,4" />
+                        <PasswordBox x:Name="LoginPasswordBox" MaxLength="1024"
+                                     Style="{StaticResource SignInPasswordStyle}" Margin="0,0,0,11"
+                                     KeyDown="LoginPassword_KeyDown" />
+
+                        <CheckBox x:Name="RememberUsernameCheck"
+                                  Content="Remember my username"
+                                  FontFamily="Arial" FontSize="11"
+                                  Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,6" />
+
+                        <!-- Stage 6B.19: this is what lets an expired session sign itself
+                             back in. Off unless ticked, and unticking deletes the file. -->
+                        <CheckBox x:Name="RememberPasswordCheck"
+                                  FontFamily="Arial" FontSize="11"
+                                  Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,14">
+                            <TextBlock TextWrapping="Wrap">
+                                <Run Text="Stay signed in until the app is closed" />
+                                <Run Text="(password encrypted, this PC only)" Foreground="{StaticResource CfMuted}" FontSize="10" />
+                            </TextBlock>
+                        </CheckBox>
+
+                        <Button x:Name="LoginSubmitButton"
+                                Content="Sign in"
+                                Tag="NoGlyph"
+                                Height="32"
+                                Style="{StaticResource FlooidActionButtonStyle}"
+                                Click="LoginSubmit_Click" />
+
+                        <StackPanel x:Name="LoginBusyPanel" Orientation="Horizontal"
+                                    HorizontalAlignment="Center" Margin="0,12,0,0"
+                                    Visibility="Collapsed">
+                            <TextBlock x:Name="LoginBusyText" Text="Signing in…"
+                                       FontFamily="Arial" FontSize="11"
+                                       Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Stage 6B.20: a toggle, not a dismissal. This used to hide the card
+                             for the rest of the session with no way back, so one stray click
+                             and the simple form was gone until the window was reopened. -->
+                        <TextBlock Margin="0,12,0,0" HorizontalAlignment="Center">
+                            <Hyperlink Click="UseFlooidPage_Click"
+                                       Foreground="{StaticResource CfBlue}"
+                                       TextDecorations="Underline">
+                                <Run Text="Show the Flooid login page" FontFamily="Arial" FontSize="11" />
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Stage 6B.50 (concept B): Flooid's "Select Store" step, for accounts with
+                         more than one store. Filled from the page itself - no store is ever
+                         written into the app. Flooid's own pick is highlighted. -->
+                    <StackPanel x:Name="StoreChoicePanel" Visibility="Collapsed">
+                        <TextBlock Text="Choose a store"
+                                   FontFamily="Arial" FontSize="15" FontWeight="Bold"
+                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,4" />
+                        <TextBlock x:Name="StoreCountText" TextWrapping="Wrap"
+                                   FontFamily="Arial" FontSize="11"
+                                   Foreground="{StaticResource CfMuted}" Margin="0,0,0,12" />
+
+                        <Border x:Name="StoreErrorBox"
+                                Background="#FDF2F2" BorderBrush="#F3C9C9" BorderThickness="1"
+                                CornerRadius="8" Padding="9,6" Margin="0,0,0,10"
+                                Visibility="Collapsed">
+                            <TextBlock x:Name="StoreErrorText" TextWrapping="Wrap"
+                                       FontFamily="Arial" FontSize="11" Foreground="#B03A3A" />
+                        </Border>
+
+                        <ScrollViewer MaxHeight="210" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="StoreList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Tag="{Binding Code}" Click="StoreChoice_Click" Cursor="Hand" Margin="0,0,0,6"
+                                                FocusVisualStyle="{x:Null}">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="Row" Background="White" BorderBrush="#D4DEEA" BorderThickness="1"
+                                                            CornerRadius="10" Padding="12,9">
+                                                        <ContentPresenter />
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <DataTrigger Binding="{Binding Preselected}" Value="True">
+                                                            <Setter TargetName="Row" Property="Background" Value="#FFFBEA" />
+                                                            <Setter TargetName="Row" Property="BorderBrush" Value="{StaticResource CfYellow}" />
+                                                        </DataTrigger>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="Row" Property="Background" Value="#F5F9FF" />
+                                                        </Trigger>
+                                                        <Trigger Property="IsEnabled" Value="False">
+                                                            <Setter TargetName="Row" Property="Opacity" Value="0.55" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Code}" Width="42" FontFamily="Arial" FontSize="12" FontWeight="Bold"
+                                                           Foreground="{StaticResource CfMuted}" />
+                                                <TextBlock Text="{Binding Name}" FontFamily="Arial" FontSize="12"
+                                                           Foreground="{StaticResource CfDeepBlue}" TextTrimming="CharacterEllipsis" MaxWidth="220" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+
+                        <CheckBox x:Name="RememberStoreCheck"
+                                  Content="Remember this store"
+                                  IsChecked="True"
+                                  FontFamily="Arial" FontSize="11"
+                                  Foreground="{StaticResource CfDeepBlue}" Margin="0,8,0,0" />
+
+                        <TextBlock x:Name="StoreBusyText" Text="Opening store…" HorizontalAlignment="Center"
+                                   FontFamily="Arial" FontSize="11" Foreground="{StaticResource CfMuted}"
+                                   Margin="0,12,0,0" Visibility="Collapsed" />
+                    </StackPanel>
+                    </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Row="2" Margin="14,0,14,8">
+                <!-- Stage 6B.20: the old wording said the calculator does not read or store
+                     your password. Since 6B.19 that is only true until Stay signed in is
+                     ticked, and a reassurance that is conditionally false is worse than
+                     none. -->
+                <StackPanel x:Name="SignInFooterNote" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Signing in goes to Flooid directly. Your password is only kept if you tick Stay signed in."
+                               Foreground="{StaticResource CfMuted}"
+                               FontFamily="Arial"
+                               FontSize="8.5"
+                               VerticalAlignment="Center" />
+                    <TextBlock x:Name="BackToSimpleSignInLink"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center"
+                               Visibility="Collapsed">
+                        <Hyperlink Click="BackToSimpleSignIn_Click"
+                                   Foreground="{StaticResource CfBlue}"
+                                   TextDecorations="Underline">
+                            <Run Text="Back to the simple sign in" FontFamily="Arial" FontSize="8.5" />
+                        </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+                <Border x:Name="ConnectedBadge"
+                        Visibility="Collapsed"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Background="#EAF8EF"
+                        BorderBrush="#B9DFC8"
+                        BorderThickness="1"
+                        CornerRadius="9"
+                        Padding="8,3">
+                    <TextBlock Text="Connected"
+                               Foreground="#0B7A35"
+                               FontFamily="Arial"
+                               FontSize="8.5"
+                               FontWeight="Bold" />
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

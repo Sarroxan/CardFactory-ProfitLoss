@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>CardFactory.ProfitLoss.ReportParsing</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="AngleSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CardFactory.ProfitLoss.Core\CardFactory.ProfitLoss.Core.csproj" />
+  </ItemGroup>
+</Project>

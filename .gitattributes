@@ -1,0 +1,27 @@
+# Stage 6A.90. Before this, line endings and BOMs were inconsistent across the
+# repository - MainWindow.xaml was CRLF, MainWindow.xaml.cs was LF, MainViewModel.cs
+# was CRLF with a BOM - with no rule saying which was correct. Nothing was broken by
+# it, but a patch written against the wrong convention does not error, it silently
+# matches nothing, which cost two build cycles. One convention now, enforced by git.
+
+* text=auto eol=lf
+
+# Windows shell scripts must keep CRLF or they will not run.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# Binary.
+*.png  binary
+*.webp binary
+*.ico  binary
+*.zip  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+
+# Evidence, not source. These are genuine Ctrl+S browser saves and the parser
+# records that a real save begins with the browser's "saved from url" comment and
+# nothing else, and two files in that folder were once reconstructions passed off as
+# real saves. Marked -text so git never rewrites a byte of them in either direction.
+tests/CardFactory.ProfitLoss.ReportParsing.Tests/Fixtures/** -text

@@ -1,0 +1,105 @@
+<Window x:Class="CardFactory.ProfitLoss.App.Views.PreferencesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Preferences"
+        Width="430"
+        Height="375"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False">
+    <Border Margin="12"
+            Padding="22"
+            Background="White"
+            BorderBrush="{StaticResource CfLine}"
+            BorderThickness="1"
+            CornerRadius="18">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="22" ShadowDepth="5" Opacity="0.18" Color="#183153" />
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Stage 6B.61: navy header band, matching the main window's navy header. It
+                 reaches out over the card's 22px padding to the card's edges. -->
+            <Border Margin="-22,-22,-22,0" Padding="22,16,22,16"
+                    Background="{StaticResource CfDeepBlue}" CornerRadius="17,17,0,0">
+                <Grid MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="34" Height="34" Background="#FFF6C9" CornerRadius="10">
+                            <Path Data="M9,2 L10.5,4.2 L13.2,4.1 L14,6.7 L16.2,8.2 L15,10.6 L15.6,13.2 L13.1,14.1 L11.7,16.4 L9,15.5 L6.3,16.4 L4.9,14.1 L2.4,13.2 L3,10.6 L1.8,8.2 L4,6.7 L4.8,4.1 L7.5,4.2 Z M9,6.4 A2.6,2.6 0 1 1 8.99,6.4"
+                                  Stroke="{StaticResource CfDeepBlue}"
+                                  StrokeThickness="1.2"
+                                  Fill="Transparent"
+                                  Width="18" Height="18" Stretch="Uniform"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="10,0,0,0">
+                            <TextBlock Text="Preferences" Foreground="White" FontFamily="Arial" FontSize="17" FontWeight="Bold" />
+                            <TextBlock Text="Saved for this portable app" Foreground="#C9D6E8" FontFamily="Arial" FontSize="9" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Grid.Column="1" Width="28" Height="28" Content="×" FontSize="17"
+                            Style="{StaticResource NavyBandCloseButtonStyle}" Click="Cancel_Click" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="1" Margin="0,18,0,0" Padding="12,10"
+                    Background="#FFFDF4" BorderBrush="#F0DE94" BorderThickness="1" CornerRadius="12">
+                <StackPanel>
+                    <TextBlock Text="STORE / LOCATION" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="8" FontWeight="Bold" Margin="2,0,0,5" />
+                    <TextBox x:Name="LocationTextBox"
+                             Height="30"
+                             Tag="Enter store or location"
+                             Style="{StaticResource HtmlWatermarkTextBoxStyle}" />
+                    <TextBlock Text="Used on saved files and future reports; it no longer takes space in the main header."
+                               Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" TextWrapping="Wrap" Margin="2,6,2,0" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Row="2" Margin="0,14,0,0" Padding="12,10"
+                    Background="#FFF9F9" BorderBrush="#F0C9CD" BorderThickness="1" CornerRadius="12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                        <TextBlock Text="RESET APP SETTINGS"
+                                   Foreground="{StaticResource CfBad}"
+                                   FontFamily="Arial"
+                                   FontSize="8"
+                                   FontWeight="Bold" />
+                        <TextBlock Text="Restores Store / Location, targets and period settings to their defaults. Team figures and exported or manually saved files are kept."
+                                   Foreground="{StaticResource CfMuted}"
+                                   FontFamily="Arial"
+                                   FontSize="8.5"
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Content="Reset settings"
+                            Width="112"
+                            Height="34"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource DangerOutlineButtonStyle}"
+                            Click="ResetSettings_Click" />
+                </Grid>
+            </Border>
+
+            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                <Button Content="Cancel" Width="82" Height="34" Style="{StaticResource ModernSecondaryButtonStyle}" Click="Cancel_Click" />
+                <Button Content="Save" Width="82" Height="34" Margin="8,0,0,0" Style="{StaticResource ModernPrimaryButtonStyle}" Click="Save_Click" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

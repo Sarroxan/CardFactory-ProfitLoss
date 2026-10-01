@@ -1,0 +1,1549 @@
+<Window x:Class="CardFactory.ProfitLoss.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:viewModels="clr-namespace:CardFactory.ProfitLoss.App.ViewModels"
+        xmlns:views="clr-namespace:CardFactory.ProfitLoss.App.Views"
+        xmlns:converters="clr-namespace:CardFactory.ProfitLoss.App.Converters"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="Card Factory Profit &amp; Loss Calculator"
+        Icon="Assets/CardFactory.ProfitLoss.ico"
+        Width="1230"
+        Height="770"
+        MinWidth="900"
+        MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Normal"
+        WindowStyle="None"
+        ResizeMode="CanMinimize"
+        Background="White"
+        Language="en-GB"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        SourceInitialized="Window_SourceInitialized"
+        StateChanged="Window_StateChanged"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing"
+        Closed="Window_Closed">
+
+    <!-- Stage 6A.84: the window is a fixed size. ResizeMode="CanMinimize" removes the
+         user's ability to resize it, and the chrome's resize border is zeroed to match -
+         left at 8 it would still offer a drag grip that no longer does anything. The app
+         still sizes itself: FitToWorkArea on startup and the team-row growth. -->
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="0"
+                            ResizeBorderThickness="0"
+                            CornerRadius="20"
+                            GlassFrameThickness="0"
+                            UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+
+    <Window.DataContext>
+        <viewModels:MainViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <converters:ZeroBlankDecimalConverter x:Key="ZeroBlankDecimalConverter" />
+        <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
+
+        <Style x:Key="HistoricalModeToggleStyle" TargetType="RadioButton">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinWidth" Value="70" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Segment"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="9"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Segment" Property="BorderBrush" Value="#AFC4DE" />
+                                <Setter TargetName="Segment" Property="Background" Value="#F5F9FF" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Segment" Property="Background" Value="{StaticResource CfBlue}" />
+                                <Setter TargetName="Segment" Property="BorderBrush" Value="{StaticResource CfBlue}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Segment" Property="BorderBrush" Value="{StaticResource CfYellow}" />
+                                <Setter TargetName="Segment" Property="BorderThickness" Value="2" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stage 6B.48 (concept B): Day / Range as one card split in two, the same size,
+             border and corners as the target cards beside it. Each half fills its side of
+             the card; its outer corners come from Tag (13 = the card's 14 less its 1px
+             border), because ClipToBounds clips to a rectangle, not to rounded corners.
+             HistoricalModeToggleStyle is left as it is - Performance / Gift Cards uses it. -->
+        <Style x:Key="ModeCardSegmentStyle" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Half"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Half" Property="Background" Value="#F5F9FF" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Half" Property="Background" Value="{StaticResource CfBlue}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource CfYellow}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Transparent hit-area style used over exact HTML-rendered Chewy button artwork. -->
+        <Style x:Key="ExactArtworkButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="Root">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.96" /></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.82" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        
+        <Style x:Key="AppChromeButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="38" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ChromeB" Background="{TemplateBinding Background}" CornerRadius="9">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ChromeB" Property="Background" Value="#EDF4FC" /></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="ChromeB" Property="Background" Value="#DCEAF8" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="AppCloseButtonStyle" TargetType="Button" BasedOn="{StaticResource AppChromeButtonStyle}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#FFF0F1" /></Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Border x:Name="WindowFrame"
+            Background="White"
+            BorderBrush="{StaticResource CfLine}"
+            BorderThickness="1"
+            CornerRadius="20"
+            ClipToBounds="True">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="34" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Custom application chrome. This replaces the default square Windows title bar. -->
+            <Border Grid.Row="0"
+                    Background="White"
+                    BorderBrush="{StaticResource CfLineSoft}"
+                    BorderThickness="0,0,0,1"
+                    CornerRadius="20,20,0,0"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid Margin="12,0,8,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Stage 6A.28: restore a clearly visible application icon in the custom title bar. -->
+                        <Image Width="30"
+                               Height="30"
+                               Source="Assets/HeaderSmiley.png"
+                               Stretch="Uniform"
+                               RenderOptions.BitmapScalingMode="HighQuality" />
+                        <TextBlock Text="Card Factory Profit &amp; Loss Calculator"
+                                   Foreground="{StaticResource CfDeepBlue}"
+                                   FontFamily="Arial"
+                                   FontSize="10.5"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   Margin="7,0,0,0" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Stage 6B.68 (M3): a labelled "Menu" pill in the Add person style, so it no
+                             longer looks like a third window button beside minimise and close. -->
+                        <Button x:Name="MenuButton" ToolTip="Menu" Click="MenuButton_Click" Width="68" Height="24"
+                                Margin="0,0,8,0" VerticalAlignment="Center" Cursor="Hand" FocusVisualStyle="{x:Null}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="MenuPill" Background="White" BorderBrush="{StaticResource CfDeepBlue}"
+                                            BorderThickness="1.5" CornerRadius="12">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Path Data="M3,5 L15,5 M3,9 L15,9 M3,13 L15,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.9"
+                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                                            <TextBlock Text="Menu" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                       FontFamily="Arial" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="MenuPill" Property="Background" Value="#F5F9FF" /></Trigger>
+                                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="MenuPill" Property="Background" Value="#E4EDF7" /></Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Style="{StaticResource AppChromeButtonStyle}" ToolTip="Minimise" Click="MinimiseButton_Click">
+                            <Path Data="M3,9 L15,9" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeStartLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                        </Button>
+                        <!-- Stage 6A.83: no maximise button. The dashboard is a fixed
+                             composition and stretching it to a full screen spreads
+                             everything out badly, so the window is deliberately kept off
+                             that path. Minimise and Close remain. -->
+                        <Button Style="{StaticResource AppCloseButtonStyle}" ToolTip="Close" Click="CloseButton_Click">
+                            <Path Data="M4,4 L14,14 M14,4 L4,14" Stroke="#A91E2C" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="1" Background="White">
+
+        <!--
+            Stage 6A.13: final visual/stability polish with a cleaner header, relocated Historical Target, restored preferred icons and hardened numeric input behavior. The audited HTML-style calculator keeps its proportions,
+            but the window is sized around the dashboard so it sits close to the rounded frame
+            instead of floating in the middle. There are no page-level scrollbars. The inner
+            Team Performance list remains the only area allowed to scroll when required.
+        -->
+        <Viewbox x:Name="HomeViewbox"
+                 Stretch="Uniform"
+                 StretchDirection="Both"
+                 HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch"
+                 Margin="0"
+                 RenderOptions.BitmapScalingMode="HighQuality"
+                 SnapsToDevicePixels="False">
+                <Border x:Name="CalculatorView"
+                        Width="1220"
+                        Padding="4,10,4,10"
+                        Background="White"
+                        BorderThickness="0"
+                        CornerRadius="0">
+
+                    <StackPanel Width="1212">
+                        <!-- HEADER: restored preferred HTML smiley, cleaner metadata spacing and compact Flooid status. -->
+                        <!-- Stage 6B.21: the header was three things on white - logo, tabs, login
+                             pill - with 190px of nothing between the tabs and the pill, which is
+                             what made it read as bare. A tint gives it a body, and the gap now
+                             carries the two facts every figure on this page depends on: which
+                             store and which day. The bottom rule stays #DCE6F3 rather than yellow,
+                             because 6B.06 reserved yellow for the controls you act on and a yellow
+                             rule across the whole header would undo that. -->
+                        <!-- Stage 6B.60: navy header, the chosen colour (navy). CfDeepBlue with the app's 14px card radius; no rule needed.
+                             Everything on it is recoloured to suit: white logo lettering, white
+                             tabs, white/pale-blue store details. The Flooid pill keeps its own
+                             blue and yellow border. -->
+                        <Border Height="93" Background="{StaticResource CfDeepBlue}" CornerRadius="14">
+                            <Canvas Width="1212" Height="93" ClipToBounds="False">
+                                <!-- Stage 6A.71: supplied combined logo + title artwork replaces the
+                                     separately drawn smiley tile and the captured Chewy title image.
+                                     Cropped to its ink so it sits flush at the left of the header.
+                                     Stage 6B.58: concept F2 - the same smiley, "Card Factory", "Profit &
+                                     Loss" in Chewy, and CALCULATOR between two yellow bars the width of the
+                                     title. 6B.60: S1 (+2px title letter spacing) in white for the navy
+                                     header, 991x252 (3x), shown at 330x84. tools/render-header-logo.py. -->
+                                <Image Canvas.Left="0"
+                                       Canvas.Top="4"
+                                       Width="330"
+                                       Height="84"
+                                       Source="Assets/HeaderLogoTitle.png"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                       SnapsToDevicePixels="False" />
+
+                                <!-- Stage 6A.32: Branch Performance uses the previously empty header space. -->
+                                <!-- Stage 6B.05: concept FF. No box - two underline tabs. The logo
+                                     above already sets its title over a yellow rule, so this repeats
+                                     the header's own device rather than placing another object in it.
+
+                                     Moved left from 720 to 470. The header was bunched to the right:
+                                     308px of dead space sat between the logo and this control while
+                                     only 40px separated it from the login pill. At 470 with a 190px
+                                     width it clears the logo comfortably and leaves the empty space in
+                                     the middle, where it reads as spacing rather than a gap. Nothing
+                                     else in the header moves. -->
+                                <!-- Stage 6B.08: full names. Width is no longer fixed - the Grid sizes
+                                     to its content, so the labels set the width rather than a number
+                                     guessed here. Left stays at 470, so the block now runs roughly
+                                     470-820 against a 1212 header, putting its middle near the centre
+                                     of the screen without the tabs being centred in the gap or moved
+                                     onto separate lines. The 26px gap between them drops to 20: with
+                                     labels three times longer, the old gap read as a gulf. -->
+                                <!-- Stage 6B.59: header layout B - the tabs
+                                     sit exactly in the centre of the header, between the logo on the left
+                                     and the store details + pill on the right. The Grid spans the full
+                                     1212px with star columns either side, so the pair centres itself
+                                     whatever the label widths; with no Background its empty columns are
+                                     not hit-testable, so the logo and pill stay clickable beneath it. -->
+                                <Grid x:Name="SectionTabControl"
+                                      Canvas.Left="0"
+                                      Canvas.Top="24"
+                                      Width="1212"
+                                      Height="44">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="20" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="TeamSectionSegment"
+                                            Grid.Column="1"
+                                            Tag="Active"
+                                            Style="{StaticResource SectionTabButtonStyle}"
+                                            Click="TeamSection_Click"
+                                            ToolTip="Show Team Performance">
+                                        <TextBlock Text="Team Performance" />
+                                    </Button>
+                                    <Button x:Name="BranchSectionSegment"
+                                            Grid.Column="3"
+                                            Style="{StaticResource SectionTabButtonStyle}"
+                                            Click="BranchSection_Click"
+                                            ToolTip="Show Branch Performance">
+                                        <TextBlock Text="Branch Performance" />
+                                    </Button>
+                                </Grid>
+
+                                <!-- Stage 6A.33: user-approved FLOOID LOGIN cloud/keyhole pill. -->
+                                <!-- Stage 6B.21: store, date and last retrieval, right-aligned into
+                                     the gap ahead of the login pill. Right-aligned so a long outlet
+                                     name grows leftwards into empty space instead of pushing the
+                                     pill. -->
+                                <!-- Stage 6B.59 (layout B): grouped with the pill - 24px from it, as drawn
+                                     - and 250 wide so its box ends clear of the centred tabs. -->
+                                <StackPanel Canvas.Left="760"
+                                            Canvas.Top="26"
+                                            Width="250"
+                                            HorizontalAlignment="Right">
+                                    <TextBlock Text="{Binding HeaderStoreText}"
+                                               HorizontalAlignment="Right"
+                                               FontFamily="Arial" FontSize="12" FontWeight="Bold"
+                                               Foreground="White"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock HorizontalAlignment="Right"
+                                               FontFamily="Arial" FontSize="10"
+                                               Foreground="#C9D6E8"
+                                               Margin="0,2,0,0">
+                                        <Run Text="{Binding SelectedDate, StringFormat='ddd d MMM', Mode=OneWay}" />
+                                        <Run Text="{Binding HeaderUpdatedText, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Stage 6B.27: concept MA. Opens from the pill when signed in, in place
+                                     of reopening the Flooid window, which was not useful once connected.
+                                     A Popup is its own window, so WebView2 airspace cannot affect it. -->
+                                <Popup x:Name="FlooidAccountMenu"
+                                       PlacementTarget="{Binding ElementName=FlooidConnectButton}"
+                                       Placement="Bottom"
+                                       HorizontalOffset="-48"
+                                       VerticalOffset="6"
+                                       StaysOpen="False"
+                                       AllowsTransparency="True">
+                                    <Popup.Resources>
+                                        <Style x:Key="AccountMenuItemStyle" TargetType="Button">
+                                            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                            <Setter Property="FontFamily" Value="Arial" />
+                                            <Setter Property="FontSize" Value="11.5" />
+                                            <Setter Property="Cursor" Value="Hand" />
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="Row" Background="Transparent" Padding="12,8"
+                                                                BorderBrush="#EDF1F6" BorderThickness="0,1,0,0">
+                                                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="Row" Property="Background" Value="#F1F6FC" />
+                                                            </Trigger>
+                                                            <Trigger Property="IsEnabled" Value="False">
+                                                                <Setter Property="Foreground" Value="#9AB4D2" />
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Popup.Resources>
+                                    <Border Background="White" BorderBrush="#D4DEEA" BorderThickness="1"
+                                            CornerRadius="12" Width="220" Margin="0,0,0,6">
+                                        <StackPanel>
+                                            <!-- Stage 6B.70 (R1): navy band, like the main menu and the dialogs. -->
+                                            <Border Background="{StaticResource CfDeepBlue}" CornerRadius="11,11,0,0" Padding="12,9">
+                                                <StackPanel>
+                                                    <TextBlock x:Name="AccountMenuStore" FontFamily="Arial" FontSize="12" FontWeight="Bold"
+                                                               Foreground="White" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock x:Name="AccountMenuUser" FontFamily="Arial" FontSize="10"
+                                                               Foreground="#C9D6E8" Margin="0,2,0,0" />
+                                                </StackPanel>
+                                            </Border>
+                                            <!-- Stage 6B.50: only for accounts Flooid gives a choice of stores. -->
+                                            <Button x:Name="AccountChangeStoreButton" Content="Change store"
+                                                    Style="{StaticResource AccountMenuItemStyle}"
+                                                    Visibility="Collapsed"
+                                                    Click="AccountChangeStore_Click" />
+                                            <Button Content="Sign out" Style="{StaticResource AccountMenuItemStyle}"
+                                                    Click="AccountSignOut_Click" />
+                                            <Button x:Name="AccountForgetButton" Content="Forget saved sign-in"
+                                                    Style="{StaticResource AccountMenuItemStyle}"
+                                                    Click="AccountForget_Click" />
+                                            <Button Content="Open Flooid back office" Style="{StaticResource AccountMenuItemStyle}"
+                                                    Click="AccountOpenFlooid_Click" />
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+
+                                <!-- Stage 6B.27: compact, as drawn in the account menu mockup. Was
+                                     196x48, which read as bulky next to the text tabs and the store
+                                     line. Right edge held at 1206 and vertical centre held at 45, so
+                                     it shrinks in place and nothing else in the header moves. -->
+                                <Button x:Name="FlooidConnectButton"
+                                        Canvas.Left="1034"
+                                        Canvas.Top="27"
+                                        Width="172"
+                                        Height="36"
+                                        Padding="0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        ToolTip="{Binding FlooidStatusText}"
+                                        Click="FlooidConnect_Click">
+                                    <!-- Stage 6A.95: concept K. Blue fill with a
+                                         yellow edge is the pairing the section headers already use, so the button
+                                         reads as part of the app rather than a badge on it. The box is unchanged -
+                                         same 196x48 at the same place on the canvas - so nothing else in the header
+                                         moves; only the contents differ.
+
+                                         The cloud-and-keyhole artwork is gone. It was approved at Stage 6A.33, but
+                                         it was drawn in CfBlue and would have disappeared into a blue fill, and the
+                                         status dot it carried in its corner now stands on its own. The two Path
+                                         geometries are recoverable from git history if it is ever wanted back.
+
+                                         Dot colours are lifted for a blue background: the greys and greens used on
+                                         the old white pill go muddy here. -->
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <!-- Stage 6B.62: option 1 from the pill concepts - white with navy text and
+                                                 the yellow border, so it stands out on the navy header (6B.60). The grey
+                                                 dot is darker (#8A99AD) to read on white, and the yellow "signing in"
+                                                 dot gets a thin navy ring for the same reason. -->
+                                            <Border x:Name="FlooidPill" Background="White" BorderBrush="{StaticResource CfYellow}" BorderThickness="2" CornerRadius="18">
+                                                <Grid Margin="13,0,11,0">
+                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="20"/></Grid.ColumnDefinitions>
+                                                    <Ellipse x:Name="FlooidTemplateStatusDot" Grid.Column="0" Width="9" Height="9" Fill="#8A99AD" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                    <TextBlock x:Name="FlooidConnectText" Grid.Column="1" Text="FLOOID LOGIN" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                    <Path x:Name="FlooidConnectArrow" Grid.Column="2" Data="M2,8 L16,8 M11,3 L16,8 L11,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="FlooidPill" Property="Background" Value="#FFF8D8"/></Trigger>
+                                                <Trigger Property="IsPressed" Value="True"><Setter TargetName="FlooidPill" Property="Background" Value="#FFF0A8"/></Trigger>
+                                                <!-- Signed in: green dot, the label says so, and the arrow goes - there is
+                                                     nothing to go to. The button stays clickable on purpose: reopening the
+                                                     window is still the only way to force a fresh sign-in when Flooid has
+                                                     timed the session out. -->
+                                                <Trigger Property="Tag" Value="Good">
+                                                    <Setter TargetName="FlooidTemplateStatusDot" Property="Fill" Value="#35C46F"/>
+                                                    <Setter TargetName="FlooidConnectText" Property="Text" Value="CONNECTED"/>
+                                                    <Setter TargetName="FlooidConnectArrow" Property="Visibility" Value="Collapsed"/>
+                                                </Trigger>
+                                                <Trigger Property="Tag" Value="Working">
+                                                    <Setter TargetName="FlooidTemplateStatusDot" Property="Fill" Value="{StaticResource CfYellow}"/>
+                                                    <Setter TargetName="FlooidTemplateStatusDot" Property="Stroke" Value="{StaticResource CfDeepBlue}"/>
+                                                    <Setter TargetName="FlooidTemplateStatusDot" Property="StrokeThickness" Value="1.5"/>
+                                                </Trigger>
+                                                <Trigger Property="Tag" Value="Bad"><Setter TargetName="FlooidTemplateStatusDot" Property="Fill" Value="#FF6B73"/></Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                               </Button>
+                            </Canvas>
+                        </Border>
+
+                        <!-- Stage 6A.30: the mode toggle stays left; adaptive Period is right-aligned with the target cards. -->
+                        <Grid x:Name="HistoricalTargetRow" Height="30" Margin="18,6,18,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Stage 6B.10: the mode toggle moved down into the targets row. This
+                                 row had TARGET and the toggle on the left, Refresh and PERIOD on the
+                                 right, and roughly 560px of nothing between them; the toggle now uses
+                                 space that was already there and the row loses nothing but dead air. -->
+
+                            <StackPanel Grid.Column="2"
+                                        Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center">
+                                <!-- Stage 6B.01: one Refresh, here rather than inside the two sections.
+                                     Since 6A.93 both section buttons ran the same combined grab, so one
+                                     of them was redundant however it was arranged, and neither could be
+                                     reached from the other section. It sits beside PERIOD because a
+                                     retrieval depends on the date: mode, date and pull are now one
+                                     place and one glance. This column is Auto inside a * spacer, so the
+                                     row simply grows leftwards into empty space and nothing moves. -->
+                                <Button Content="Refresh"
+                                        Style="{StaticResource FlooidActionButtonStyle}"
+                                        Height="26"
+                                        Click="GrabFromFlooid_Click"
+                                        ToolTip="Refresh Team and Branch Performance from Flooid"
+                                        Margin="0,0,14,0" />
+                                <!-- Stage 6B.70 (P1): the date as a card like the targets - white, the
+                                     CfLine edge and a pale-blue label segment - instead of a pale-yellow
+                                     pill with PERIOD floating beside it. The row is 30px tall, so the
+                                     label sits at the left rather than on top. Yellow stays for Refresh. -->
+                                <Border Height="30"
+                                        Background="White"
+                                        BorderBrush="{StaticResource CfLine}"
+                                        BorderThickness="1"
+                                        CornerRadius="10"
+                                        Padding="0,1,3,1">
+                                    <Grid>
+                                        <!-- Stage 6A.75: two mutually exclusive layouts in the
+                                             same pill. Daily is unchanged. Date Range is an explicit
+                                             From/To range; it grows leftward into the spacer
+                                             column, so the pill's right edge and everything else
+                                             on this row stay where they were. -->
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HistoricalTargetMode}" Value="Date Range">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+                                            <Border Background="#EAF2FF" CornerRadius="9,0,0,9" Margin="0,-1,8,-1" Padding="10,0">
+                                                <TextBlock Text="DATE" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}"
+                                                           FontFamily="Arial" FontSize="8.5" FontWeight="Bold" />
+                                            </Border>
+                                            <Button Width="145"
+                                                    Height="26"
+                                                    Style="{StaticResource ThemedPeriodDateButtonStyle}"
+                                                    Click="PeriodDate_Click"
+                                                    ToolTip="Choose report date">
+                                                <TextBlock Text="{Binding SelectedDate, StringFormat={}{0:dd/MM/yyyy}}"
+                                                           FontFamily="Arial"
+                                                           FontSize="11.5"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource CfDeepBlue}"
+                                                           VerticalAlignment="Center" />
+                                            </Button>
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HistoricalTargetMode}" Value="Date Range">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+                                            <Border Background="#EAF2FF" CornerRadius="9,0,0,9" Margin="0,-1,8,-1" Padding="10,0">
+                                                <TextBlock Text="FROM" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}"
+                                                           FontFamily="Arial" FontSize="8.5" FontWeight="Bold" />
+                                            </Border>
+                                            <Button Width="118"
+                                                    Height="26"
+                                                    Style="{StaticResource ThemedPeriodDateButtonStyle}"
+                                                    Click="RangeStartDate_Click"
+                                                    ToolTip="Choose the first day of the range">
+                                                <TextBlock Text="{Binding RangeStartDate, StringFormat={}{0:dd/MM/yyyy}}"
+                                                           FontFamily="Arial"
+                                                           FontSize="11.5"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource CfDeepBlue}"
+                                                           VerticalAlignment="Center" />
+                                            </Button>
+                                            <TextBlock Text="TO"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource CfBlue}"
+                                                       FontFamily="Arial"
+                                                       FontSize="8.5"
+                                                       FontWeight="Bold"
+                                                       Margin="8,0,8,0" />
+                                            <Button Width="118"
+                                                    Height="26"
+                                                    Style="{StaticResource ThemedPeriodDateButtonStyle}"
+                                                    Click="PeriodDate_Click"
+                                                    ToolTip="Choose the last day of the range">
+                                                <TextBlock Text="{Binding SelectedDate, StringFormat={}{0:dd/MM/yyyy}}"
+                                                           FontFamily="Arial"
+                                                           FontSize="11.5"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource CfDeepBlue}"
+                                                           VerticalAlignment="Center" />
+                                            </Button>
+                                            <TextBlock Text="{Binding RangeDayCountText}"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource CfMuted}"
+                                                       FontFamily="Arial"
+                                                       FontSize="8"
+                                                       FontWeight="Bold"
+                                                       Margin="8,0,0,0" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- TARGETS: exact HTML palette, with blank zero values and relaxed spacing. -->
+                        <Grid x:Name="TargetsRow" Height="53" Margin="18,5,18,0">
+                            <!-- Stage 6B.10: the toggle joins the cards. 1176 usable: 150 for the
+                                 toggle, three 324 cards, 18px gaps. The cards lose 56px each, which
+                                 the label strip absorbs easily - "SALES TARGET (£)" needs about 120px
+                                 at 10pt bold - and a figure like £7,235.11 is around 90px, so the
+                                 input still has room to spare.
+
+                                 The standalone TARGET label is gone rather than moved. Each card
+                                 already says SALES TARGET, ABV TARGET and AUB TARGET, so a fourth
+                                 word saying TARGET was labelling labels. -->
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="324" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="324" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="324" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Stage 6B.48 (concept B): the card is the switch. Bindings unchanged -
+                                 the stored values are still Daily and Date Range (see 6B.10). -->
+                            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="1" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <RadioButton Grid.Column="0"
+                                                 Content="Day"
+                                                 GroupName="HistoricalTargetMode"
+                                                 Style="{StaticResource ModeCardSegmentStyle}"
+                                                 IsChecked="{Binding HistoricalTargetMode, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Daily, Mode=TwoWay}">
+                                        <RadioButton.Tag><CornerRadius>13,0,0,13</CornerRadius></RadioButton.Tag>
+                                    </RadioButton>
+                                    <Border Grid.Column="1" Background="{StaticResource CfLine}" />
+                                    <RadioButton Grid.Column="2"
+                                                 Content="Range"
+                                                 GroupName="HistoricalTargetMode"
+                                                 Style="{StaticResource ModeCardSegmentStyle}"
+                                                 IsChecked="{Binding HistoricalTargetMode, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Date Range', Mode=TwoWay}">
+                                        <RadioButton.Tag><CornerRadius>0,13,13,0</CornerRadius></RadioButton.Tag>
+                                    </RadioButton>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Background="{StaticResource CfBlueSoft}">
+                                        <TextBlock Text="SALES TARGET (£)" Style="{StaticResource TargetLabelTextStyle}" />
+                                    </Border>
+                                    <TextBox Grid.Row="1"
+                                             Margin="9,0,9,4"
+                                             VerticalAlignment="Center"
+                                             Text="{Binding SalesTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                             Tag="Input sales here"
+                                             Style="{StaticResource HtmlTargetTextBoxStyle}"
+                                             GotKeyboardFocus="NumericTextBox_GotKeyboardFocus"
+                                             PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown"
+                                             TextChanged="NumericTextBox_TextChanged"
+                                             LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Column="4" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Background="{StaticResource CfBlueSoft}">
+                                        <TextBlock Text="ABV TARGET (£)" Style="{StaticResource TargetLabelTextStyle}" />
+                                    </Border>
+                                    <TextBox Grid.Row="1"
+                                             Margin="9,0,9,4"
+                                             VerticalAlignment="Center"
+                                             Text="{Binding AbvTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                             Tag="Input ABV here"
+                                             Style="{StaticResource HtmlTargetTextBoxStyle}"
+                                             GotKeyboardFocus="NumericTextBox_GotKeyboardFocus"
+                                             PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown"
+                                             TextChanged="NumericTextBox_TextChanged"
+                                             LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Column="6" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Background="{StaticResource CfBlueSoft}">
+                                        <TextBlock Text="AUB TARGET" Style="{StaticResource TargetLabelTextStyle}" />
+                                    </Border>
+                                    <TextBox Grid.Row="1"
+                                             Margin="9,0,9,4"
+                                             VerticalAlignment="Center"
+                                             Text="{Binding AubTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                             Tag="Input AUB here"
+                                             Style="{StaticResource HtmlTargetTextBoxStyle}"
+                                             GotKeyboardFocus="NumericTextBox_GotKeyboardFocus"
+                                             PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown"
+                                             TextChanged="NumericTextBox_TextChanged"
+                                             LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <!-- TEAM PERFORMANCE: exact accepted HTML geometry. -->
+                        <!-- Stage 6B.06: colour discipline. Yellow was doing five separate jobs on
+                             this page - underlining each target label, ringing the Sales +/- boxes,
+                             outlining every section bar, badging them, and now filling Refresh and
+                             the active tab. A colour that marks everything marks nothing, and the
+                             new yellow controls had to compete with all of it. Yellow is now
+                             reserved for what you act on: Refresh, the active tab, and the formula
+                             strip's accent. The bars keep a deep blue edge instead, the target
+                             fields their existing grey border, and the totals boxes a quiet field. -->
+                        <!-- Stage 6B.63: the three section bars (Team, Branch, Performance Summary) are
+                             CfDeepBlue, the navy of the header (6B.60). Their title artwork was re-cut with a transparent background - it had
+                             the old blue baked in. Yellow stays reserved for what you act on (6B.06). -->
+                        <StackPanel x:Name="TeamPerformanceSection" Margin="0,11,0,0">
+                            <Grid>
+                                <StackPanel x:Name="TeamModePanel">
+                            <Canvas Height="42" Width="1212" ClipToBounds="False">
+                                <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42"
+                                        Background="{StaticResource CfDeepBlue}"
+                                        BorderBrush="{StaticResource CfDeepBlue}"
+                                        BorderThickness="2"
+                                        CornerRadius="16,16,0,0">
+                                    <Image Width="132.5" Height="22"
+                                           Source="Assets/TeamTitleTextExact.png"
+                                           Stretch="Fill"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                           SnapsToDevicePixels="False" />
+                                </Border>
+                                <!-- Stage 6B.11: the Team status text is gone; the retrieval overlay reports progress and failure now. -->
+                                <!-- Stage 6B.01: the Refresh button that stood here has moved to the
+                                     target row, beside PERIOD. The status text beside it stays - it
+                                     still reports this section's own outcome. -->
+                                <Image Canvas.Left="-4" Canvas.Top="-12"
+                                       Width="66" Height="66"
+                                       Source="Assets/SectionSmiley.png"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                       SnapsToDevicePixels="False" />
+                            </Canvas>
+
+                            <Border Width="1184"
+                                    Margin="28,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    Background="White"
+                                    BorderBrush="{StaticResource CfLine}"
+                                    BorderThickness="1,0,1,1"
+                                    CornerRadius="0,0,13,13"
+                                    ClipToBounds="True">
+                                <StackPanel Width="1182">
+                                    <!-- Stage 6B.67 (T1): live headings - navy Arial on the pale strip - in the
+                                         rows' own columns. They were a captured image in Baloo 2, a font nothing
+                                         else in the app uses. The Branch headings now match. -->
+                                    <Border Height="34.5" Background="#F3F7FD">
+                                        <Grid Width="1182">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="200" /><ColumnDefinition Width="98" /><ColumnDefinition Width="98" /><ColumnDefinition Width="94" /><ColumnDefinition Width="104" /><ColumnDefinition Width="108" /><ColumnDefinition Width="112" /><ColumnDefinition Width="92" /><ColumnDefinition Width="92" /><ColumnDefinition Width="88" /><ColumnDefinition Width="96" /></Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="NAME" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="TOTAL SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="GIFT CARD QTY" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="3" Text="GIFT CARDS" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="4" Text="TRANSACTIONS" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="5" Text="UNITS SOLD" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="6" Text="COUNTED SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="7" Text="ABV" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="8" Text="AUB" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="9" Text="P&amp;L" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+
+                                    <ScrollViewer x:Name="TeamScrollViewer" VerticalScrollBarVisibility="Hidden"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  MaxHeight="130.5"
+                                                  CanContentScroll="True">
+                                        <ScrollViewer.Resources>
+                                            <!-- Stage 6A.25: subtle Card Factory themed scrollbar, scoped to Team Performance only. -->
+                                            <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
+                                        </ScrollViewer.Resources>
+                                        <ItemsControl ItemsSource="{Binding Operators}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Height="43.5" BorderBrush="{StaticResource CfLineSoft}" BorderThickness="0,0,0,1" Background="White">
+                                                        <Grid Width="1182" Height="43.5">
+                                                            <Grid.ColumnDefinitions>
+                                                                <!-- Stage 6A.68: NAME widened so full names are visible. The width came
+                                                                     from ABV, AUB and P&amp;L, which held ~87dip of empty space each. Total
+                                                                     stays 1182 and the three baked label images were re-centred to match. -->
+                                                                <ColumnDefinition Width="200" />
+                                                                <ColumnDefinition Width="98" />
+                                                                <ColumnDefinition Width="98" />
+                                                                <ColumnDefinition Width="94" />
+                                                                <ColumnDefinition Width="104" />
+                                                                <ColumnDefinition Width="108" />
+                                                                <ColumnDefinition Width="112" />
+                                                                <ColumnDefinition Width="92" />
+                                                                <ColumnDefinition Width="92" />
+                                                                <ColumnDefinition Width="88" />
+                                                                <ColumnDefinition Width="96" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <TextBox Grid.Column="0" Width="178" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource HtmlGridInputStyle}" FontWeight="Bold" />
+                                                            <TextBox Grid.Column="1" Width="84" Text="{Binding SalesEntry, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource HtmlGridInputStyle}" GotKeyboardFocus="NumericTextBox_GotKeyboardFocus" PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown" TextChanged="NumericTextBox_TextChanged" LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
+                                                            <TextBox Grid.Column="2" Width="66" MaxLength="2" Text="{Binding GiftCardQuantityEntry, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource HtmlGridInputStyle}" GotKeyboardFocus="NumericTextBox_GotKeyboardFocus" PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown" TextChanged="NumericTextBox_TextChanged" LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
+                                                            <TextBox Grid.Column="3" Width="80" Text="{Binding GiftCardValueEntry, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource HtmlGridInputStyle}" GotKeyboardFocus="NumericTextBox_GotKeyboardFocus" PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown" TextChanged="NumericTextBox_TextChanged" LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
+                                                            <Grid Grid.Column="4" Width="100" Height="43.5">
+                                                                <TextBox Width="88" Text="{Binding TransactionsEntry, UpdateSourceTrigger=PropertyChanged}"
+                                                                         GotKeyboardFocus="NumericTextBox_GotKeyboardFocus" PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown" TextChanged="NumericTextBox_TextChanged" LostKeyboardFocus="NumericTextBox_LostKeyboardFocus">
+                                                                    <TextBox.Style>
+                                                                        <!-- VerticalAlignment must live in the style, not as an attribute:
+                                                                             a local value would beat the trigger below. -->
+                                                                        <Style TargetType="TextBox" BasedOn="{StaticResource HtmlGridInputStyle}">
+                                                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding ShowTransactionsWarning}" Value="True">
+                                                                                    <Setter Property="VerticalAlignment" Value="Top" />
+                                                                                    <Setter Property="Margin" Value="0,2,0,0" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBox.Style>
+                                                                </TextBox>
+                                                                <!-- Stage 6A.70: the box used to be pinned to the top of the cell to leave
+                                                                     room for the warning below, so it sat ~7px above every other box in the
+                                                                     row even when the warning was hidden. It now centres like the rest and
+                                                                     only lifts when the warning is actually shown. -->
+                                                                <TextBlock Text="Enter transactions to calculate ABV/AUB"
+                                                                           Foreground="#C53D46" FontFamily="Arial" FontSize="5.7" FontWeight="Bold"
+                                                                           TextAlignment="Center" TextWrapping="Wrap" LineHeight="6.2"
+                                                                           Width="100" Margin="0,30,0,0" VerticalAlignment="Bottom" Visibility="Collapsed">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding ShowTransactionsWarning}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                            </Grid>
+                                                            <TextBox Grid.Column="5" Width="88" Text="{Binding UnitsEntry, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource HtmlGridInputStyle}" GotKeyboardFocus="NumericTextBox_GotKeyboardFocus" PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown" TextChanged="NumericTextBox_TextChanged" LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
+                                                            <TextBlock Grid.Column="6" Text="{Binding CountedSales, StringFormat=£{0:N2}}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                                            <TextBlock Grid.Column="7" Text="{Binding Abv, StringFormat=£{0:N2}}" Tag="{Binding AbvState}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                                            <TextBlock Grid.Column="8" Text="{Binding Aub, StringFormat={}{0:N2}}" Tag="{Binding AubState}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                                            <TextBlock Grid.Column="9" Text="{Binding ProfitLossText}" Tag="{Binding ProfitLossState}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                                            <Button Grid.Column="10"
+                                                                    Content="Remove"
+                                                                    Style="{StaticResource HtmlRemoveButtonStyle}"
+                                                                    Command="{Binding DataContext.RemoveOperatorCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    IsTabStop="False" />
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+
+                                    <!--
+                                        Totals / Actual is isolated from the team-row grid. Separator lines live in
+                                        their own rows, never behind the opaque HTML-rendered label artwork. This
+                                        removes the short blue line fragments previously visible around the labels.
+                                    -->
+                                    <Border Height="2" Background="{StaticResource CfBlue}" />
+
+                                    <Grid Height="43" Background="White" ClipToBounds="True">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="594" />
+                                            <ColumnDefinition Width="108" />
+                                            <ColumnDefinition Width="112" />
+                                            <ColumnDefinition Width="92" />
+                                            <ColumnDefinition Width="92" />
+                                            <ColumnDefinition Width="88" />
+                                            <ColumnDefinition Width="96" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Stage 6B.67: live text in the app's Arial; these two were captured images in Baloo 2. -->
+                                        <TextBlock Grid.Column="0" Text="Totals / Actual" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="Sales +/-" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                                        <Border Grid.Column="2" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding TotalSales, StringFormat=£{0:N2}}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                        </Border>
+                                        <Border Grid.Column="3" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ActualAbv, StringFormat=£{0:N2}}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                        </Border>
+                                        <Border Grid.Column="4" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ActualAub, StringFormat={}{0:N2}}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                        </Border>
+                                        <Border Grid.Column="5" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding TotalProfitLossText}" Tag="{Binding TotalProfitLossState}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Sales variance stays in the calculation model and Performance Summary, but the duplicate standalone figure is intentionally hidden. -->
+                                    <Border Height="1" Background="{StaticResource CfLineSoft}" />
+
+                                    <Grid Height="24.5" Background="White">
+                                        <TextBlock Text="Gift Cards are excluded from Counted Sales. Gift Card Qty is excluded from Units Sold only. Transactions remain unchanged for final ABV and AUB."
+                                                   Foreground="{StaticResource CfMuted}"
+                                                   FontFamily="Arial"
+                                                   FontSize="7.5"
+                                                   Margin="14,0"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Stage 6B.64: Add person, design A - a slim outline pill in the app's own
+                                 text, replacing the 122x40 bright-blue artwork. 28px tall; the 12px
+                                 bottom margin keeps the row's old 40px so nothing below moves. -->
+                            <Button x:Name="AddPersonButton" Height="28"
+                                    Margin="28,7,0,12"
+                                    HorizontalAlignment="Left"
+                                    Cursor="Hand"
+                                    FocusVisualStyle="{x:Null}"
+                                    Command="{Binding AddOperatorCommand}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="AddPersonPill" Background="White" BorderBrush="{StaticResource CfDeepBlue}"
+                                                BorderThickness="1.5" CornerRadius="14" Padding="14,0">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Path Data="M6,1.5 L6,10.5 M1.5,6 L10.5,6" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.8"
+                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="12" Height="12" VerticalAlignment="Center" />
+                                                <TextBlock Text="Add person" Margin="7,0,0,0" VerticalAlignment="Center"
+                                                           FontFamily="Arial" FontSize="11" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="AddPersonPill" Property="Background" Value="#F5F9FF" /></Trigger>
+                                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="AddPersonPill" Property="Background" Value="#E4EDF7" /></Trigger>
+                                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="AddPersonPill" Property="BorderBrush" Value="{StaticResource CfYellow}" /></Trigger>
+                                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="AddPersonPill" Property="Opacity" Value="0.5" /></Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                                </StackPanel>
+
+                                <!-- Branch view overlays the Team slot and is intentionally the same one-person height.
+                                     TeamModePanel remains Hidden (not Collapsed) while Branch is active, preserving the exact 6A.24 resize behaviour and all team data. -->
+                                <Grid x:Name="BranchModePanel" Height="474" Visibility="Collapsed">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="42"/>
+                                        <RowDefinition Height="432"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Canvas Grid.Row="0" Height="42" Width="1212" ClipToBounds="False">
+                                        <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42"
+                                                Background="{StaticResource CfDeepBlue}"
+                                                BorderBrush="{StaticResource CfDeepBlue}"
+                                                BorderThickness="2"
+                                                CornerRadius="16,16,0,0">
+                                            <!-- Stage 6B.47: the same title treatment as Team Performance - centred
+                                                 artwork in the same font (Chewy, matched against TeamTitleTextExact.png)
+                                                 at the same height, instead of left-aligned Arial and a FLOOID REPORT tag. -->
+                                            <Image Width="147" Height="22"
+                                                   Source="Assets/BranchTitleTextExact.png"
+                                                   Stretch="Fill"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                                   SnapsToDevicePixels="False" />
+                                        </Border>
+                                        <Image Canvas.Left="-4" Canvas.Top="-12" Width="66" Height="66"
+                                               Source="Assets/SectionSmiley.png" Stretch="Uniform"
+                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    </Canvas>
+
+                                    <Border Grid.Row="1" Width="1184" Height="432" Margin="28,0,0,0" HorizontalAlignment="Left"
+                                            Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1"
+                                            CornerRadius="0,0,13,13" ClipToBounds="True">
+                                        <Grid Width="1182">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="43"/>
+                                                <RowDefinition Height="0"/>
+                                                <RowDefinition Height="345"/>
+                                                <RowDefinition Height="44"/>
+                                            </Grid.RowDefinitions>
+
+                                            <!-- One uncluttered navigation/status line. -->
+                                            <Grid Grid.Row="0" Background="#FBFDFF" Margin="12,6,12,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <!-- Stage 6B.67 (B1): the split card used by Day / Range and Fast / Safe. -->
+                                                <Border Width="220" Height="30" VerticalAlignment="Center" Background="White"
+                                                        BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="10">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/><ColumnDefinition Width="1"/><ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Button x:Name="BranchHourlyTabButton" Grid.Column="0" Content="Performance" Tag="Active"
+                                                                Style="{StaticResource BranchSplitLeftStyle}" Click="BranchHourlyTab_Click"/>
+                                                        <Border Grid.Column="1" Background="{StaticResource CfLine}" />
+                                                        <Button x:Name="BranchGiftCardsTabButton" Grid.Column="2" Content="Gift Cards"
+                                                                Style="{StaticResource BranchSplitRightStyle}" Click="BranchGiftCardsTab_Click"/>
+                                                    </Grid>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <!-- Stage 6B.11: the separator went with the status text it used to
+                                                         divide. Last updated stays - it answers "how old are these
+                                                         figures", which the overlay cannot, since the overlay is only
+                                                         on screen while a retrieval is running. -->
+                                                    <Ellipse Width="6" Height="6" Fill="{StaticResource CfBlue}" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="{Binding FlooidLastUpdatedText}" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="7.8"/>
+                                                </StackPanel>
+                                                <!-- Stage 6B.01: moved to the target row beside PERIOD. -->
+                                            </Grid>
+
+                                            <!-- Stage 6B.44: the totals strip that sat here was removed - it repeated
+                                                 the Branch Total bar. Row 1 is kept at 0 so row numbers are unchanged;
+                                                 its 52px went to the Branch Total bar (row 3). -->
+
+                                            <!-- Large Performance table: about eight rows visible before scrolling. -->
+                                            <Grid x:Name="BranchHourlyPanel" Grid.Row="2" Margin="12,0,12,0">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="29"/>
+                                                    <RowDefinition Height="316"/>
+                                                </Grid.RowDefinitions>
+                                                <Border Grid.Row="0" Background="#F3F7FD" BorderBrush="{StaticResource CfLine}" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="150"/><ColumnDefinition Width="170"/><ColumnDefinition Width="180"/>
+                                                            <ColumnDefinition Width="150"/><ColumnDefinition Width="160"/><ColumnDefinition Width="160"/>
+                                                            <ColumnDefinition Width="196"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="TIME" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="TRANSACTIONS" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="3" Text="UNITS" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="4" Text="AUB" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="5" Text="ABV" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="6" Text="% SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </Border>
+                                                <Border Grid.Row="1" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1" CornerRadius="0,0,8,8" ClipToBounds="True">
+                                                    <Grid>
+                                                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True">
+                                                            <ScrollViewer.Resources>
+                                                                <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}"/>
+                                                            </ScrollViewer.Resources>
+                                                            <ItemsControl ItemsSource="{Binding BranchHours}">
+                                                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <Border Height="34" BorderBrush="{StaticResource CfLineSoft}" BorderThickness="0,0,0,1">
+                                                                            <Border.Style>
+                                                                                <Style TargetType="Border">
+                                                                                    <Setter Property="Background" Value="White"/>
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsStrongestHour}" Value="True">
+                                                                                            <Setter Property="Background" Value="#FFF6C7"/>
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </Border.Style>
+                                                                            <Grid>
+                                                                                <Grid.ColumnDefinitions>
+                                                                                    <ColumnDefinition Width="150"/><ColumnDefinition Width="170"/><ColumnDefinition Width="180"/>
+                                                                                    <ColumnDefinition Width="150"/><ColumnDefinition Width="160"/><ColumnDefinition Width="160"/>
+                                                                                    <ColumnDefinition Width="196"/>
+                                                                                </Grid.ColumnDefinitions>
+                                                                                <TextBlock Grid.Column="0" Text="{Binding TimeBand}" Style="{StaticResource BranchMetricTextStyle}" FontWeight="Bold"/>
+                                                                                <TextBlock Grid.Column="1" Text="{Binding Sales, StringFormat=£{0:N2}}" Style="{StaticResource BranchMetricTextStyle}"/>
+                                                                                <TextBlock Grid.Column="2" Text="{Binding Transactions}" Style="{StaticResource BranchMetricTextStyle}"/>
+                                                                                <TextBlock Grid.Column="3" Text="{Binding Units}" Style="{StaticResource BranchMetricTextStyle}"/>
+                                                                                <TextBlock Grid.Column="4" Text="{Binding Aub, StringFormat={}{0:N2}}" Style="{StaticResource BranchMetricTextStyle}"/>
+                                                                                <TextBlock Grid.Column="5" Text="{Binding Abv, StringFormat=£{0:N2}}" Style="{StaticResource BranchMetricTextStyle}"/>
+                                                                                <TextBlock Grid.Column="6" Text="{Binding PercentOfSales, StringFormat={}{0:N1}%}" Style="{StaticResource BranchMetricTextStyle}"/>
+                                                                            </Grid>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </ScrollViewer>
+                                                        <TextBlock Text="{Binding BranchDataMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   Foreground="#B33A46" FontFamily="Arial" FontSize="10" FontWeight="Bold" IsHitTestVisible="False">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                    <Style.Triggers><Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger></Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Gift Cards use the same large table area. -->
+                                            <Grid x:Name="BranchGiftCardsPanel" Grid.Row="2" Margin="12,0,12,0" Visibility="Hidden">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="29"/>
+                                                    <RowDefinition Height="316"/>
+                                                </Grid.RowDefinitions>
+                                                <Border Grid.Row="0" Background="#F3F7FD" BorderBrush="{StaticResource CfLine}" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="170"/><ColumnDefinition Width="210"/><ColumnDefinition Width="440"/>
+                                                            <ColumnDefinition Width="250"/><ColumnDefinition Width="96"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="GIFT CARD QTY" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="GIFT CARD SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="CARD / ITEM" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="3" Text="OPERATOR" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                                    </Grid>
+                                                </Border>
+                                                <Border Grid.Row="1" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1" CornerRadius="0,0,8,8" ClipToBounds="True">
+                                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True">
+                                                        <ScrollViewer.Resources>
+                                                            <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}"/>
+                                                        </ScrollViewer.Resources>
+                                                        <ItemsControl ItemsSource="{Binding BranchGiftCards}">
+                                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Border Height="38" Background="White" BorderBrush="{StaticResource CfLineSoft}" BorderThickness="0,0,0,1">
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="170"/><ColumnDefinition Width="210"/><ColumnDefinition Width="440"/>
+                                                                                <ColumnDefinition Width="250"/><ColumnDefinition Width="96"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <TextBlock Grid.Column="0" Text="{Binding Quantity}" Style="{StaticResource BranchMetricTextStyle}"/>
+                                                                            <TextBlock Grid.Column="1" Text="{Binding Sales, StringFormat=£{0:N2}}" Style="{StaticResource BranchMetricTextStyle}"/>
+                                                                            <TextBlock Grid.Column="2" Text="{Binding Item}" Style="{StaticResource BranchMetricTextStyle}" TextTrimming="CharacterEllipsis"/>
+                                                                            <TextBlock Grid.Column="3" Text="{Binding OperatorName}" Style="{StaticResource BranchMetricTextStyle}" TextTrimming="CharacterEllipsis"/>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </ScrollViewer>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Stage 6A.78: the Branch Total footer now matches the formula strip
+                                                 at the bottom of the dashboard - same pale yellow, the same 1px
+                                                 #F2D46B border, the same 12px radius and the same 4px yellow left
+                                                 accent. It is inset 12px each side like the totals strip above it,
+                                                 so the rounded corners are visible instead of being clipped flat
+                                                 against the panel edge. -->
+                                            <Border Grid.Row="3" Margin="12,0,12,6"
+                                                    Background="#F3F7FD"
+                                                    BorderBrush="#DCE6F3"
+                                                    BorderThickness="1"
+                                                    CornerRadius="12">
+                                                <!-- Stage 6B.44 (concept B): five headline totals, gift cards to the right of a
+                                                     divider. Stage 6B.53 (shorter option 2): one line - each label beside its
+                                                     value - in a 38px bar; values 14 / labels 8.5, gift cards 12 / 8. -->
+                                                <Grid Margin="0,0,13,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="1"/><ColumnDefinition Width="230"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Grid.Column="0" Width="4" Background="{StaticResource CfDeepBlue}" CornerRadius="12,0,0,12" HorizontalAlignment="Left" />
+                                                    <TextBlock Grid.Column="0" Text="BRANCH TOTAL" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="22,0,0,0"/>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="SALES" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalSales, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="TRANSACTIONS" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalTransactions}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="UNITS" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalUnits}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="AUB" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAub, StringFormat={}{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="ABV" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAbv, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <Border Grid.Column="6" Background="#DCE6F3" Height="23" VerticalAlignment="Center"/>
+                                                    <Grid Grid.Column="7">
+                                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT QTY" FontSize="8" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardQuantity}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT SALES" FontSize="8" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardSales, StringFormat=£{0:N2}}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    </Grid>
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- PERFORMANCE SUMMARY: accepted 28px inset + 66px smiley geometry. -->
+                        <StackPanel x:Name="PerformanceSummarySection" Margin="0,12,0,0">
+                            <Canvas Height="40" Width="1212" ClipToBounds="False">
+                                <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="40"
+                                        Background="{StaticResource CfDeepBlue}"
+                                        BorderBrush="{StaticResource CfDeepBlue}"
+                                        BorderThickness="2"
+                                        CornerRadius="16,16,0,0">
+                                    <Image Width="162" Height="19.5"
+                                           Source="Assets/PerformanceTitleTextExact.png"
+                                           Stretch="Fill"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                           SnapsToDevicePixels="False" />
+                                </Border>
+                                <Image Canvas.Left="-4" Canvas.Top="-13"
+                                       Width="66" Height="66"
+                                       Source="Assets/SectionSmiley.png"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                       SnapsToDevicePixels="False" />
+                            </Canvas>
+
+                            <Grid Width="1184" Height="77.5" Margin="28,0,0,0" HorizontalAlignment="Left">
+                                <!-- Stage 6B.67: drawn live instead of the captured SummaryGridStaticExact image -
+                                     same colours (sampled from it), lines and labels, in the app's Arial. -->
+                                <Border Background="#FBFCFD" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1" CornerRadius="0,0,13,13">
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition Height="30.5"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <Border Grid.Row="0" Grid.ColumnSpan="3" BorderBrush="{StaticResource CfLine}" BorderThickness="0,0,0,1" />
+                                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,0" />
+                                        <TextBlock Grid.Column="0" Text="SALES VS TARGET" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="ABV VS TARGET" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="AUB VS TARGET" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="30.5"/><RowDefinition Height="47"/></Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="394.7"/><ColumnDefinition Width="394.7"/><ColumnDefinition Width="394.6"/></Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding SalesSummaryText}" Tag="{Binding SalesVarianceState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AbvSummaryText}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" />
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding AubSummaryText}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" />
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Stage 6A.28: preserve the pre-6A.27 window/dashboard height without restoring the Calculate button.
+                             Hidden reserves the exact old 40px control slot and its margins while remaining non-interactive. -->
+                        <Border x:Name="CalculateSpacer"
+                                Width="122"
+                                Height="40"
+                                Margin="28,12,0,0"
+                                HorizontalAlignment="Left"
+                                Visibility="Hidden"
+                                IsHitTestVisible="False" />
+
+                        <!-- Stage 6A.27: calculations update automatically as values are edited. -->
+
+                        <!-- Stage 6A.24: native one-row formula strip. At 3+ people, surrounding vertical chrome compacts by exactly one team-row height so the Viewbox scale stays unchanged. -->
+                        <Border x:Name="FormulaStrip" Width="1212" Height="42.5"
+                                Margin="0,12,0,0"
+                                Background="#F3F7FD"
+                                BorderBrush="#DCE6F3"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="4" Background="{StaticResource CfDeepBlue}" CornerRadius="12,0,0,12" HorizontalAlignment="Left" />
+
+                                <TextBlock Grid.Column="0" Margin="22,0,12,0" VerticalAlignment="Center" FontFamily="Arial" FontSize="10.5" Foreground="#46617F" TextWrapping="NoWrap">
+                                    <Run Text="ABV" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
+                                    <Run Text=" = (Total sales − Gift cards) ÷ Transactions" />
+                                </TextBlock>
+
+                                <TextBlock Grid.Column="1" Margin="16,0,12,0" VerticalAlignment="Center" FontFamily="Arial" FontSize="10.5" Foreground="#46617F" TextWrapping="NoWrap">
+                                    <Run Text="AUB" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
+                                    <Run Text=" = (Units sold − Gift Card Qty) ÷ Transactions" />
+                                </TextBlock>
+
+                                <TextBlock Grid.Column="2" Margin="16,0,18,0" VerticalAlignment="Center" FontFamily="Arial" FontSize="10.5" Foreground="#46617F" TextWrapping="NoWrap">
+                                    <Run Text="P&amp;L" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
+                                    <Run Text=" = (ABV − ABV target) × Transactions" />
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+        </Viewbox>
+
+        <!--
+            Main menu: navigation is intentionally separated from settings.
+            Branch Performance is a top-level destination, not a preference.
+        -->
+        <!-- Stage 6B.65: menu design A - a navy header band like the dialogs (6B.61), and an
+             icon for every item, grouped as File / Retrieval speed / Settings. Fast / Safe is the
+             split card used for Day / Range (6B.48). "Clear all figures" is last and red: it is
+             the only item that deletes anything. Same items, names and handlers as before. -->
+        <Popup x:Name="MainMenuPopup"
+               Placement="Bottom"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="Fade"
+               VerticalOffset="10"
+               HorizontalOffset="-362">
+            <Border Width="430"
+                    Background="White"
+                    BorderBrush="#D6E2EF"
+                    BorderThickness="1"
+                    CornerRadius="18">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.18" Color="#183153" />
+                </Border.Effect>
+                <StackPanel>
+                    <Border Background="{StaticResource CfDeepBlue}" CornerRadius="17,17,0,0" Padding="18,16">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="34" Height="34" CornerRadius="10" Background="#FFF6C9">
+                                <Path Data="M13,10 A3,3 0 1 1 7,10 A3,3 0 1 1 13,10 Z M10,2 L10,4 M10,16 L10,18 M2,10 L4,10 M16,10 L18,10 M4.3,4.3 L5.7,5.7 M14.3,14.3 L15.7,15.7 M4.3,15.7 L5.7,14.3 M14.3,5.7 L15.7,4.3" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="18" Height="18" Stretch="Uniform" />
+                            </Border>
+                            <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Menu" Foreground="White" FontFamily="Arial" FontSize="16" FontWeight="Bold" />
+                                <TextBlock Text="Files, retrieval speed and settings" Foreground="#C9D6E8" FontFamily="Arial" FontSize="9" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Margin="16,2,16,16">
+                    <TextBlock Text="FILE" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" FontWeight="Bold" Margin="2,14,0,6" />
+                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="LoadFile_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
+                                <Path Data="M3,6 L8,6 L10,8 L17,8 L17,16 L3,16 Z" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                            </Border>
+                            <TextBlock Text="Load a saved calculator" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="SaveFile_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
+                                <Path Data="M4,3 L14,3 L17,6 L17,17 L4,17 Z M7,3 L7,8 L13,8 L13,3 M7,17 L7,12 L14,12 L14,17" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                            </Border>
+                            <TextBlock Text="Save a portable copy" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="ExportReport_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
+                                <Path Data="M10,3 L10,12 M6,7 L10,3 L14,7 M4,13 L4,17 L16,17 L16,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                            </Border>
+                            <TextBlock Text="Export report as HTML" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="PrintReport_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
+                                <Path Data="M6,8 L6,3 L14,3 L14,8 M4,8 L16,8 L16,14 L4,14 Z M6,12 L14,12 L14,17 L6,17 Z" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                            </Border>
+                            <TextBlock Text="Print" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <TextBlock Text="RETRIEVAL SPEED" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" FontWeight="Bold" Margin="2,14,0,6" />
+                    <Border Height="40" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="1" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <RadioButton x:Name="SpeedFastOption" Grid.Column="0" Content="Fast" GroupName="RetrievalSpeed"
+                                         Style="{StaticResource ModeCardSegmentStyle}" Checked="RetrievalSpeed_Changed">
+                                <RadioButton.Tag><CornerRadius>11,0,0,11</CornerRadius></RadioButton.Tag>
+                            </RadioButton>
+                            <Border Grid.Column="1" Background="{StaticResource CfLine}" />
+                            <RadioButton x:Name="SpeedSafeOption" Grid.Column="2" Content="Safe" GroupName="RetrievalSpeed"
+                                         Style="{StaticResource ModeCardSegmentStyle}" Checked="RetrievalSpeed_Changed">
+                                <RadioButton.Tag><CornerRadius>0,11,11,0</CornerRadius></RadioButton.Tag>
+                            </RadioButton>
+                        </Grid>
+                    </Border>
+                    <TextBlock x:Name="RetrievalSpeedHint"
+                               Foreground="{StaticResource CfMuted}"
+                               FontFamily="Arial"
+                               FontSize="9.5"
+                               TextWrapping="Wrap"
+                               Margin="2,6,2,0" />
+                    <TextBlock Text="SETTINGS" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" FontWeight="Bold" Margin="2,14,0,6" />
+                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="PreferencesMenu_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
+                                <Path Data="M13,10 A3,3 0 1 1 7,10 A3,3 0 1 1 13,10 Z M10,2 L10,4 M10,16 L10,18 M2,10 L4,10 M16,10 L18,10 M4.3,4.3 L5.7,5.7 M14.3,14.3 L15.7,15.7 M4.3,15.7 L5.7,14.3 M14.3,5.7 L15.7,4.3" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                            </Border>
+                            <TextBlock Text="Preferences" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="ClearFigures_Click" Foreground="#B03A3A">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#FDF2F2" Margin="-4,0,12,0">
+                                <Path Data="M4,6 L16,6 M8,6 L8,4 L12,4 L12,6 M6,6 L7,17 L13,17 L14,6" Stroke="#B03A3A" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                            </Border>
+                            <TextBlock Text="Clear all figures" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+            </Grid>
+
+            <!-- Stage 6B.11: retrieval overlay, concept BC. A grab takes about twelve
+                 seconds, which is long enough that a bare spinner starts to look stuck.
+                 The three phases are already named and timed, so the overlay names them
+                 too: a hang is visible as the step it hangs on. It also blocks the page,
+                 which is wanted - the figures underneath are mid-update, and a second
+                 Refresh during a grab is the re-entrancy _flooidGrabBusy exists to stop.
+                 On failure it stays up and reports, because the section labels that used
+                 to carry that message are gone as of this stage. -->
+            <!-- Stage 6B.17: Grid.RowSpan="2" is the whole fix. This Grid defines two rows -
+                 the 93px header, then the page - and a child with no Grid.Row lands in row 0
+                 by default. So the overlay was drawn inside the header strip: a dim band
+                 across the top with the card crushed into 93px, instead of covering the
+                 window. Panel.ZIndex was right and made no difference, because the element
+                 never had the size to cover anything in the first place. -->
+            <Grid x:Name="RetrievalOverlay"
+                  Grid.Row="0"
+                  Grid.RowSpan="2"
+                  Visibility="Collapsed"
+                  Background="#590C2850"
+                  Panel.ZIndex="900">
+                <Border Background="White"
+                        CornerRadius="14"
+                        Padding="20,16"
+                        MinWidth="230"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="22" ShadowDepth="3" Opacity="0.22" Color="#0C2850" />
+                    </Border.Effect>
+                    <StackPanel>
+                        <!-- Stage 6B.70 (R1): navy band reaching over the card's 20,16 padding. -->
+                        <Border Background="{StaticResource CfDeepBlue}" CornerRadius="13,13,0,0" Margin="-20,-16,-20,12" Padding="20,13">
+                        <StackPanel Orientation="Horizontal">
+                            <!-- Stage 6B.12: the rotation is started from code rather than a XAML
+                                 EventTrigger storyboard. Same animation, fewer ways for the XAML
+                                 compiler to object. -->
+                            <Ellipse x:Name="RetrievalSpinner"
+                                     Width="22" Height="22"
+                                     Stroke="White"
+                                     StrokeThickness="3"
+                                     StrokeDashArray="3.1 1.4"
+                                     RenderTransformOrigin="0.5,0.5">
+                                <Ellipse.RenderTransform>
+                                    <RotateTransform x:Name="RetrievalSpinnerRotate" />
+                                </Ellipse.RenderTransform>
+                            </Ellipse>
+                            <TextBlock x:Name="RetrievalTitle"
+                                       Text="Retrieving reports"
+                                       Foreground="White"
+                                       FontFamily="Arial" FontSize="12.5" FontWeight="Bold"
+                                       VerticalAlignment="Center" Margin="10,0,0,0" />
+                        </StackPanel>
+                        </Border>
+
+                        <StackPanel x:Name="RetrievalSteps">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                <TextBlock x:Name="RetrievalStep1Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
+                                <TextBlock x:Name="RetrievalStep1Text" Text="Team Performance" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                <TextBlock x:Name="RetrievalStep2Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
+                                <TextBlock x:Name="RetrievalStep2Text" Text="Gift Cards" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="RetrievalStep3Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
+                                <TextBlock x:Name="RetrievalStep3Text" Text="Branch Performance" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock x:Name="RetrievalErrorText"
+                                   Visibility="Collapsed"
+                                   MaxWidth="300"
+                                   TextWrapping="Wrap"
+                                   Foreground="#C53D46"
+                                   FontFamily="Arial" FontSize="11"
+                                   Margin="0,10,0,0" />
+
+                        <Button x:Name="RetrievalDismissButton"
+                                Visibility="Collapsed"
+                                Content="Close"
+                                Tag="NoGlyph"
+                                Style="{StaticResource FlooidActionButtonStyle}"
+                                Height="24"
+                                HorizontalAlignment="Right"
+                                Margin="0,12,0,0"
+                                Click="RetrievalDismiss_Click" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
