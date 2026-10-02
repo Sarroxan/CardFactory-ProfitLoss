@@ -81,7 +81,14 @@ with the app and a `.sha256` checksum. Running copies see it at their next launc
 checksum, replace themselves and restart. The version chip in the title bar shows
 the running version and whether it is up to date.
 
-Changes are gathered and released together rather than one release per change.
+Changes are gathered and released together rather than one release per change:
+nothing is built until a build is asked for, and nothing is released until a
+release is asked for.
+
+At each milestone version (v1.2, v1.3 and so on), every older release is deleted
+from the Releases page, with its tag, so only the newest is listed - but only
+after the owner has approved that list. Copies on older versions still update
+straight to the newest.
 
 ---
 
