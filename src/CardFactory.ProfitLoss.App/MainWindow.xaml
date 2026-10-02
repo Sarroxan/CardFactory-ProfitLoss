@@ -872,6 +872,51 @@
                                     CornerRadius="0,0,13,13"
                                     ClipToBounds="True">
                                 <StackPanel Width="1182">
+                                    <!-- Top performers strip (design C1): best ABV, AUB and P&amp;L in pale-gold
+                                         chips. Only shown once someone qualifies (10+ transactions). -->
+                                    <Border Height="36" BorderBrush="#EDF1F6" BorderThickness="0,0,0,1">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasTopPerformers}" Value="False">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <ItemsControl ItemsSource="{Binding TopPerformerChips}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Height="24" Margin="6,0" Padding="8,0,11,0" CornerRadius="12"
+                                                            Background="#FFFBEA" BorderBrush="#F0DE94" BorderThickness="1">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <Path Data="M10,1.8 L12.5,7.2 L18.3,7.8 L13.9,11.7 L15.2,17.5 L10,14.5 L4.8,17.5 L6.1,11.7 L1.7,7.8 L7.5,7.2 Z" Fill="#E0A800" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding Label}" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                                       Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9" FontWeight="Bold" />
+                                                            <TextBlock Text="{Binding Names}" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                                       Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="11" FontWeight="Bold" />
+                                                            <TextBlock Text="{Binding Value}" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                                       FontFamily="Arial" FontSize="11" FontWeight="Bold">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding State}" Value="Good"><Setter Property="Foreground" Value="{StaticResource CfGood}" /></DataTrigger>
+                                                                            <DataTrigger Binding="{Binding State}" Value="Bad"><Setter Property="Foreground" Value="{StaticResource CfBad}" /></DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Border>
                                     <!-- Stage 6B.67 (T1): live headings - navy Arial on the pale strip - in the
                                          rows' own columns. They were a captured image in Baloo 2, a font nothing
                                          else in the app uses. The Branch headings now match. -->

@@ -674,7 +674,30 @@ public sealed class MainViewModel : ObservableObject
         AubSummaryText = FormatArrowNumber(team.AubVariance);
         AubSummaryState = GetState(team.AubVariance);
         StatusText = "Calculations are up to date";
+
+        // Top performers strip (design C1): best ABV, AUB and P&L among people with enough
+        // transactions to count. Rules in Core/Services/TopPerformers.
+        TopPerformerChips = TopPerformers.Find(team.Operators, targets.AbvTarget > 0m)
+            .Select(t => new TopPerformerChip(
+                "BEST " + t.Measure,
+                string.Join(" & ", t.Names),
+                t.Measure == "P&L" ? FormatSignedMoney(t.Value) : t.Measure == "ABV" ? $"£{t.Value:N2}" : $"{t.Value:N2}",
+                t.Measure == "P&L" ? GetState(t.Value) : "None"))
+            .ToList();
     }
+
+    private IReadOnlyList<TopPerformerChip> _topPerformerChips = Array.Empty<TopPerformerChip>();
+
+    public IReadOnlyList<TopPerformerChip> TopPerformerChips
+    {
+        get => _topPerformerChips;
+        private set
+        {
+            if (SetProperty(ref _topPerformerChips, value)) OnPropertyChanged(nameof(HasTopPerformers));
+        }
+    }
+
+    public bool HasTopPerformers => TopPerformerChips.Count > 0;
 
     private static string NormaliseName(string? value) =>
         string.Concat((value ?? string.Empty).Where(char.IsLetterOrDigit)).ToUpperInvariant();
@@ -684,3 +707,6 @@ public sealed class MainViewModel : ObservableObject
     private static string FormatArrowMoney(decimal? value) => value is null ? "—" : value.Value >= 0m ? $"▲ £{Math.Abs(value.Value):N2}" : $"▼ £{Math.Abs(value.Value):N2}";
     private static string FormatArrowNumber(decimal? value) => value is null ? "—" : value.Value >= 0m ? $"▲ {Math.Abs(value.Value):N2}" : $"▼ {Math.Abs(value.Value):N2}";
 }
+
+/// <summary>One chip in the top performers strip. State Good / Bad colours a P&amp;L value.</summary>
+public sealed record TopPerformerChip(string Label, string Names, string Value, string State);
