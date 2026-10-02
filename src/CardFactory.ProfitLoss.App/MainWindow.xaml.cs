@@ -408,7 +408,9 @@ public partial class MainWindow : Window
         var check = await UpdateService.CheckAsync();
         if (!check.Reached)
         {
-            VersionChip.ToolTip = "Version " + current + " · could not check for updates";
+            VersionChip.Tag = "CantCheck";
+            VersionChip.Content = "Can't check · v" + current;
+            VersionChip.ToolTip = "Could not reach GitHub to check for updates";
             return;
         }
         if (check.Update is not { } update)

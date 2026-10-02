@@ -215,46 +215,69 @@
                                    Margin="7,0,0,0" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Version chip (design V1), replacing the Update pill. Always shows the
-                             version: grey "v1.0.2" until the check has answered (or if it cannot
-                             reach GitHub), green "Up to date · v1.0.2", or yellow "Update available
-                             · v1.1.0" - only that state is clickable, and opens the update box. -->
+                        <!-- Version chip, design H2: the Menu button's outline pill with a face.
+                             Unknown (checking): just "v1.1.0", muted, no face. UpToDate: green smile.
+                             Available: plain yellow face, yellow border on pale yellow - the only
+                             clickable state, opens the update box. CantCheck: red sad face. -->
                         <Button x:Name="VersionChip" Click="VersionChip_Click" Height="24" Tag="Unknown"
                                 Margin="0,0,8,0" VerticalAlignment="Center" FocusVisualStyle="{x:Null}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Chip" Background="#F3F7FD" BorderBrush="#DCE6F3" BorderThickness="1" CornerRadius="12" Padding="9,0,11,0">
+                                    <Border x:Name="Chip" Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="1.5" CornerRadius="12" Padding="4,0,11,0">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Path x:Name="ChipTick" Data="M4,10 L8,14 L16,6" Stroke="#0B7A35" StrokeThickness="2.4"
-                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                                  Width="10" Height="10" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0" Visibility="Collapsed" />
-                                            <Path x:Name="ChipDownload" Data="M10,3 L10,13 M6,9 L10,13 L14,9 M4,16 L16,16" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2"
-                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                                  Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,6,0" Visibility="Collapsed" />
+                                            <Viewbox x:Name="FaceHappy" Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center" Visibility="Collapsed">
+                                                <Canvas Width="20" Height="20">
+                                                    <Ellipse Canvas.Left="0.8" Canvas.Top="0.8" Width="18.4" Height="18.4" Fill="#2FB866" Stroke="#0B7A35" StrokeThickness="1.2" />
+                                                    <Ellipse Canvas.Left="5.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
+                                                    <Ellipse Canvas.Left="11.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
+                                                    <Path Data="M5.8,11.6 Q10,16.4 14.2,11.6" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2.1" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                                </Canvas>
+                                            </Viewbox>
+                                            <Viewbox x:Name="FacePlain" Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center" Visibility="Collapsed">
+                                                <Canvas Width="20" Height="20">
+                                                    <Ellipse Canvas.Left="0.8" Canvas.Top="0.8" Width="18.4" Height="18.4" Fill="{StaticResource CfYellow}" Stroke="#B88A00" StrokeThickness="1.2" />
+                                                    <Ellipse Canvas.Left="5.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
+                                                    <Ellipse Canvas.Left="11.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
+                                                    <Path Data="M6.4,13 L13.6,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2.1" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                                </Canvas>
+                                            </Viewbox>
+                                            <Viewbox x:Name="FaceSad" Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center" Visibility="Collapsed">
+                                                <Canvas Width="20" Height="20">
+                                                    <Ellipse Canvas.Left="0.8" Canvas.Top="0.8" Width="18.4" Height="18.4" Fill="#E5484D" Stroke="#9E2A2E" StrokeThickness="1.2" />
+                                                    <Ellipse Canvas.Left="5.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
+                                                    <Ellipse Canvas.Left="11.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
+                                                    <Path Data="M5.8,14.6 Q10,10.2 14.2,14.6" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2.1" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                                </Canvas>
+                                            </Viewbox>
                                             <TextBlock x:Name="ChipText" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" VerticalAlignment="Center"
-                                                       FontFamily="Arial" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource CfMuted}" />
+                                                       Margin="7,0,0,0" FontFamily="Arial" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource CfMuted}" />
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="Tag" Value="UpToDate">
-                                            <Setter TargetName="Chip" Property="Background" Value="#EAF7EF" />
-                                            <Setter TargetName="Chip" Property="BorderBrush" Value="#BFE3CC" />
-                                            <Setter TargetName="ChipText" Property="Foreground" Value="#0B7A35" />
-                                            <Setter TargetName="ChipTick" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="FaceHappy" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                            <Setter TargetName="ChipText" Property="Margin" Value="0" />
                                         </Trigger>
                                         <Trigger Property="Tag" Value="Available">
-                                            <Setter TargetName="Chip" Property="Background" Value="{StaticResource CfYellow}" />
+                                            <Setter TargetName="FacePlain" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="Chip" Property="Background" Value="#FFFBEA" />
                                             <Setter TargetName="Chip" Property="BorderBrush" Value="{StaticResource CfYellow}" />
                                             <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-                                            <Setter TargetName="ChipDownload" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="ChipText" Property="Margin" Value="0" />
                                             <Setter Property="Cursor" Value="Hand" />
+                                        </Trigger>
+                                        <Trigger Property="Tag" Value="CantCheck">
+                                            <Setter TargetName="FaceSad" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                            <Setter TargetName="ChipText" Property="Margin" Value="0" />
                                         </Trigger>
                                         <MultiTrigger>
                                             <MultiTrigger.Conditions>
                                                 <Condition Property="Tag" Value="Available" />
                                                 <Condition Property="IsMouseOver" Value="True" />
                                             </MultiTrigger.Conditions>
-                                            <Setter TargetName="Chip" Property="Background" Value="#FFD84D" />
+                                            <Setter TargetName="Chip" Property="Background" Value="#FFF3C2" />
                                         </MultiTrigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
