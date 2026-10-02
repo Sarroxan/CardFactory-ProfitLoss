@@ -442,13 +442,37 @@
                                                FontFamily="Arial" FontSize="12" FontWeight="Bold"
                                                Foreground="White"
                                                TextTrimming="CharacterEllipsis" />
-                                    <TextBlock HorizontalAlignment="Right"
-                                               FontFamily="Arial" FontSize="10"
-                                               Foreground="#C9D6E8"
-                                               Margin="0,2,0,0">
-                                        <Run Text="{Binding SelectedDate, StringFormat='ddd d MMM', Mode=OneWay}" />
-                                        <Run Text="{Binding HeaderUpdatedText, Mode=OneWay}" />
-                                    </TextBlock>
+                                    <!-- Freshness (design 1A): green dot and "updated 12 min ago"; after an hour
+                                         the dot and the words turn amber. -->
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
+                                        <Ellipse Width="7" Height="7" Margin="0,0,5,0" VerticalAlignment="Center">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="#35C46F" />
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsStale}" Value="True"><Setter Property="Fill" Value="#F5A623" /></DataTrigger>
+                                                        <DataTrigger Binding="{Binding HasUpdateTime}" Value="False"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <TextBlock FontFamily="Arial" FontSize="10" VerticalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#C9D6E8" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsStale}" Value="True">
+                                                            <Setter Property="Foreground" Value="#FFD27A" />
+                                                            <Setter Property="FontWeight" Value="Bold" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                            <Run Text="{Binding SelectedDate, StringFormat='ddd d MMM', Mode=OneWay}" />
+                                            <Run Text="{Binding HeaderUpdatedText, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <!-- Stage 6B.27: concept MA. Opens from the pill when signed in, in place
@@ -606,6 +630,36 @@
                                      retrieval depends on the date: mode, date and pull are now one
                                      place and one glance. This column is Auto inside a * spacer, so the
                                      row simply grows leftwards into empty space and nothing moves. -->
+                                <!-- Copy summary (design 8A): the Add person / Menu outline pill. -->
+                                <Button x:Name="CopySummaryButton" Height="26" Margin="0,0,10,0" Cursor="Hand" FocusVisualStyle="{x:Null}"
+                                        Click="CopySummary_Click" ToolTip="Copy today's figures to paste into Teams, WhatsApp or an email">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="CopyPill" Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="1.5" CornerRadius="13" Padding="11,0,12,0">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Path Data="M7,7 L16,7 L16,17 L7,17 Z M4,13 L4,3 L13,3" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.7"
+                                                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                                                    <TextBlock Text="Copy summary" Margin="6,0,0,0" VerticalAlignment="Center" FontFamily="Arial" FontSize="11" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="CopyPill" Property="Background" Value="#F5F9FF" /></Trigger>
+                                                <Trigger Property="IsPressed" Value="True"><Setter TargetName="CopyPill" Property="Background" Value="#E4EDF7" /></Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Popup x:Name="CopiedToast" PlacementTarget="{Binding ElementName=CopySummaryButton}" Placement="Bottom"
+                                       VerticalOffset="8" AllowsTransparency="True" StaysOpen="True" PopupAnimation="Fade">
+                                    <Border Background="{StaticResource CfDeepBlue}" CornerRadius="15" Padding="14,7">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Path Data="M4,10 L8,14 L16,6" Stroke="#35C46F" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  StrokeLineJoin="Round" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                                            <TextBlock Text="Summary copied — paste it into Teams, WhatsApp or an email" Margin="7,0,0,0" VerticalAlignment="Center"
+                                                       FontFamily="Arial" FontSize="11" FontWeight="Bold" Foreground="White" />
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
                                 <Button Content="Refresh"
                                         Style="{StaticResource FlooidActionButtonStyle}"
                                         Height="26"
@@ -1239,7 +1293,24 @@
                                                                                 <TextBlock Grid.Column="3" Text="{Binding Units}" Style="{StaticResource BranchMetricTextStyle}"/>
                                                                                 <TextBlock Grid.Column="4" Text="{Binding Aub, StringFormat={}{0:N2}}" Style="{StaticResource BranchMetricTextStyle}"/>
                                                                                 <TextBlock Grid.Column="5" Text="{Binding Abv, StringFormat=£{0:N2}}" Style="{StaticResource BranchMetricTextStyle}"/>
-                                                                                <TextBlock Grid.Column="6" Text="{Binding PercentOfSales, StringFormat={}{0:N1}%}" Style="{StaticResource BranchMetricTextStyle}"/>
+                                                                                <!-- % Sales with a bar (design 5A): blue, the busiest hour yellow. -->
+                                                                                <Grid Grid.Column="6" Margin="14,0,10,0">
+                                                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/></Grid.ColumnDefinitions>
+                                                                                    <Border Height="8" CornerRadius="4" Background="#EEF3FA" VerticalAlignment="Center">
+                                                                                        <Border CornerRadius="4" HorizontalAlignment="Stretch" RenderTransformOrigin="0,0.5">
+                                                                                            <Border.RenderTransform><ScaleTransform ScaleX="{Binding BarFraction}" /></Border.RenderTransform>
+                                                                                            <Border.Style>
+                                                                                                <Style TargetType="Border">
+                                                                                                    <Setter Property="Background" Value="#7FA6DD"/>
+                                                                                                    <Style.Triggers>
+                                                                                                        <DataTrigger Binding="{Binding IsStrongestHour}" Value="True"><Setter Property="Background" Value="{StaticResource CfYellow}"/></DataTrigger>
+                                                                                                    </Style.Triggers>
+                                                                                                </Style>
+                                                                                            </Border.Style>
+                                                                                        </Border>
+                                                                                    </Border>
+                                                                                    <TextBlock Grid.Column="1" Text="{Binding PercentOfSales, StringFormat={}{0:N1}%}" Style="{StaticResource BranchMetricTextStyle}" HorizontalAlignment="Right"/>
+                                                                                </Grid>
                                                                             </Grid>
                                                                         </Border>
                                                                     </DataTemplate>

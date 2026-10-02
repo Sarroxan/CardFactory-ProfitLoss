@@ -99,6 +99,62 @@ public sealed class MainViewModel : ObservableObject
     // while a retrieval is running.
     public string HeaderUpdatedText { get => _headerUpdatedText; set => SetProperty(ref _headerUpdatedText, value); }
 
+    // Freshness (design 1A): when the figures were last retrieved. The header reads
+    // "updated 12 min ago"; after an hour the dot and text turn amber (IsStale).
+    private DateTime? _lastUpdatedAt;
+    private bool _isStale;
+
+    public DateTime? LastUpdatedAt
+    {
+        get => _lastUpdatedAt;
+        set { if (SetProperty(ref _lastUpdatedAt, value)) { OnPropertyChanged(nameof(HasUpdateTime)); RefreshFreshness(); } }
+    }
+
+    public bool HasUpdateTime => LastUpdatedAt.HasValue;
+    public bool IsStale { get => _isStale; private set => SetProperty(ref _isStale, value); }
+
+    /// <summary>Re-words "updated … ago". Called on a timer by the window, and when the time changes.</summary>
+    public void RefreshFreshness()
+    {
+        if (LastUpdatedAt is not { } at) { HeaderUpdatedText = string.Empty; IsStale = false; return; }
+        var age = DateTime.Now - at;
+        var minutes = (int)Math.Max(0, age.TotalMinutes);
+        HeaderUpdatedText = minutes < 1 ? "· updated just now"
+            : minutes < 60 ? "· updated " + minutes + " min ago"
+            : "· updated " + (minutes / 60) + " hr " + (minutes % 60) + " min ago";
+        IsStale = minutes >= 60;
+    }
+
+    /// <summary>Copy summary (design 8A): today's figures as plain text to paste anywhere.</summary>
+    public string BuildSummaryText()
+    {
+        var lines = new List<string>();
+        var date = HistoricalTargetMode == "Date Range" && RangeStartDate is { } from && SelectedDate is { } to
+            ? from.ToString("ddd d MMM") + " to " + to.ToString("ddd d MMM yyyy")
+            : (SelectedDate ?? DateTime.Today).ToString("ddd d MMM yyyy");
+        lines.Add((string.IsNullOrWhiteSpace(HeaderStoreText) ? "Profit & Loss" : HeaderStoreText) + " · " + date);
+        lines.Add("Sales: £" + TotalSales.ToString("N2") + (SalesTarget > 0m ? " (target £" + SalesTarget.ToString("N2") + ")" : string.Empty));
+        lines.Add("ABV: £" + ActualAbv.ToString("N2") + (AbvTarget > 0m ? " (target £" + AbvTarget.ToString("N2") + ")" : string.Empty));
+        lines.Add("AUB: " + ActualAub.ToString("N2") + (AubTarget > 0m ? " (target " + AubTarget.ToString("N2") + ")" : string.Empty));
+        if (AbvTarget > 0m) lines.Add("P&L: " + TotalProfitLossText);
+
+        if (TopPerformerChips.Count > 0)
+        {
+            lines.Add(string.Empty);
+            lines.Add("Top performers");
+            foreach (var chip in TopPerformerChips)
+                lines.Add("★ " + chip.Label.Replace("BEST ", string.Empty) + ": " + chip.Names + " " + chip.Value);
+        }
+
+        var busiest = BranchHours.FirstOrDefault(row => row.IsStrongestHour);
+        if (busiest is not null)
+        {
+            lines.Add(string.Empty);
+            lines.Add("Busiest hour: " + busiest.TimeBand + " (" + busiest.PercentOfSales.ToString("N1") + "% of sales)");
+        }
+        return string.Join(Environment.NewLine, lines);
+    }
+
     public DateTime? SelectedDate
     {
         get => _selectedDate;
@@ -599,6 +655,11 @@ public sealed class MainViewModel : ObservableObject
                 row.PercentOfSales = BranchTotalSales > 0m ? (row.Sales / BranchTotalSales) * 100m : 0m;
             row.IsStrongestHour = maxSales > 0m && row.Sales == maxSales;
         }
+
+        // Bars in the % Sales column (design 5A): each hour against the busiest one.
+        var maxShare = BranchHours.Count == 0 ? 0m : BranchHours.Max(row => row.PercentOfSales);
+        foreach (var row in BranchHours)
+            row.BarFraction = maxShare > 0m ? (double)(row.PercentOfSales / maxShare) : 0d;
     }
 
     private void Operators_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

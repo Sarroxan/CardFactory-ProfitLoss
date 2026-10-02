@@ -74,6 +74,11 @@ public partial class MainWindow : Window
         if (_loadedAutoState) return;
         _loadedAutoState = true;
         _ = CheckForUpdateAsync();   // once per launch, in the background
+
+        // Freshness wording ("updated 12 min ago") moves on by itself.
+        var freshnessTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+        freshnessTimer.Tick += (_, _) => (DataContext as MainViewModel)?.RefreshFreshness();
+        freshnessTimer.Start();
         if (DataContext is not MainViewModel viewModel) return;
 
         try
@@ -437,6 +442,36 @@ public partial class MainWindow : Window
         var dialog = new UpdateWindow(_availableUpdate) { Owner = this };
         dialog.ShowDialog();
         if (dialog.Installed) Application.Current.Shutdown();
+    }
+
+    // Copy summary (design 8A).
+    private System.Windows.Threading.DispatcherTimer? _copiedToastTimer;
+
+    private void CopySummary_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+        try
+        {
+            Clipboard.SetText(viewModel.BuildSummaryText());
+        }
+        catch (Exception ex)
+        {
+            viewModel.SetStatus("Could not copy the summary · " + ex.Message);
+            return;
+        }
+
+        CopiedToast.IsOpen = true;
+        _copiedToastTimer ??= new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2.5) };
+        _copiedToastTimer.Tick -= CopiedToastTimer_Tick;
+        _copiedToastTimer.Tick += CopiedToastTimer_Tick;
+        _copiedToastTimer.Stop();
+        _copiedToastTimer.Start();
+    }
+
+    private void CopiedToastTimer_Tick(object? sender, EventArgs e)
+    {
+        _copiedToastTimer?.Stop();
+        CopiedToast.IsOpen = false;
     }
 
     private void VersionChip_Click(object sender, RoutedEventArgs e)
@@ -882,7 +917,7 @@ public partial class MainWindow : Window
             var result = await GetOrCreateFlooidLoginWindow().ChangeStoreAsync();
             if (DataContext is MainViewModel viewModel)
             {
-                viewModel.HeaderUpdatedText = string.Empty;
+                viewModel.LastUpdatedAt = null;
                 viewModel.SetStatus(result.StartsWith("ERROR", StringComparison.Ordinal)
                     ? "Change store did not complete · " + result
                     : "Signed out · sign in and choose a store");
@@ -903,7 +938,7 @@ public partial class MainWindow : Window
             viewModel.SetStatus(result.StartsWith("ERROR", StringComparison.Ordinal)
                 ? "Sign out did not complete · " + result
                 : "Signed out of Flooid");
-            viewModel.HeaderUpdatedText = string.Empty;
+            viewModel.LastUpdatedAt = null;
         }
     }
 
@@ -1120,7 +1155,7 @@ public partial class MainWindow : Window
 
             // Stage 6B.21: the header carries the retrieval time now.
             if (teamUpdated || branchUpdated || giftUpdated)
-                viewModel.HeaderUpdatedText = "· updated " + DateTime.Now.ToString("HH:mm");
+                viewModel.LastUpdatedAt = DateTime.Now;   // header shows "updated … ago" (design 1A)
 
             if (teamUpdated && giftUpdated && branchUpdated)
             {

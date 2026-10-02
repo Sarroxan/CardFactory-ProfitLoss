@@ -77,6 +77,15 @@ public sealed class BranchHourlyRowViewModel : ObservableObject
         internal set => SetProperty(ref _percentOfSales, value);
     }
 
+    /// <summary>This hour's share as a fraction of the busiest hour's (0-1), for the % Sales bar.</summary>
+    public double BarFraction
+    {
+        get => _barFraction;
+        internal set => SetProperty(ref _barFraction, value);
+    }
+
+    private double _barFraction;
+
     public bool IsStrongestHour
     {
         get => _isStrongestHour;
