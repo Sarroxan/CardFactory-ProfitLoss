@@ -9,6 +9,29 @@ public sealed class RefundsVoidsReportParserTests
     private const string Fixture = "RefundsVoidsByOperator_2026-08-20.html";
 
     [Fact]
+    public void Parse_GenuineReport_ReadsVoidsRefundsAndNoSalesPerOperator()
+    {
+        var result = new RefundsVoidsReportParser().Parse(TestFixtureLoader.Read(Fixture));
+
+        Assert.Equal(3, result.Activity.Count);
+
+        var bailey = Assert.Single(result.Activity, item => item.OperatorId == "20000001");
+        Assert.Equal(0, bailey.TransactionVoidsQuantity);
+        Assert.Equal(2, bailey.LineVoidsQuantity);
+        Assert.Equal(2.28m, bailey.LineVoidsValue);
+        Assert.Equal(2, bailey.VoidsQuantity);
+        Assert.Equal(2.28m, bailey.VoidsValue);
+        Assert.Equal(0m, bailey.TotalRefundsValue);
+        Assert.Equal(1, bailey.NoSales);
+
+        var dana = Assert.Single(result.Activity, item => item.OperatorId == "20000002");
+        Assert.Equal(0, dana.VoidsQuantity);
+        Assert.Equal(2, dana.NoSales);
+
+        Assert.Equal(3, result.Activity.Sum(item => item.NoSales));   // the report's Grand Totals No Sales
+    }
+
+    [Fact]
     public void Parse_GenuineReport_ReadsAllOperatorsAndExpectedFigures()
     {
         var result = new RefundsVoidsReportParser().Parse(TestFixtureLoader.Read(Fixture));

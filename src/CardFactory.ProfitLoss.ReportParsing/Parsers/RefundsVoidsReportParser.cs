@@ -40,8 +40,10 @@ public sealed class RefundsVoidsReportParser
             ?? throw new ReportParseException($"{ExpectedTitle}: report data table 'displayTable' was not found.");
 
         ValidateHeaders(displayTable);
+        var activityColumnsKnown = HasActivityColumns(displayTable);
 
         var operators = new List<RefundOperatorRecord>();
+        var activity = new List<OperatorActivityRecord>();
         RefundGrandTotals? grandTotals = null;
 
         foreach (var row in displayTable.QuerySelectorAll("tr"))
@@ -88,6 +90,27 @@ public sealed class RefundsVoidsReportParser
                 ReportText.ParseDecimal(cells[1].TextContent, $"{name} sales"),
                 ReportText.ParseInt(cells[2].TextContent, $"{name} transactions"),
                 ReportText.ParseInt(cells[7].TextContent, $"{name} units")));
+
+            // Column positions, from the report's own two header rows: Operator | Total Sales
+            // Value | Total No. Sales Txn | Transaction Voids (Qty, Value, Qty %, Value %) |
+            // Total No. Sales Line | Line Voids (Qty, Value, Qty %, Value %) | Receipted Refunds
+            // (Qty, Value) | Keyed Refunds (Qty, Value) | Total Refunds | No Sales.
+            if (activityColumnsKnown)
+            {
+                activity.Add(new OperatorActivityRecord(
+                    operatorId,
+                    name,
+                    ReportText.ParseInt(cells[3].TextContent, $"{name} transaction voids"),
+                    ReportText.ParseDecimal(cells[4].TextContent, $"{name} transaction voids value"),
+                    ReportText.ParseInt(cells[8].TextContent, $"{name} line voids"),
+                    ReportText.ParseDecimal(cells[9].TextContent, $"{name} line voids value"),
+                    ReportText.ParseInt(cells[12].TextContent, $"{name} receipted refunds"),
+                    ReportText.ParseDecimal(cells[13].TextContent, $"{name} receipted refunds value"),
+                    ReportText.ParseInt(cells[14].TextContent, $"{name} keyed refunds"),
+                    ReportText.ParseDecimal(cells[15].TextContent, $"{name} keyed refunds value"),
+                    ReportText.ParseDecimal(cells[16].TextContent, $"{name} total refunds"),
+                    ReportText.ParseInt(cells[17].TextContent, $"{name} no sales")));
+            }
         }
 
         if (grandTotals is null)
@@ -96,7 +119,7 @@ public sealed class RefundsVoidsReportParser
         }
 
         ValidateGrandTotals(operators, grandTotals);
-        return new RefundReportParseResult(metadata, operators.AsReadOnly());
+        return new RefundReportParseResult(metadata, operators.AsReadOnly()) { Activity = activity.AsReadOnly() };
     }
 
     private static void ValidateHeaders(IElement displayTable)
@@ -123,6 +146,25 @@ public sealed class RefundsVoidsReportParser
                 throw new ReportParseException($"{ExpectedTitle}: required column '{requiredHeader}' was not found.");
             }
         }
+    }
+
+    /// <summary>
+    /// True only when the top header row has exactly the column groups the activity
+    /// positions were mapped from, in that order. Anything else and the Reports section is
+    /// left empty rather than reading the wrong column.
+    /// </summary>
+    private static bool HasActivityColumns(IElement displayTable)
+    {
+        var rows = displayTable.QuerySelectorAll("tr");
+        if (rows.Length < 2) return false;
+        var top = DirectCells(rows[0]).Select(cell => ReportText.NormalizeWhitespace(cell.TextContent)).ToArray();
+        var expected = new[]
+        {
+            "Operator", "Total Sales Value", "Total No. Sales Txn", "Transaction Voids", "Total No. Sales Line",
+            "Line Voids", "Receipted Refunds", "Keyed Refunds", "Total Refunds", "No Sales"
+        };
+        return top.Length == expected.Length
+            && top.Zip(expected).All(pair => pair.First.Equals(pair.Second, StringComparison.OrdinalIgnoreCase));
     }
 
     private static IReadOnlyList<IElement> DirectCells(IElement row) =>

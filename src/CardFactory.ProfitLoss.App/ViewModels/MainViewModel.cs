@@ -760,6 +760,51 @@ public sealed class MainViewModel : ObservableObject
 
     public bool HasTopPerformers => TopPerformerChips.Count > 0;
 
+    // ---------------------------------------------------------------- Reports (design C)
+    // Voids, returns and no-sales per person, from the Refunds, Voids & No Sales report the
+    // Team figures already come from. Values of £20 or more are flagged as worth a look.
+    public const decimal ReportFlagValue = 20m;
+
+    public ObservableCollection<ReportPersonRow> ReportRows { get; } = new();
+
+    private decimal _reportVoidsValue, _reportRefundsValue;
+    private int _reportVoidsQuantity, _reportRefundsQuantity, _reportNoSales;
+
+    public decimal ReportVoidsValue { get => _reportVoidsValue; private set => SetProperty(ref _reportVoidsValue, value); }
+    public int ReportVoidsQuantity { get => _reportVoidsQuantity; private set => SetProperty(ref _reportVoidsQuantity, value); }
+    public decimal ReportRefundsValue { get => _reportRefundsValue; private set => SetProperty(ref _reportRefundsValue, value); }
+    public int ReportRefundsQuantity { get => _reportRefundsQuantity; private set => SetProperty(ref _reportRefundsQuantity, value); }
+    public int ReportNoSales { get => _reportNoSales; private set => SetProperty(ref _reportNoSales, value); }
+    public bool HasReportData => ReportRows.Count > 0;
+
+    public void ApplyActivityReport(IReadOnlyList<OperatorActivityRecord> activity)
+    {
+        ReportRows.Clear();
+        foreach (var person in activity
+                     .OrderByDescending(p => p.VoidsValue + p.TotalRefundsValue)
+                     .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            ReportRows.Add(new ReportPersonRow(
+                person.Name,
+                person.VoidsQuantity,
+                person.VoidsValue,
+                person.RefundsQuantity,
+                person.TotalRefundsValue,
+                person.NoSales,
+                person.VoidsValue >= ReportFlagValue,
+                person.TotalRefundsValue >= ReportFlagValue));
+        }
+
+        ReportVoidsValue = activity.Sum(p => p.VoidsValue);
+        ReportVoidsQuantity = activity.Sum(p => p.VoidsQuantity);
+        ReportRefundsValue = activity.Sum(p => p.TotalRefundsValue);
+        ReportRefundsQuantity = activity.Sum(p => p.RefundsQuantity);
+        ReportNoSales = activity.Sum(p => p.NoSales);
+        OnPropertyChanged(nameof(HasReportData));
+    }
+
+    public void ClearActivityReport() => ApplyActivityReport(Array.Empty<OperatorActivityRecord>());
+
     private static string NormaliseName(string? value) =>
         string.Concat((value ?? string.Empty).Where(char.IsLetterOrDigit)).ToUpperInvariant();
 
@@ -771,3 +816,14 @@ public sealed class MainViewModel : ObservableObject
 
 /// <summary>One chip in the top performers strip. State Good / Bad colours a P&amp;L value.</summary>
 public sealed record TopPerformerChip(string Label, string Names, string Value, string State);
+
+/// <summary>One person's row in the Reports section.</summary>
+public sealed record ReportPersonRow(
+    string Name,
+    int VoidsQuantity,
+    decimal VoidsValue,
+    int RefundsQuantity,
+    decimal RefundsValue,
+    int NoSales,
+    bool VoidsFlagged,
+    bool RefundsFlagged);

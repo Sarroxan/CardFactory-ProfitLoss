@@ -35,6 +35,7 @@ public partial class MainWindow : Window
     private double _teamRowWindowGrowth = 43.5;
     private bool _threeRowCompact;
     private bool _branchPerformanceActive;
+    private bool _reportsActive;
     private bool _branchGiftCardsActive;
     private FlooidLoginWindow? _flooidLoginWindow;
     private bool _grabAfterFlooidSignIn;
@@ -497,39 +498,49 @@ public partial class MainWindow : Window
 
     private void BranchSection_Click(object sender, RoutedEventArgs e) => SetBranchPerformanceView(true);
 
+    // Reports section (design C): the third header tab. It takes the same slot as Branch
+    // and hides the same Team-only chrome; Team and Branch figures are untouched.
+    private void ReportsSection_Click(object sender, RoutedEventArgs e) => SetBranchPerformanceView(false, reports: true);
+
     private void BranchHourlyTab_Click(object sender, RoutedEventArgs e) => SetBranchDetailView(false);
 
     private void BranchGiftCardsTab_Click(object sender, RoutedEventArgs e) => SetBranchDetailView(true);
 
-    private void SetBranchPerformanceView(bool branchActive)
+    private void SetBranchPerformanceView(bool branchActive, bool reports = false)
     {
         if (TeamModePanel is null || BranchModePanel is null) return;
 
         _branchPerformanceActive = branchActive;
-        TeamModePanel.Visibility = branchActive ? Visibility.Collapsed : Visibility.Visible;
+        _reportsActive = reports;
+        var teamActive = !branchActive && !reports;
+        TeamModePanel.Visibility = teamActive ? Visibility.Visible : Visibility.Collapsed;
         BranchModePanel.Visibility = branchActive ? Visibility.Visible : Visibility.Collapsed;
+        if (ReportsModePanel is not null)
+            ReportsModePanel.Visibility = reports ? Visibility.Visible : Visibility.Collapsed;
+        if (ReportsSectionSegment is not null)
+            ReportsSectionSegment.Tag = reports ? "Active" : null;
+        var otherThanTeam = branchActive || reports;
 
         // Stage 6A.35 gives Branch Performance the vertical space normally used by
         // Team-only summary/formula chrome. This keeps the whole application fixed
         // while showing far more Branch rows before an internal scrollbar is needed.
         if (PerformanceSummarySection is not null)
-            PerformanceSummarySection.Visibility = branchActive ? Visibility.Collapsed : Visibility.Visible;
+            PerformanceSummarySection.Visibility = otherThanTeam ? Visibility.Collapsed : Visibility.Visible;
         if (CalculateSpacer is not null)
-            CalculateSpacer.Visibility = branchActive ? Visibility.Collapsed : Visibility.Hidden;
+            CalculateSpacer.Visibility = otherThanTeam ? Visibility.Collapsed : Visibility.Hidden;
         if (FormulaStrip is not null)
-            FormulaStrip.Visibility = branchActive ? Visibility.Collapsed : Visibility.Visible;
+            FormulaStrip.Visibility = otherThanTeam ? Visibility.Collapsed : Visibility.Visible;
 
-        // Stage 6B.02: the header control is a segmented pair now. Both segments are
-        // always visible; the active one is filled, driven by Tag.
+        // Stage 6B.02: the header tabs. All are always visible; the active one is marked by Tag.
         if (TeamSectionSegment is not null)
-            TeamSectionSegment.Tag = branchActive ? null : "Active";
+            TeamSectionSegment.Tag = teamActive ? "Active" : null;
         if (BranchSectionSegment is not null)
             BranchSectionSegment.Tag = branchActive ? "Active" : null;
 
         if (DataContext is MainViewModel viewModel)
         {
-            viewModel.SetStatus(branchActive
-                ? "Branch Performance · team figures preserved"
+            viewModel.SetStatus(reports ? "Reports · voids, returns and no sales"
+                : branchActive ? "Branch Performance · team figures preserved"
                 : "Team Performance · branch figures preserved");
         }
     }
@@ -918,6 +929,7 @@ public partial class MainWindow : Window
             if (DataContext is MainViewModel viewModel)
             {
                 viewModel.LastUpdatedAt = null;
+                viewModel.ClearActivityReport();
                 viewModel.SetStatus(result.StartsWith("ERROR", StringComparison.Ordinal)
                     ? "Change store did not complete · " + result
                     : "Signed out · sign in and choose a store");
@@ -939,6 +951,7 @@ public partial class MainWindow : Window
                 ? "Sign out did not complete · " + result
                 : "Signed out of Flooid");
             viewModel.LastUpdatedAt = null;
+                viewModel.ClearActivityReport();
         }
     }
 
@@ -1045,6 +1058,7 @@ public partial class MainWindow : Window
         // now, so forcing the Branch view at the end would throw you out of Team
         // Performance every time you refreshed from there.
         var wasBranchView = _branchPerformanceActive;
+        var wasReportsView = _reportsActive;
         var wasGiftCardsView = _branchGiftCardsActive;
         try
         {
@@ -1076,6 +1090,7 @@ public partial class MainWindow : Window
                 SetRetrievalStep(1);
                 var refundsHtml = await loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate);
                 refunds = new RefundsVoidsReportParser().Parse(refundsHtml);
+                viewModel.ApplyActivityReport(refunds.Activity);   // Reports section: same report, no extra step
             }
             catch (Exception ex)
             {
@@ -1187,7 +1202,7 @@ public partial class MainWindow : Window
         {
             _flooidGrabBusy = false;
             // Stage 6A.93: back to whichever section was showing when this started.
-            SetBranchPerformanceView(wasBranchView);
+            SetBranchPerformanceView(wasBranchView, wasReportsView);
             SetBranchDetailView(wasGiftCardsView);
         }
     }
