@@ -740,7 +740,7 @@ public sealed class MainViewModel : ObservableObject
         // transactions to count. Rules in Core/Services/TopPerformers.
         TopPerformerChips = TopPerformers.Find(team.Operators, targets.AbvTarget > 0m)
             .Select(t => new TopPerformerChip(
-                "BEST " + t.Measure,
+                t.Measure,
                 string.Join(" & ", t.Names),
                 t.Measure == "P&L" ? FormatSignedMoney(t.Value) : t.Measure == "ABV" ? $"£{t.Value:N2}" : $"{t.Value:N2}",
                 t.Measure == "P&L" ? GetState(t.Value) : "None"))
@@ -777,6 +777,16 @@ public sealed class MainViewModel : ObservableObject
     public int ReportNoSales { get => _reportNoSales; private set => SetProperty(ref _reportNoSales, value); }
     public bool HasReportData => ReportRows.Count > 0;
 
+    // The summary box's "Highest" column and its £20 ring, as on the Daily Briefing.
+    private string _reportVoidsTop = "–", _reportRefundsTop = "–", _reportNoSalesTop = "–";
+    private bool _reportVoidsFlagged, _reportRefundsFlagged;
+
+    public string ReportVoidsTop { get => _reportVoidsTop; private set => SetProperty(ref _reportVoidsTop, value); }
+    public string ReportRefundsTop { get => _reportRefundsTop; private set => SetProperty(ref _reportRefundsTop, value); }
+    public string ReportNoSalesTop { get => _reportNoSalesTop; private set => SetProperty(ref _reportNoSalesTop, value); }
+    public bool ReportVoidsFlagged { get => _reportVoidsFlagged; private set => SetProperty(ref _reportVoidsFlagged, value); }
+    public bool ReportRefundsFlagged { get => _reportRefundsFlagged; private set => SetProperty(ref _reportRefundsFlagged, value); }
+
     public void ApplyActivityReport(IReadOnlyList<OperatorActivityRecord> activity)
     {
         ReportRows.Clear();
@@ -800,10 +810,25 @@ public sealed class MainViewModel : ObservableObject
         ReportRefundsValue = activity.Sum(p => p.TotalRefundsValue);
         ReportRefundsQuantity = activity.Sum(p => p.RefundsQuantity);
         ReportNoSales = activity.Sum(p => p.NoSales);
+        ReportVoidsFlagged = ReportVoidsValue >= ReportFlagValue;
+        ReportRefundsFlagged = ReportRefundsValue >= ReportFlagValue;
+        ReportVoidsTop = Highest(activity, p => p.VoidsValue, v => $"£{v:N2}");
+        ReportRefundsTop = Highest(activity, p => p.TotalRefundsValue, v => $"£{v:N2}");
+        ReportNoSalesTop = Highest(activity, p => p.NoSales, v => $"{v:0}");
         OnPropertyChanged(nameof(HasReportData));
     }
 
     public void ClearActivityReport() => ApplyActivityReport(Array.Empty<OperatorActivityRecord>());
+
+    // "Name · £27.95" for whoever has the most; names joined when tied; a dash when nobody has any.
+    private static string Highest(IReadOnlyList<OperatorActivityRecord> activity, Func<OperatorActivityRecord, decimal> measure, Func<decimal, string> format)
+    {
+        if (activity.Count == 0) return "–";
+        var top = activity.Max(measure);
+        if (top <= 0m) return "–";
+        var names = activity.Where(p => measure(p) == top).Select(p => p.Name).ToList();
+        return $"{string.Join(" & ", names)} · {format(top)}";
+    }
 
     private static string NormaliseName(string? value) =>
         string.Concat((value ?? string.Empty).Where(char.IsLetterOrDigit)).ToUpperInvariant();
