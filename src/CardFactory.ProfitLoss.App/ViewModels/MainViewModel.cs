@@ -128,7 +128,7 @@ public sealed class MainViewModel : ObservableObject
     public DateTime? SelectedDate
     {
         get => _selectedDate;
-        set { if (SetProperty(ref _selectedDate, value)) OnPropertyChanged(nameof(RangeDayCountText)); }
+        set { if (SetProperty(ref _selectedDate, value)) { OnPropertyChanged(nameof(RangeDayCountText)); OnPropertyChanged(nameof(PeriodDisplayText)); } }
     }
 
     // Stage 6A.75: in Date Range mode the PERIOD control is an explicit range rather
@@ -137,7 +137,7 @@ public sealed class MainViewModel : ObservableObject
     public DateTime? RangeStartDate
     {
         get => _rangeStartDate;
-        set { if (SetProperty(ref _rangeStartDate, value)) OnPropertyChanged(nameof(RangeDayCountText)); }
+        set { if (SetProperty(ref _rangeStartDate, value)) { OnPropertyChanged(nameof(RangeDayCountText)); OnPropertyChanged(nameof(PeriodDisplayText)); } }
     }
 
     // Shown beside the range so a long pull is never silent.
@@ -151,6 +151,21 @@ public sealed class MainViewModel : ObservableObject
         var end = (SelectedDate ?? DateTime.Today).Date;
         var start = (RangeStartDate ?? end.AddDays(-6)).Date;
         if (start > end) RangeStartDate = end.AddDays(-6);
+    }
+
+    // K1: the one date button on the main screen. "Thu 24/09/2026", or for a range
+    // "Mon 21/09 – Thu 24/09/2026" with the day count shown beside it.
+    public bool IsRangeMode => string.Equals(HistoricalTargetMode, "Date Range", StringComparison.OrdinalIgnoreCase);
+    public string PeriodLabel => IsRangeMode ? "DATES" : "DATE";
+    public string PeriodDisplayText
+    {
+        get
+        {
+            var end = (_selectedDate ?? DateTime.Today).Date;
+            if (!IsRangeMode) return end.ToString("ddd dd/MM/yyyy");
+            var start = (_rangeStartDate ?? end.AddDays(-6)).Date;
+            return start.ToString("ddd dd/MM") + " – " + end.ToString("ddd dd/MM/yyyy");
+        }
     }
 
     public string RangeDayCountText
@@ -171,6 +186,9 @@ public sealed class MainViewModel : ObservableObject
         set
         {
             if (!SetProperty(ref _historicalTargetMode, value)) return;
+            OnPropertyChanged(nameof(IsRangeMode));
+            OnPropertyChanged(nameof(PeriodLabel));
+            OnPropertyChanged(nameof(PeriodDisplayText));
             // Switching into Date Range seeds it as the seven days ending on the
             // currently selected date, so it behaves exactly as the old week-ending
             // control did until one end is deliberately changed.

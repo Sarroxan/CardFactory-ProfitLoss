@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Choose Date"
         Width="410"
-        Height="477"
+        Height="577"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
@@ -74,6 +74,10 @@
                                 <Setter TargetName="DayBorder" Property="Background" Value="#FFF8D8" />
                                 <Setter TargetName="DayBorder" Property="BorderBrush" Value="{StaticResource CfYellow}" />
                             </Trigger>
+                            <Trigger Property="Tag" Value="InRange">
+                                <Setter TargetName="DayBorder" Property="Background" Value="{StaticResource CfBlueSoft}" />
+                                <Setter TargetName="DayBorder" Property="CornerRadius" Value="0" />
+                            </Trigger>
                             <Trigger Property="Tag" Value="Selected">
                                 <Setter TargetName="DayBorder" Property="Background" Value="{StaticResource CfDeepBlue}" />
                                 <Setter TargetName="DayBorder" Property="BorderBrush" Value="{StaticResource CfYellow}" />
@@ -97,6 +101,32 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- K1: Single day / Date range, chosen in the calendar itself. -->
+        <Style x:Key="PeriodTabStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Seg" Background="Transparent" BorderBrush="Transparent" BorderThickness="2" CornerRadius="9">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Seg" Property="Background" Value="#F5F9FF" /></Trigger>
+                            <Trigger Property="Tag" Value="Active">
+                                <Setter TargetName="Seg" Property="Background" Value="{StaticResource CfBlue}" />
+                                <Setter TargetName="Seg" Property="BorderBrush" Value="{StaticResource CfYellow}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Border Margin="12"
@@ -110,6 +140,7 @@
         </Border.Effect>
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -145,7 +176,14 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Row="1" Margin="0,18,0,0" Padding="10,8"
+            <Border Grid.Row="1" Margin="0,16,0,0" Height="36" Padding="3" Background="{StaticResource CfBlueSoft}" CornerRadius="12">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="3" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Button x:Name="SingleDayTab" Content="Single day" Style="{StaticResource PeriodTabStyle}" Click="SingleDayTab_Click" />
+                    <Button x:Name="DateRangeTab" Grid.Column="2" Content="Date range" Style="{StaticResource PeriodTabStyle}" Click="DateRangeTab_Click" />
+                </Grid>
+            </Border>
+            <Border Grid.Row="2" Margin="0,14,0,0" Padding="10,8"
                     Background="#FFFDF4" BorderBrush="#F0DE94" BorderThickness="1" CornerRadius="13">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -161,7 +199,7 @@
                 </Grid>
             </Border>
 
-            <Grid Grid.Row="2" Margin="0,14,0,4">
+            <Grid Grid.Row="3" Margin="0,14,0,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition /><ColumnDefinition /><ColumnDefinition /><ColumnDefinition />
                     <ColumnDefinition /><ColumnDefinition /><ColumnDefinition />
@@ -175,13 +213,23 @@
                 <TextBlock Grid.Column="6" Text="SUN" Style="{StaticResource CalendarWeekHeaderStyle}" />
             </Grid>
 
-            <UniformGrid x:Name="DaysGrid" Grid.Row="3" Rows="6" Columns="7" Margin="0,1,0,0" />
+            <UniformGrid x:Name="DaysGrid" Grid.Row="4" Rows="6" Columns="7" Margin="0,1,0,0" />
 
             <!-- Stage 6B.46 (option B): a click on a day uses it and closes, so "Use date" is
                  gone, and Cancel with it - the × in the header already cancels. Today stays
                  as a one-click shortcut and closes too. -->
-            <Grid Grid.Row="4" Margin="0,16,0,0">
-                <Button Content="Today" Width="72" Height="34" HorizontalAlignment="Left" Style="{StaticResource ModernSecondaryButtonStyle}" Click="Today_Click" />
+            <Grid Grid.Row="5" Margin="0,16,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="TodayButton" Content="Today" Width="72" Height="34" HorizontalAlignment="Left" Style="{StaticResource ModernSecondaryButtonStyle}" Click="Today_Click" />
+                <Button x:Name="ThisWeekButton" Content="This week" Width="86" Height="34" HorizontalAlignment="Left" Style="{StaticResource ModernSecondaryButtonStyle}" Click="ThisWeek_Click" Visibility="Collapsed" />
+                <TextBlock x:Name="RangeSummaryText" Grid.Column="1" Margin="10,0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                           Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="11" FontWeight="Bold" Visibility="Collapsed" />
+                <Button x:Name="UseDatesButton" Grid.Column="2" Content="Use dates" Height="34" Padding="16,0" IsEnabled="False"
+                        Style="{StaticResource FlooidActionButtonStyle}" Tag="NoGlyph" FontSize="11" Click="UseDates_Click" Visibility="Collapsed" />
             </Grid>
         </Grid>
     </Border>

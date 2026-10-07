@@ -136,6 +136,11 @@ public partial class MainWindow : Window
         ResizeWindowForVisibleTeamRows(Math.Clamp(viewModel.Operators.Count, 1, 2));
     }
 
+    // L3: Team-only space at the bottom. The footnote (25.5px) and formula strip (54.5px)
+    // are gone and the hint line under Targets takes 24px, so the spacer grows by 56px to
+    // keep the Team view the same height as Branch and Reports (474px panels).
+    private const double TeamSpacerHeight = 96.0;
+
     private void ApplyTeamLayout(int operatorCount)
     {
         var visibleRows = Math.Clamp(operatorCount, 1, 3);
@@ -156,9 +161,8 @@ public partial class MainWindow : Window
             TeamPerformanceSection.Margin = new Thickness(0, 5, 0, 0);  // 6px
             AddPersonButton.Margin = new Thickness(28, 4, 0, 0);         // 3px
             PerformanceSummarySection.Margin = new Thickness(0, 6, 0, 0);// 6px
-            CalculateSpacer.Margin = new Thickness(28, 6, 0, 0);          // preserve old Calculate slot while saving 6px
-            FormulaStrip.Margin = new Thickness(0, 5, 0, 0);              // 7px
-            FormulaStrip.Height = 34.0;                                    // 8.5px
+            CalculateSpacer.Margin = new Thickness(28, 6, 0, 0);          // 6px
+            CalculateSpacer.Height = TeamSpacerHeight - 18.5;             // what the formula strip and target row used to give up
         }
         else
         {
@@ -168,8 +172,7 @@ public partial class MainWindow : Window
             AddPersonButton.Margin = new Thickness(28, 7, 0, 0);
             PerformanceSummarySection.Margin = new Thickness(0, 12, 0, 0);
             CalculateSpacer.Margin = new Thickness(28, 12, 0, 0);
-            FormulaStrip.Margin = new Thickness(0, 12, 0, 0);
-            FormulaStrip.Height = 42.5;
+            CalculateSpacer.Height = TeamSpacerHeight;
         }
     }
 
@@ -498,8 +501,6 @@ public partial class MainWindow : Window
             PerformanceSummarySection.Visibility = otherThanTeam ? Visibility.Collapsed : Visibility.Visible;
         if (CalculateSpacer is not null)
             CalculateSpacer.Visibility = otherThanTeam ? Visibility.Collapsed : Visibility.Hidden;
-        if (FormulaStrip is not null)
-            FormulaStrip.Visibility = otherThanTeam ? Visibility.Collapsed : Visibility.Visible;
 
         // Stage 6B.02: the header tabs. All are always visible; the active one is marked by Tag.
         if (TeamSectionSegment is not null)
@@ -526,55 +527,35 @@ public partial class MainWindow : Window
         if (BranchGiftCardsTabButton is not null) BranchGiftCardsTabButton.Tag = giftCards ? "Active" : null;
     }
 
+    // K1: one date button. Single day or date range is chosen inside the calendar, so the
+    // main screen no longer needs its own Day / Range switch. The stored values are still
+    // Daily and Date Range, so saved files and every report path are unchanged.
     private void PeriodDate_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel) return;
 
+        var isRange = string.Equals(viewModel.HistoricalTargetMode, "Date Range", StringComparison.OrdinalIgnoreCase);
         var dialog = new ThemedDatePickerWindow(
             viewModel.SelectedDate ?? DateTime.Today,
-            // Stage 6A.76: there is no week-ending concept any more, so the picker
-            // uses its plain "Choose date" wording for both ends of a range.
-            weeklyMode: false)
+            isRange ? viewModel.RangeStartDate : null,
+            isRange)
         {
             Owner = this
         };
 
         if (dialog.ShowDialog() != true) return;
 
-        // Stage 6A.75: in Date Range mode this button is the END of the range, so it
-        // cannot be moved before the start.
-        if (string.Equals(viewModel.HistoricalTargetMode, "Date Range", StringComparison.OrdinalIgnoreCase)
-            && viewModel.RangeStartDate is { } rangeStart
-            && dialog.SelectedDate.Date < rangeStart.Date)
+        if (dialog.IsRange && dialog.RangeStart is { } start)
         {
-            viewModel.SetStatus($"The end of the range cannot be before {rangeStart:dd/MM/yyyy}");
-            return;
+            viewModel.HistoricalTargetMode = "Date Range";
+            viewModel.RangeStartDate = start;
+            viewModel.SelectedDate = dialog.SelectedDate;
         }
-
-        viewModel.SelectedDate = dialog.SelectedDate;
-    }
-
-    private void RangeStartDate_Click(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is not MainViewModel viewModel) return;
-
-        var dialog = new ThemedDatePickerWindow(
-            viewModel.RangeStartDate ?? (viewModel.SelectedDate ?? DateTime.Today).AddDays(-6),
-            weeklyMode: false)
+        else
         {
-            Owner = this
-        };
-
-        if (dialog.ShowDialog() != true) return;
-
-        var end = (viewModel.SelectedDate ?? DateTime.Today).Date;
-        if (dialog.SelectedDate.Date > end)
-        {
-            viewModel.SetStatus($"The start of the range cannot be after {end:dd/MM/yyyy}");
-            return;
+            viewModel.HistoricalTargetMode = "Daily";
+            viewModel.SelectedDate = dialog.SelectedDate;
         }
-
-        viewModel.RangeStartDate = dialog.SelectedDate;
     }
 
     // Stage 6B.30: the speed control reflects the file rather than assuming, so opening

@@ -21,7 +21,7 @@
   <ItemGroup>
     <None Remove="Assets\CardFactory.ProfitLoss.ico" />
     <None Remove="Assets\HeaderSmiley.png" />
-    <None Remove="Assets\PerformanceTitleTextExact.png" />
+    <None Remove="Assets\TargetsTitleTextExact.png" />
     <None Remove="Assets\SectionSmiley.png" />
     <None Remove="Assets\TeamTitleTextExact.png" />
     <None Remove="Assets\BranchTitleTextExact.png" />
@@ -29,7 +29,7 @@
     <None Remove="Assets\HeaderLogoTitle.png" />
     <Resource Include="Assets\CardFactory.ProfitLoss.ico" />
     <Resource Include="Assets\HeaderSmiley.png" />
-    <Resource Include="Assets\PerformanceTitleTextExact.png" />
+    <Resource Include="Assets\TargetsTitleTextExact.png" />
     <Resource Include="Assets\SectionSmiley.png" />
     <Resource Include="Assets\TeamTitleTextExact.png" />
     <Resource Include="Assets\BranchTitleTextExact.png" />
