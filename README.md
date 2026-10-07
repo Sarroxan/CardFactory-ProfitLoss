@@ -34,17 +34,9 @@ src/                      application source (5 projects)
 tests/                    unit tests for Core and ReportParsing
 docs/
   ARCHITECTURE.md         how the app works + verified Flooid facts
+tools/                    render-header-logo.py (header artwork)
 .github/workflows/        Windows CI build
 ```
-
-## Look and feel
-
-The app follows the company's paper forms (Daily Briefing, Weekly Briefing, Line Count
-Tracker): Chewy for headings and labels, blue section bars with a yellow outline and the
-smiley, white outlined boxes, a yellow ring round the box that matters (Actual, totals,
-£20+ voids and refunds) and the pale-grey smiley watermark. Figures use Fredoka. Both fonts
-are embedded in `src/CardFactory.ProfitLoss.App/Assets/Fonts` with their licences
-(Chewy: Apache 2.0; Fredoka: SIL OFL 1.1, renamed "CF Fredoka" for the single weight used).
 
 ## Building
 

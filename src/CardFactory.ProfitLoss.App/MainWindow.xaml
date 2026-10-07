@@ -95,9 +95,10 @@
              HistoricalModeToggleStyle is left as it is - Performance / Gift Cards uses it. -->
         <Style x:Key="ModeCardSegmentStyle" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-            <Setter Property="Background" Value="{StaticResource CfBlueSoft}" />
-            <Setter Property="FontFamily" Value="{StaticResource CfChewy}" />
-            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -107,18 +108,15 @@
                     <ControlTemplate TargetType="RadioButton">
                         <Border x:Name="Half"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="Transparent"
-                                BorderThickness="2"
                                 CornerRadius="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Half" Property="Background" Value="#D3E1F2" />
+                                <Setter TargetName="Half" Property="Background" Value="#F5F9FF" />
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Half" Property="Background" Value="{StaticResource CfBlue}" />
-                                <Setter TargetName="Half" Property="BorderBrush" Value="{StaticResource CfYellow}" />
                                 <Setter Property="Foreground" Value="White" />
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
@@ -210,8 +208,9 @@
                                RenderOptions.BitmapScalingMode="HighQuality" />
                         <TextBlock Text="Card Factory Profit &amp; Loss Calculator"
                                    Foreground="{StaticResource CfDeepBlue}"
-                                   FontFamily="{StaticResource CfChewy}"
-                                   FontSize="14"
+                                   FontFamily="Arial"
+                                   FontSize="10.5"
+                                   FontWeight="Bold"
                                    VerticalAlignment="Center"
                                    Margin="7,0,0,0" />
                     </StackPanel>
@@ -343,13 +342,6 @@
                         BorderThickness="0"
                         CornerRadius="0">
 
-                    <Grid>
-                    <!-- Company forms theme: the forms' big pale-grey smiley, behind everything. -->
-                    <Canvas IsHitTestVisible="False" ClipToBounds="True" Width="1212">
-                        <Ellipse Canvas.Left="470" Canvas.Top="70" Width="720" Height="720" Fill="{StaticResource CfWatermark}" />
-                        <Path Canvas.Left="470" Canvas.Top="70" Width="720" Height="720" Stretch="None" Fill="White"
-                              Data="M 216,302 L 590,259 C 605,446 504,576 374,576 C 274,576 216,475 216,302 Z" />
-                    </Canvas>
                     <StackPanel Width="1212">
                         <!-- HEADER: restored preferred HTML smiley, cleaner metadata spacing and compact Flooid status. -->
                         <!-- Stage 6B.21: the header was three things on white - logo, tabs, login
@@ -363,9 +355,7 @@
                              Everything on it is recoloured to suit: white logo lettering, white
                              tabs, white/pale-blue store details. The Flooid pill keeps its own
                              blue and yellow border. -->
-                        <!-- Company forms theme: a white header like the top of the Daily Briefing - the
-                             title in Chewy over two yellow strokes; tabs, store and pill on white. -->
-                        <Border Height="93" Background="Transparent" CornerRadius="14">
+                        <Border Height="93" Background="{StaticResource CfDeepBlue}" CornerRadius="14">
                             <Canvas Width="1212" Height="93" ClipToBounds="False">
                                 <!-- Stage 6A.71: supplied combined logo + title artwork replaces the
                                      separately drawn smiley tile and the captured Chewy title image.
@@ -374,12 +364,14 @@
                                      Loss" in Chewy, and CALCULATOR between two yellow bars the width of the
                                      title. 6B.60: S1 (+2px title letter spacing) in white for the navy
                                      header, 991x252 (3x), shown at 330x84. tools/render-header-logo.py. -->
-                                <StackPanel Canvas.Left="14" Canvas.Top="12">
-                                    <TextBlock Text="Profit &amp; Loss Calculator" FontFamily="{StaticResource CfChewy}" FontSize="36"
-                                               Foreground="{StaticResource CfBlue}" />
-                                    <Border Width="300" Height="5" CornerRadius="2.5" Background="{StaticResource CfYellow}" HorizontalAlignment="Left" Margin="0,4,0,0" />
-                                    <Border Width="300" Height="3" CornerRadius="1.5" Background="#FCDD00" HorizontalAlignment="Left" Margin="66,3,0,0" />
-                                </StackPanel>
+                                <Image Canvas.Left="0"
+                                       Canvas.Top="4"
+                                       Width="330"
+                                       Height="84"
+                                       Source="Assets/HeaderLogoTitle.png"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                       SnapsToDevicePixels="False" />
 
                                 <!-- Stage 6A.32: Branch Performance uses the previously empty header space. -->
                                 <!-- Stage 6B.05: concept FF. No box - two underline tabs. The logo
@@ -406,8 +398,9 @@
                                      whatever the label widths; with no Background its empty columns are
                                      not hit-testable, so the logo and pill stay clickable beneath it. -->
                                 <Grid x:Name="SectionTabControl"
-                                      Canvas.Left="392"
-                                      Canvas.Top="20"
+                                      Canvas.Left="0"
+                                      Canvas.Top="24"
+                                      Width="1212"
                                       Height="44">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -449,14 +442,14 @@
                                      pill. -->
                                 <!-- Stage 6B.59 (layout B): grouped with the pill - 24px from it, as drawn
                                      - and 250 wide so its box ends clear of the centred tabs. -->
-                                <StackPanel Canvas.Left="866"
-                                            Canvas.Top="54"
-                                            Width="340"
+                                <StackPanel Canvas.Left="760"
+                                            Canvas.Top="26"
+                                            Width="250"
                                             HorizontalAlignment="Right">
                                     <TextBlock Text="{Binding HeaderStoreText}"
                                                HorizontalAlignment="Right"
-                                               FontFamily="{StaticResource CfChewy}" FontSize="15"
-                                               Foreground="{StaticResource CfDeepBlue}"
+                                               FontFamily="Arial" FontSize="12" FontWeight="Bold"
+                                               Foreground="White"
                                                TextTrimming="CharacterEllipsis" />
                                     <!-- Freshness (design 1A): green dot and "updated 12 min ago"; after an hour
                                          the dot and the words turn amber. -->
@@ -473,13 +466,14 @@
                                                 </Style>
                                             </Ellipse.Style>
                                         </Ellipse>
-                                        <TextBlock FontFamily="{StaticResource CfChewy}" FontSize="12" VerticalAlignment="Center">
+                                        <TextBlock FontFamily="Arial" FontSize="10" VerticalAlignment="Center">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="#598BC1" />
+                                                    <Setter Property="Foreground" Value="#C9D6E8" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsStale}" Value="True">
-                                                            <Setter Property="Foreground" Value="#B86E00" />
+                                                            <Setter Property="Foreground" Value="#FFD27A" />
+                                                            <Setter Property="FontWeight" Value="Bold" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -559,10 +553,10 @@
                                      line. Right edge held at 1206 and vertical centre held at 45, so
                                      it shrinks in place and nothing else in the header moves. -->
                                 <Button x:Name="FlooidConnectButton"
-                                        Canvas.Left="1046"
-                                        Canvas.Top="10"
-                                        Width="160"
-                                        Height="38"
+                                        Canvas.Left="1034"
+                                        Canvas.Top="27"
+                                        Width="172"
+                                        Height="36"
                                         Padding="0"
                                         Background="Transparent"
                                         BorderThickness="0"
@@ -588,16 +582,13 @@
                                                  the yellow border, so it stands out on the navy header (6B.60). The grey
                                                  dot is darker (#8A99AD) to read on white, and the yellow "signing in"
                                                  dot gets a thin navy ring for the same reason. -->
-                                            <!-- Company forms theme: a "key box" - ink outline inside a yellow ring. -->
-                                            <Border Background="{StaticResource CfYellow}" CornerRadius="19" Padding="3">
-                                            <Border x:Name="FlooidPill" Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="16">
-                                                <Grid Margin="12,0,10,0">
+                                            <Border x:Name="FlooidPill" Background="White" BorderBrush="{StaticResource CfYellow}" BorderThickness="2" CornerRadius="18">
+                                                <Grid Margin="13,0,11,0">
                                                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="20"/></Grid.ColumnDefinitions>
-                                                    <Ellipse x:Name="FlooidTemplateStatusDot" Grid.Column="0" Width="9" Height="9" Fill="#8A99AD" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                                    <TextBlock x:Name="FlooidConnectText" Grid.Column="1" Text="Flooid login" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" FontSize="15" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                    <Ellipse x:Name="FlooidTemplateStatusDot" Grid.Column="0" Width="9" Height="9" Fill="#8A99AD" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                    <TextBlock x:Name="FlooidConnectText" Grid.Column="1" Text="FLOOID LOGIN" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                                     <Path x:Name="FlooidConnectArrow" Grid.Column="2" Data="M2,8 L16,8 M11,3 L16,8 L11,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Grid>
-                                            </Border>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="FlooidPill" Property="Background" Value="#FFF8D8"/></Trigger>
@@ -608,7 +599,7 @@
                                                      timed the session out. -->
                                                 <Trigger Property="Tag" Value="Good">
                                                     <Setter TargetName="FlooidTemplateStatusDot" Property="Fill" Value="#35C46F"/>
-                                                    <Setter TargetName="FlooidConnectText" Property="Text" Value="Connected"/>
+                                                    <Setter TargetName="FlooidConnectText" Property="Text" Value="CONNECTED"/>
                                                     <Setter TargetName="FlooidConnectArrow" Property="Visibility" Value="Collapsed"/>
                                                 </Trigger>
                                                 <Trigger Property="Tag" Value="Working">
@@ -653,11 +644,11 @@
                                         Click="CopySummary_Click" ToolTip="Copy today's figures to paste into Teams, WhatsApp or an email">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border x:Name="CopyPill" Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10" Padding="11,0,12,0">
+                                            <Border x:Name="CopyPill" Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="1.5" CornerRadius="13" Padding="11,0,12,0">
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                     <Path Data="M7,7 L16,7 L16,17 L7,17 Z M4,13 L4,3 L13,3" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.7"
                                                           StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
-                                                    <TextBlock Text="Copy summary" Margin="6,0,0,0" VerticalAlignment="Center" FontFamily="{StaticResource CfChewy}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" />
+                                                    <TextBlock Text="Copy summary" Margin="6,0,0,0" VerticalAlignment="Center" FontFamily="Arial" FontSize="11" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
                                                 </StackPanel>
                                             </Border>
                                             <ControlTemplate.Triggers>
@@ -690,10 +681,10 @@
                                      label sits at the left rather than on top. Yellow stays for Refresh. -->
                                 <Border Height="30"
                                         Background="White"
-                                        BorderBrush="{StaticResource CfDeepBlue}"
-                                        BorderThickness="2"
+                                        BorderBrush="{StaticResource CfLine}"
+                                        BorderThickness="1"
                                         CornerRadius="10"
-                                        Padding="0,0,3,0">
+                                        Padding="0,1,3,1">
                                     <Grid>
                                         <!-- Stage 6A.75: two mutually exclusive layouts in the
                                              same pill. Daily is unchanged. Date Range is an explicit
@@ -711,9 +702,9 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </StackPanel.Style>
-                                            <Border Background="{StaticResource CfBlueSoft}" CornerRadius="8,0,0,8" Margin="0,0,8,0" Padding="10,0">
-                                                <TextBlock Text="Date" VerticalAlignment="Center" Foreground="{StaticResource CfDeepBlue}"
-                                                           FontFamily="{StaticResource CfChewy}" FontSize="14" />
+                                            <Border Background="#EAF2FF" CornerRadius="9,0,0,9" Margin="0,-1,8,-1" Padding="10,0">
+                                                <TextBlock Text="DATE" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}"
+                                                           FontFamily="Arial" FontSize="8.5" FontWeight="Bold" />
                                             </Border>
                                             <Button Width="145"
                                                     Height="26"
@@ -721,8 +712,9 @@
                                                     Click="PeriodDate_Click"
                                                     ToolTip="Choose report date">
                                                 <TextBlock Text="{Binding SelectedDate, StringFormat={}{0:dd/MM/yyyy}}"
-                                                           FontFamily="{StaticResource CfFigures}"
-                                                           FontSize="13"
+                                                           FontFamily="Arial"
+                                                           FontSize="11.5"
+                                                           FontWeight="SemiBold"
                                                            Foreground="{StaticResource CfDeepBlue}"
                                                            VerticalAlignment="Center" />
                                             </Button>
@@ -739,9 +731,9 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </StackPanel.Style>
-                                            <Border Background="{StaticResource CfBlueSoft}" CornerRadius="8,0,0,8" Margin="0,0,8,0" Padding="10,0">
-                                                <TextBlock Text="From" VerticalAlignment="Center" Foreground="{StaticResource CfDeepBlue}"
-                                                           FontFamily="{StaticResource CfChewy}" FontSize="14" />
+                                            <Border Background="#EAF2FF" CornerRadius="9,0,0,9" Margin="0,-1,8,-1" Padding="10,0">
+                                                <TextBlock Text="FROM" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}"
+                                                           FontFamily="Arial" FontSize="8.5" FontWeight="Bold" />
                                             </Border>
                                             <Button Width="118"
                                                     Height="26"
@@ -749,16 +741,18 @@
                                                     Click="RangeStartDate_Click"
                                                     ToolTip="Choose the first day of the range">
                                                 <TextBlock Text="{Binding RangeStartDate, StringFormat={}{0:dd/MM/yyyy}}"
-                                                           FontFamily="{StaticResource CfFigures}"
-                                                           FontSize="13"
+                                                           FontFamily="Arial"
+                                                           FontSize="11.5"
+                                                           FontWeight="SemiBold"
                                                            Foreground="{StaticResource CfDeepBlue}"
                                                            VerticalAlignment="Center" />
                                             </Button>
-                                            <TextBlock Text="To"
+                                            <TextBlock Text="TO"
                                                        VerticalAlignment="Center"
-                                                       Foreground="{StaticResource CfDeepBlue}"
-                                                       FontFamily="{StaticResource CfChewy}"
-                                                       FontSize="14"
+                                                       Foreground="{StaticResource CfBlue}"
+                                                       FontFamily="Arial"
+                                                       FontSize="8.5"
+                                                       FontWeight="Bold"
                                                        Margin="8,0,8,0" />
                                             <Button Width="118"
                                                     Height="26"
@@ -766,16 +760,18 @@
                                                     Click="PeriodDate_Click"
                                                     ToolTip="Choose the last day of the range">
                                                 <TextBlock Text="{Binding SelectedDate, StringFormat={}{0:dd/MM/yyyy}}"
-                                                           FontFamily="{StaticResource CfFigures}"
-                                                           FontSize="13"
+                                                           FontFamily="Arial"
+                                                           FontSize="11.5"
+                                                           FontWeight="SemiBold"
                                                            Foreground="{StaticResource CfDeepBlue}"
                                                            VerticalAlignment="Center" />
                                             </Button>
                                             <TextBlock Text="{Binding RangeDayCountText}"
                                                        VerticalAlignment="Center"
-                                                       Foreground="{StaticResource CfDeepBlue}"
-                                                       FontFamily="{StaticResource CfChewy}"
-                                                       FontSize="12"
+                                                       Foreground="{StaticResource CfMuted}"
+                                                       FontFamily="Arial"
+                                                       FontSize="8"
+                                                       FontWeight="Bold"
                                                        Margin="8,0,0,0" />
                                         </StackPanel>
                                     </Grid>
@@ -784,11 +780,16 @@
                         </Grid>
 
                         <!-- TARGETS: exact HTML palette, with blank zero values and relaxed spacing. -->
-                        <!-- Company forms theme: each target card is the Sales / ABV / AUB box from the top
-                             of the Daily Briefing - Target beside a yellow-ringed Actual (the team's totals,
-                             as in Performance Summary), coloured against the target. Day / Range stack as
-                             two chips. Bindings and handlers are unchanged. -->
-                        <Grid x:Name="TargetsRow" Height="72" Margin="18,5,18,0">
+                        <Grid x:Name="TargetsRow" Height="53" Margin="18,5,18,0">
+                            <!-- Stage 6B.10: the toggle joins the cards. 1176 usable: 150 for the
+                                 toggle, three 324 cards, 18px gaps. The cards lose 56px each, which
+                                 the label strip absorbs easily - "SALES TARGET (£)" needs about 120px
+                                 at 10pt bold - and a figure like £7,235.11 is around 90px, so the
+                                 input still has room to spare.
+
+                                 The standalone TARGET label is gone rather than moved. Each card
+                                 already says SALES TARGET, ABV TARGET and AUB TARGET, so a fourth
+                                 word saying TARGET was labelling labels. -->
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="150" />
                                 <ColumnDefinition Width="18" />
@@ -799,32 +800,41 @@
                                 <ColumnDefinition Width="324" />
                             </Grid.ColumnDefinitions>
 
-                            <Grid Grid.Column="0">
-                                <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="6"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                <RadioButton Grid.Row="0"
-                                             Content="Day"
-                                             GroupName="HistoricalTargetMode"
-                                             Style="{StaticResource ModeCardSegmentStyle}"
-                                             IsChecked="{Binding HistoricalTargetMode, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Daily, Mode=TwoWay}">
-                                    <RadioButton.Tag><CornerRadius>11</CornerRadius></RadioButton.Tag>
-                                </RadioButton>
-                                <RadioButton Grid.Row="2"
-                                             Content="Range"
-                                             GroupName="HistoricalTargetMode"
-                                             Style="{StaticResource ModeCardSegmentStyle}"
-                                             IsChecked="{Binding HistoricalTargetMode, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Date Range', Mode=TwoWay}">
-                                    <RadioButton.Tag><CornerRadius>11</CornerRadius></RadioButton.Tag>
-                                </RadioButton>
-                            </Grid>
+                            <!-- Stage 6B.48 (concept B): the card is the switch. Bindings unchanged -
+                                 the stored values are still Daily and Date Range (see 6B.10). -->
+                            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="1" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <RadioButton Grid.Column="0"
+                                                 Content="Day"
+                                                 GroupName="HistoricalTargetMode"
+                                                 Style="{StaticResource ModeCardSegmentStyle}"
+                                                 IsChecked="{Binding HistoricalTargetMode, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Daily, Mode=TwoWay}">
+                                        <RadioButton.Tag><CornerRadius>13,0,0,13</CornerRadius></RadioButton.Tag>
+                                    </RadioButton>
+                                    <Border Grid.Column="1" Background="{StaticResource CfLine}" />
+                                    <RadioButton Grid.Column="2"
+                                                 Content="Range"
+                                                 GroupName="HistoricalTargetMode"
+                                                 Style="{StaticResource ModeCardSegmentStyle}"
+                                                 IsChecked="{Binding HistoricalTargetMode, Converter={StaticResource StringEqualsConverter}, ConverterParameter='Date Range', Mode=TwoWay}">
+                                        <RadioButton.Tag><CornerRadius>0,13,13,0</CornerRadius></RadioButton.Tag>
+                                    </RadioButton>
+                                </Grid>
+                            </Border>
 
-                            <Border Grid.Column="2" Background="{StaticResource CfBlueSoft}" CornerRadius="14">
-                                <Grid Margin="12,6,12,8">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="62"/><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Grid.Column="2" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                <Grid>
                                     <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                    <TextBlock Grid.RowSpan="2" Text="Sales" FontFamily="{StaticResource CfChewy}" FontSize="23" Foreground="{StaticResource CfDeepBlue}" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="Target" Style="{StaticResource TargetLabelTextStyle}" />
-                                    <TextBox Grid.Column="1" Grid.Row="1"
-                                             Height="34"
+                                    <Border Grid.Row="0" Background="{StaticResource CfBlueSoft}">
+                                        <TextBlock Text="SALES TARGET (£)" Style="{StaticResource TargetLabelTextStyle}" />
+                                    </Border>
+                                    <TextBox Grid.Row="1"
+                                             Margin="9,0,9,4"
                                              VerticalAlignment="Center"
                                              Text="{Binding SalesTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
                                              Tag="Input sales here"
@@ -833,24 +843,17 @@
                                              PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown"
                                              TextChanged="NumericTextBox_TextChanged"
                                              LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
-                                    <TextBlock Grid.Column="3" Text="Actual" Style="{StaticResource TargetLabelTextStyle}" />
-                                    <!-- Actual: the forms' "key box" - ink outline in a yellow ring; green or red against the target. -->
-                                    <Border Grid.Column="3" Grid.Row="1" Height="38" VerticalAlignment="Center" Background="{StaticResource CfYellow}" CornerRadius="12" Padding="2.5">
-                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                            <TextBlock Text="{Binding TotalSales, StringFormat=£{0:N2}}" Tag="{Binding SalesVarianceState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="14" />
-                                        </Border>
-                                    </Border>
                                 </Grid>
                             </Border>
 
-                            <Border Grid.Column="4" Background="{StaticResource CfBlueSoft}" CornerRadius="14">
-                                <Grid Margin="12,6,12,8">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="62"/><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Grid.Column="4" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                <Grid>
                                     <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                    <TextBlock Grid.RowSpan="2" Text="ABV" FontFamily="{StaticResource CfChewy}" FontSize="23" Foreground="{StaticResource CfDeepBlue}" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="Target" Style="{StaticResource TargetLabelTextStyle}" />
-                                    <TextBox Grid.Column="1" Grid.Row="1"
-                                             Height="34"
+                                    <Border Grid.Row="0" Background="{StaticResource CfBlueSoft}">
+                                        <TextBlock Text="ABV TARGET (£)" Style="{StaticResource TargetLabelTextStyle}" />
+                                    </Border>
+                                    <TextBox Grid.Row="1"
+                                             Margin="9,0,9,4"
                                              VerticalAlignment="Center"
                                              Text="{Binding AbvTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
                                              Tag="Input ABV here"
@@ -859,24 +862,17 @@
                                              PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown"
                                              TextChanged="NumericTextBox_TextChanged"
                                              LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
-                                    <TextBlock Grid.Column="3" Text="Actual" Style="{StaticResource TargetLabelTextStyle}" />
-                                    <!-- Actual: the forms' "key box" - ink outline in a yellow ring; green or red against the target. -->
-                                    <Border Grid.Column="3" Grid.Row="1" Height="38" VerticalAlignment="Center" Background="{StaticResource CfYellow}" CornerRadius="12" Padding="2.5">
-                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                            <TextBlock Text="{Binding ActualAbv, StringFormat=£{0:N2}}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="14" />
-                                        </Border>
-                                    </Border>
                                 </Grid>
                             </Border>
 
-                            <Border Grid.Column="6" Background="{StaticResource CfBlueSoft}" CornerRadius="14">
-                                <Grid Margin="12,6,12,8">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="62"/><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Border Grid.Column="6" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                <Grid>
                                     <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                    <TextBlock Grid.RowSpan="2" Text="AUB" FontFamily="{StaticResource CfChewy}" FontSize="23" Foreground="{StaticResource CfDeepBlue}" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="Target" Style="{StaticResource TargetLabelTextStyle}" />
-                                    <TextBox Grid.Column="1" Grid.Row="1"
-                                             Height="34"
+                                    <Border Grid.Row="0" Background="{StaticResource CfBlueSoft}">
+                                        <TextBlock Text="AUB TARGET" Style="{StaticResource TargetLabelTextStyle}" />
+                                    </Border>
+                                    <TextBox Grid.Row="1"
+                                             Margin="9,0,9,4"
                                              VerticalAlignment="Center"
                                              Text="{Binding AubTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
                                              Tag="Input AUB here"
@@ -885,13 +881,6 @@
                                              PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown"
                                              TextChanged="NumericTextBox_TextChanged"
                                              LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
-                                    <TextBlock Grid.Column="3" Text="Actual" Style="{StaticResource TargetLabelTextStyle}" />
-                                    <!-- Actual: the forms' "key box" - ink outline in a yellow ring; green or red against the target. -->
-                                    <Border Grid.Column="3" Grid.Row="1" Height="38" VerticalAlignment="Center" Background="{StaticResource CfYellow}" CornerRadius="12" Padding="2.5">
-                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                            <TextBlock Text="{Binding ActualAub, StringFormat={}{0:N2}}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="14" />
-                                        </Border>
-                                    </Border>
                                 </Grid>
                             </Border>
                         </Grid>
@@ -912,9 +901,18 @@
                             <Grid>
                                 <StackPanel x:Name="TeamModePanel">
                             <Canvas Height="42" Width="1212" ClipToBounds="False">
-                                <!-- Company forms theme: the forms' section bar - blue, yellow outline, rounded. -->
-                                <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42" Style="{StaticResource FormsSectionBarStyle}">
-                                    <TextBlock Text="Team Performance" Style="{StaticResource FormsSectionTitleStyle}" />
+                                <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42"
+                                        Background="{StaticResource CfDeepBlue}"
+                                        BorderBrush="{StaticResource CfDeepBlue}"
+                                        BorderThickness="2"
+                                        CornerRadius="16,16,0,0">
+                                    <Image Width="132.5" Height="22"
+                                           Source="Assets/TeamTitleTextExact.png"
+                                           Stretch="Fill"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                           SnapsToDevicePixels="False" />
                                 </Border>
                                 <!-- Stage 6B.11: the Team status text is gone; the retrieval overlay reports progress and failure now. -->
                                 <!-- Stage 6B.01: the Refresh button that stood here has moved to the
@@ -929,14 +927,17 @@
                             </Canvas>
 
                             <Border Width="1184"
-                                    Margin="28,5,0,0"
+                                    Margin="28,0,0,0"
                                     HorizontalAlignment="Left"
-                                    Style="{StaticResource FormsSectionBodyStyle}"
+                                    Background="White"
+                                    BorderBrush="{StaticResource CfLine}"
+                                    BorderThickness="1,0,1,1"
+                                    CornerRadius="0,0,13,13"
                                     ClipToBounds="True">
                                 <StackPanel Width="1182">
                                     <!-- Top performers strip (design C1): best ABV, AUB and P&amp;L in pale-gold
                                          chips. Only shown once someone qualifies (10+ transactions). -->
-                                    <Border Height="36" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1">
+                                    <Border Height="36" BorderBrush="#EDF1F6" BorderThickness="0,0,0,1">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Visibility" Value="Visible" />
@@ -947,27 +948,22 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="12,0,0,0">
-                                        <Border Background="{StaticResource CfYellow}" CornerRadius="10" Padding="11,1,11,2" Margin="0,0,6,0" VerticalAlignment="Center">
-                                            <TextBlock Text="Top performers" FontFamily="{StaticResource CfChewy}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" />
-                                        </Border>
-                                        <ItemsControl ItemsSource="{Binding TopPerformerChips}" VerticalAlignment="Center">
+                                        <ItemsControl ItemsSource="{Binding TopPerformerChips}" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Height="24" Margin="6,0" Padding="10,0,11,0" CornerRadius="10"
-                                                            Background="{StaticResource CfBlueSoft}">
+                                                    <Border Height="24" Margin="6,0" Padding="8,0,11,0" CornerRadius="12"
+                                                            Background="#FFFBEA" BorderBrush="#F0DE94" BorderThickness="1">
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding Label}" VerticalAlignment="Center"
-                                                                       Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" FontSize="14" />
-                                                            <TextBlock Text="·" Margin="5,0,0,0" VerticalAlignment="Center"
-                                                                       Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" FontSize="14" />
-                                                            <TextBlock Text="{Binding Names}" Margin="5,0,0,0" VerticalAlignment="Center"
-                                                                       Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" FontSize="14" />
+                                                            <Path Data="M10,1.8 L12.5,7.2 L18.3,7.8 L13.9,11.7 L15.2,17.5 L10,14.5 L4.8,17.5 L6.1,11.7 L1.7,7.8 L7.5,7.2 Z" Fill="#E0A800" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding Label}" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                                       Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9" FontWeight="Bold" />
+                                                            <TextBlock Text="{Binding Names}" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                                       Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="11" FontWeight="Bold" />
                                                             <TextBlock Text="{Binding Value}" Margin="6,0,0,0" VerticalAlignment="Center"
-                                                                       FontFamily="{StaticResource CfFigures}" FontSize="13">
+                                                                       FontFamily="Arial" FontSize="11" FontWeight="Bold">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
                                                                         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
@@ -983,24 +979,23 @@
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
-                                        </StackPanel>
                                     </Border>
                                     <!-- Stage 6B.67 (T1): live headings - navy Arial on the pale strip - in the
                                          rows' own columns. They were a captured image in Baloo 2, a font nothing
                                          else in the app uses. The Branch headings now match. -->
-                                    <Border Height="34.5" Background="White">
+                                    <Border Height="34.5" Background="#F3F7FD">
                                         <Grid Width="1182">
                                             <Grid.ColumnDefinitions><ColumnDefinition Width="200" /><ColumnDefinition Width="98" /><ColumnDefinition Width="98" /><ColumnDefinition Width="94" /><ColumnDefinition Width="104" /><ColumnDefinition Width="108" /><ColumnDefinition Width="112" /><ColumnDefinition Width="92" /><ColumnDefinition Width="92" /><ColumnDefinition Width="88" /><ColumnDefinition Width="96" /></Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="Name" Style="{StaticResource FormsHeadingTextStyle}" />
-                                            <TextBlock Grid.Column="1" Text="Total Sales" Style="{StaticResource FormsHeadingTextStyle}" />
-                                            <TextBlock Grid.Column="2" Text="Gift Card Qty" Style="{StaticResource FormsHeadingTextStyle}" />
-                                            <TextBlock Grid.Column="3" Text="Gift Cards" Style="{StaticResource FormsHeadingTextStyle}" />
-                                            <TextBlock Grid.Column="4" Text="Transactions" Style="{StaticResource FormsHeadingTextStyle}" />
-                                            <TextBlock Grid.Column="5" Text="Units Sold" Style="{StaticResource FormsHeadingTextStyle}" />
-                                            <TextBlock Grid.Column="6" Text="Counted Sales" Style="{StaticResource FormsHeadingTextStyle}" />
-                                            <TextBlock Grid.Column="7" Text="ABV" Style="{StaticResource FormsHeadingTextStyle}" />
-                                            <TextBlock Grid.Column="8" Text="AUB" Style="{StaticResource FormsHeadingTextStyle}" />
-                                            <TextBlock Grid.Column="9" Text="P&amp;L" Style="{StaticResource FormsHeadingTextStyle}" />
+                                            <TextBlock Grid.Column="0" Text="NAME" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="TOTAL SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="GIFT CARD QTY" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="3" Text="GIFT CARDS" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="4" Text="TRANSACTIONS" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="5" Text="UNITS SOLD" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="6" Text="COUNTED SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="7" Text="ABV" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="8" Text="AUB" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="9" Text="P&amp;L" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         </Grid>
                                     </Border>
 
@@ -1018,7 +1013,7 @@
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Height="43.5" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1" Background="White">
+                                                    <Border Height="43.5" BorderBrush="{StaticResource CfLineSoft}" BorderThickness="0,0,0,1" Background="White">
                                                         <Grid Width="1182" Height="43.5">
                                                             <Grid.ColumnDefinitions>
                                                                 <!-- Stage 6A.68: NAME widened so full names are visible. The width came
@@ -1037,7 +1032,7 @@
                                                                 <ColumnDefinition Width="96" />
                                                             </Grid.ColumnDefinitions>
 
-                                                            <TextBox Grid.Column="0" Width="178" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource HtmlGridInputStyle}" FontFamily="{StaticResource CfChewy}" FontSize="16" />
+                                                            <TextBox Grid.Column="0" Width="178" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource HtmlGridInputStyle}" FontWeight="Bold" />
                                                             <TextBox Grid.Column="1" Width="84" Text="{Binding SalesEntry, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource HtmlGridInputStyle}" GotKeyboardFocus="NumericTextBox_GotKeyboardFocus" PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown" TextChanged="NumericTextBox_TextChanged" LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
                                                             <TextBox Grid.Column="2" Width="66" MaxLength="2" Text="{Binding GiftCardQuantityEntry, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource HtmlGridInputStyle}" GotKeyboardFocus="NumericTextBox_GotKeyboardFocus" PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown" TextChanged="NumericTextBox_TextChanged" LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
                                                             <TextBox Grid.Column="3" Width="80" Text="{Binding GiftCardValueEntry, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource HtmlGridInputStyle}" GotKeyboardFocus="NumericTextBox_GotKeyboardFocus" PreviewMouseLeftButtonDown="NumericTextBox_PreviewMouseLeftButtonDown" TextChanged="NumericTextBox_TextChanged" LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
@@ -1063,7 +1058,7 @@
                                                                      row even when the warning was hidden. It now centres like the rest and
                                                                      only lifts when the warning is actually shown. -->
                                                                 <TextBlock Text="Enter transactions to calculate ABV/AUB"
-                                                                           Foreground="#C53D46" FontFamily="{StaticResource CfChewy}" FontSize="6.5"
+                                                                           Foreground="#C53D46" FontFamily="Arial" FontSize="5.7" FontWeight="Bold"
                                                                            TextAlignment="Center" TextWrapping="Wrap" LineHeight="6.2"
                                                                            Width="100" Margin="0,30,0,0" VerticalAlignment="Bottom" Visibility="Collapsed">
                                                                     <TextBlock.Style>
@@ -1099,12 +1094,9 @@
                                         their own rows, never behind the opaque HTML-rendered label artwork. This
                                         removes the short blue line fragments previously visible around the labels.
                                     -->
-                                    <Border Height="2" Background="White" />
+                                    <Border Height="2" Background="{StaticResource CfBlue}" />
 
-                                    <!-- Company forms theme: Team Total in a pale card with the yellow ring the forms
-                                         put round their Total row. -->
                                     <Grid Height="43" Background="White" ClipToBounds="True">
-                                        <Border Grid.ColumnSpan="7" Margin="8,1,8,1" Background="{StaticResource CfBlueSoft}" BorderBrush="{StaticResource CfYellow}" BorderThickness="2.5" CornerRadius="12" />
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="594" />
                                             <ColumnDefinition Width="108" />
@@ -1116,8 +1108,8 @@
                                         </Grid.ColumnDefinitions>
 
                                         <!-- Stage 6B.67: live text in the app's Arial; these two were captured images in Baloo 2. -->
-                                        <TextBlock Grid.Column="0" Text="Team Total" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" FontSize="21" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="Sales +/-" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="0" Text="Totals / Actual" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="Sales +/-" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
                                         <Border Grid.Column="2" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding TotalSales, StringFormat=£{0:N2}}" Style="{StaticResource HtmlMetricTextStyle}" />
@@ -1134,13 +1126,13 @@
                                     </Grid>
 
                                     <!-- Sales variance stays in the calculation model and Performance Summary, but the duplicate standalone figure is intentionally hidden. -->
-                                    <Border Height="1" Background="White" />
+                                    <Border Height="1" Background="{StaticResource CfLineSoft}" />
 
                                     <Grid Height="24.5" Background="White">
                                         <TextBlock Text="Gift Cards are excluded from Counted Sales. Gift Card Qty is excluded from Units Sold only. Transactions remain unchanged for final ABV and AUB."
-                                                   Foreground="{StaticResource CfDeepBlue}"
-                                                   FontFamily="{StaticResource CfChewy}"
-                                                   FontSize="11.5"
+                                                   Foreground="{StaticResource CfMuted}"
+                                                   FontFamily="Arial"
+                                                   FontSize="7.5"
                                                    Margin="14,0"
                                                    VerticalAlignment="Center" />
                                     </Grid>
@@ -1159,12 +1151,12 @@
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="AddPersonPill" Background="White" BorderBrush="{StaticResource CfDeepBlue}"
-                                                BorderThickness="2" CornerRadius="10" Padding="14,0">
+                                                BorderThickness="1.5" CornerRadius="14" Padding="14,0">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Path Data="M6,1.5 L6,10.5 M1.5,6 L10.5,6" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.8"
                                                       StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="12" Height="12" VerticalAlignment="Center" />
                                                 <TextBlock Text="Add person" Margin="7,0,0,0" VerticalAlignment="Center"
-                                                           FontFamily="{StaticResource CfChewy}" FontSize="15" Foreground="{StaticResource CfDeepBlue}" />
+                                                           FontFamily="Arial" FontSize="11" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
                                             </StackPanel>
                                         </Border>
                                         <ControlTemplate.Triggers>
@@ -1178,12 +1170,10 @@
                             </Button>
                                 </StackPanel>
 
-                                <!-- Reports, company forms theme: laid out like the Voids / Refunds / Staff discounts box
-                                     on the Daily Briefing - Qty, £ Value and the person with the highest figure - then
-                                     the same figures by person. Amounts of £20 or more are ringed in yellow, the forms'
-                                     mark for the box that matters. The figures come from the Refunds, Voids &amp; No Sales
-                                     report every Refresh already downloads. Staff discounts need their own Flooid report,
-                                     which is not wired in yet, so that row says so. Same slot and height as Branch. -->
+                                <!-- Reports section (design C): totals in target-style tiles, then each person's
+                                     voids, returns and no sales, highest first; values of £20 or more flagged.
+                                     Same slot and height as Branch; the figures come from the Refunds, Voids &amp;
+                                     No Sales report every Refresh already downloads. Staff discounts to follow. -->
                                 <Grid x:Name="ReportsModePanel" Height="474" Visibility="Collapsed">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="42"/>
@@ -1191,196 +1181,134 @@
                                     </Grid.RowDefinitions>
 
                                     <Canvas Grid.Row="0" Height="42" Width="1212" ClipToBounds="False">
-                                        <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42" Style="{StaticResource FormsSectionBarStyle}">
-                                            <TextBlock Text="Voids, Refunds &amp; Staff Discounts" Style="{StaticResource FormsSectionTitleStyle}" />
+                                        <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42"
+                                                Background="{StaticResource CfDeepBlue}" BorderBrush="{StaticResource CfDeepBlue}"
+                                                BorderThickness="2" CornerRadius="16,16,0,0">
+                                            <Image Width="55" Height="22" Source="Assets/ReportsTitleTextExact.png" Stretch="Fill"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="False" />
                                         </Border>
                                         <Image Canvas.Left="-4" Canvas.Top="-12" Width="66" Height="66"
                                                Source="Assets/SectionSmiley.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
                                     </Canvas>
 
-                                    <Border Grid.Row="1" Width="1184" Height="427" Margin="28,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
-                                            Style="{StaticResource FormsSectionBodyStyle}" ClipToBounds="True">
+                                    <Border Grid.Row="1" Width="1184" Height="432" Margin="28,0,0,0" HorizontalAlignment="Left"
+                                            Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1"
+                                            CornerRadius="0,0,13,13" ClipToBounds="True">
                                         <Grid>
                                             <Grid.RowDefinitions>
-                                                <RowDefinition Height="176"/>
+                                                <RowDefinition Height="90"/>
                                                 <RowDefinition Height="30"/>
                                                 <RowDefinition Height="*"/>
-                                                <RowDefinition Height="32"/>
+                                                <RowDefinition Height="30"/>
                                             </Grid.RowDefinitions>
 
-                                            <!-- Totals, as on the form -->
-                                            <Grid Grid.Row="0" Margin="14,4,14,4">
-                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="130"/><ColumnDefinition Width="170"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
-                                                <Grid.RowDefinitions><RowDefinition Height="24"/><RowDefinition Height="*"/><RowDefinition Height="*"/><RowDefinition Height="*"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                                <TextBlock Grid.Column="1" Text="Qty" Style="{StaticResource FormsHeadingTextStyle}" FontSize="15"/>
-                                                <TextBlock Grid.Column="2" Text="£ Value" Style="{StaticResource FormsHeadingTextStyle}" FontSize="15"/>
-                                                <TextBlock Grid.Column="3" Text="Highest" Style="{StaticResource FormsHeadingTextStyle}" FontSize="15"/>
-                                                <Border Grid.Row="1" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1"/>
-                                                <TextBlock Grid.Row="1" Text="Voids" FontFamily="{StaticResource CfChewy}" FontSize="19" Foreground="{StaticResource CfDeepBlue}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                                <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="{Binding ReportVoidsQuantity}" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <StackPanel Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Setter Property="BorderBrush" Value="Transparent"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding ReportVoidsFlagged}" Value="True"><Setter Property="BorderBrush" Value="{StaticResource CfYellow}"/></DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="{Binding ReportVoidsValue, StringFormat=£{0:N2}}" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <StackPanel Grid.Row="1" Grid.Column="3" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="{Binding ReportVoidsTop}" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <Border Grid.Row="2" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1"/>
-                                                <TextBlock Grid.Row="2" Text="Refunds" FontFamily="{StaticResource CfChewy}" FontSize="19" Foreground="{StaticResource CfDeepBlue}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                                <StackPanel Grid.Row="2" Grid.Column="1" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="{Binding ReportRefundsQuantity}" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <StackPanel Grid.Row="2" Grid.Column="2" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Setter Property="BorderBrush" Value="Transparent"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding ReportRefundsFlagged}" Value="True"><Setter Property="BorderBrush" Value="{StaticResource CfYellow}"/></DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="{Binding ReportRefundsValue, StringFormat=£{0:N2}}" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <StackPanel Grid.Row="2" Grid.Column="3" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="{Binding ReportRefundsTop}" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <Border Grid.Row="3" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1"/>
-                                                <TextBlock Grid.Row="3" Text="No sales" FontFamily="{StaticResource CfChewy}" FontSize="19" Foreground="{StaticResource CfDeepBlue}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                                <StackPanel Grid.Row="3" Grid.Column="1" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="{Binding ReportNoSales}" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <StackPanel Grid.Row="3" Grid.Column="2" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="–" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <StackPanel Grid.Row="3" Grid.Column="3" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="{Binding ReportNoSalesTop}" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <Border Grid.Row="4" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1"/>
-                                                <TextBlock Grid.Row="4" Text="Staff discounts" FontFamily="{StaticResource CfChewy}" FontSize="19" Foreground="{StaticResource CfDeepBlue}" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                                <StackPanel Grid.Row="4" Grid.Column="1" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="–" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <StackPanel Grid.Row="4" Grid.Column="2" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="–" FontFamily="{StaticResource CfFigures}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                                <StackPanel Grid.Row="4" Grid.Column="3" VerticalAlignment="Center"><Border Height="32" Margin="5,0" BorderThickness="2.5" CornerRadius="12" BorderBrush="Transparent">
-                                                        <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10">
-                                                            <TextBlock Text="Needs its Flooid report" FontFamily="{StaticResource CfChewy}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0"/>
-                                                        </Border>
-                                                    </Border></StackPanel>
-                                            </Grid>
+                                            <UniformGrid Grid.Row="0" Rows="1" Margin="14,14,0,14">
+                                                    <Border Margin="0,0,14,0" Height="62" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                                            <Border Background="#EAF2FF" CornerRadius="13,13,0,0">
+                                                                <TextBlock Text="VOIDS" Margin="11,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="10" FontWeight="Bold" />
+                                                            </Border>
+                                                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="11,0,0,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding ReportVoidsValue, StringFormat=£{0:N2}}" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="17" FontWeight="Bold" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding ReportVoidsQuantity, StringFormat='{}{0} items'}" Margin="8,0,0,0" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                    <Border Margin="0,0,14,0" Height="62" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                                            <Border Background="#EAF2FF" CornerRadius="13,13,0,0">
+                                                                <TextBlock Text="RETURNS" Margin="11,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="10" FontWeight="Bold" />
+                                                            </Border>
+                                                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="11,0,0,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding ReportRefundsValue, StringFormat=£{0:N2}}" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="17" FontWeight="Bold" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding ReportRefundsQuantity, StringFormat='{}{0} refunds'}" Margin="8,0,0,0" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                    <Border Margin="0,0,14,0" Height="62" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                                            <Border Background="#EAF2FF" CornerRadius="13,13,0,0">
+                                                                <TextBlock Text="NO SALES" Margin="11,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="10" FontWeight="Bold" />
+                                                            </Border>
+                                                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="11,0,0,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding ReportNoSales}" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="17" FontWeight="Bold" VerticalAlignment="Center" />
+                                                                <TextBlock Text="drawer opens" Margin="8,0,0,0" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                            </UniformGrid>
 
-                                            <!-- By person -->
-                                            <Grid Grid.Row="1" Background="{StaticResource CfBlueSoft}">
+                                            <Grid Grid.Row="1" Background="#F3F7FD">
                                                 <Grid.ColumnDefinitions><ColumnDefinition Width="232"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="By person" Style="{StaticResource FormsHeadingTextStyle}" FontSize="16" HorizontalAlignment="Left" Margin="16,0,0,0" />
-                                                <TextBlock Grid.Column="1" Text="Voids Qty" Style="{StaticResource FormsHeadingTextStyle}" />
-                                                <TextBlock Grid.Column="2" Text="Voids £" Style="{StaticResource FormsHeadingTextStyle}" />
-                                                <TextBlock Grid.Column="3" Text="Refunds Qty" Style="{StaticResource FormsHeadingTextStyle}" />
-                                                <TextBlock Grid.Column="4" Text="Refunds £" Style="{StaticResource FormsHeadingTextStyle}" />
-                                                <TextBlock Grid.Column="5" Text="No Sales" Style="{StaticResource FormsHeadingTextStyle}" />
+                                                <TextBlock Grid.Column="0" Text="NAME" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="14,0,0,0" HorizontalAlignment="Left" />
+                                                <TextBlock Grid.Column="1" Text="VOIDS QTY" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                                <TextBlock Grid.Column="2" Text="VOIDS VALUE" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                                <TextBlock Grid.Column="3" Text="RETURNS QTY" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                                <TextBlock Grid.Column="4" Text="RETURNS VALUE" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                                <TextBlock Grid.Column="5" Text="NO SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
                                             </Grid>
 
                                             <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                                                <ScrollViewer.Resources>
-                                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}"/>
-                                                </ScrollViewer.Resources>
                                                 <ItemsControl ItemsSource="{Binding ReportRows}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <Grid Height="38">
                                                                 <Grid.ColumnDefinitions><ColumnDefinition Width="232"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                                <Border Grid.ColumnSpan="6" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1"/>
-                                                                <TextBlock Grid.Column="0" Text="{Binding Name}" Margin="16,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                                                           FontFamily="{StaticResource CfChewy}" FontSize="17" Foreground="{StaticResource CfDeepBlue}" TextTrimming="CharacterEllipsis"/>
+                                                                <Border Grid.ColumnSpan="6" BorderBrush="{StaticResource CfLineSoft}" BorderThickness="0,0,0,1"/>
+                                                                <TextBlock Grid.Column="0" Text="{Binding Name}" Margin="14,0,0,0" HorizontalAlignment="Left" Style="{StaticResource BranchMetricTextStyle}" TextTrimming="CharacterEllipsis"/>
                                                                 <TextBlock Grid.Column="1" Text="{Binding VoidsQuantity}" Style="{StaticResource BranchMetricTextStyle}"/>
-                                                                <StackPanel Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                                    <Border Height="30" MinWidth="76" BorderThickness="2.5" CornerRadius="12">
-                                                                        <Border.Style>
-                                                                            <Style TargetType="Border">
-                                                                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                                                <Border Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="8,3" CornerRadius="8">
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Setter Property="Background" Value="Transparent"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding VoidsFlagged}" Value="True"><Setter Property="Background" Value="#FFF1DC"/></DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <TextBlock Text="{Binding VoidsValue, StringFormat=£{0:N2}}">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock" BasedOn="{StaticResource BranchMetricTextStyle}">
                                                                                 <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding VoidsFlagged}" Value="True"><Setter Property="BorderBrush" Value="{StaticResource CfYellow}"/></DataTrigger>
+                                                                                    <DataTrigger Binding="{Binding VoidsFlagged}" Value="True"><Setter Property="Foreground" Value="#9A5B00"/></DataTrigger>
                                                                                 </Style.Triggers>
                                                                             </Style>
-                                                                        </Border.Style>
-                                                                        <Border CornerRadius="10" BorderThickness="2" Padding="8,0">
-                                                                            <Border.Style>
-                                                                                <Style TargetType="Border">
-                                                                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                                                                    <Style.Triggers>
-                                                                                        <DataTrigger Binding="{Binding VoidsFlagged}" Value="True"><Setter Property="BorderBrush" Value="{StaticResource CfDeepBlue}"/><Setter Property="Background" Value="White"/></DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </Border.Style>
-                                                                            <TextBlock Text="{Binding VoidsValue, StringFormat=£{0:N2}}" Style="{StaticResource BranchMetricTextStyle}"/>
-                                                                        </Border>
-                                                                    </Border>
-                                                                </StackPanel>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </Border>
                                                                 <TextBlock Grid.Column="3" Text="{Binding RefundsQuantity}" Style="{StaticResource BranchMetricTextStyle}"/>
-                                                                <StackPanel Grid.Column="4" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                                    <Border Height="30" MinWidth="76" BorderThickness="2.5" CornerRadius="12">
-                                                                        <Border.Style>
-                                                                            <Style TargetType="Border">
-                                                                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                                                <Border Grid.Column="4" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="8,3" CornerRadius="8">
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Setter Property="Background" Value="Transparent"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding RefundsFlagged}" Value="True"><Setter Property="Background" Value="#FFF1DC"/></DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <TextBlock Text="{Binding RefundsValue, StringFormat=£{0:N2}}">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock" BasedOn="{StaticResource BranchMetricTextStyle}">
                                                                                 <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding RefundsFlagged}" Value="True"><Setter Property="BorderBrush" Value="{StaticResource CfYellow}"/></DataTrigger>
+                                                                                    <DataTrigger Binding="{Binding RefundsFlagged}" Value="True"><Setter Property="Foreground" Value="#9A5B00"/></DataTrigger>
                                                                                 </Style.Triggers>
                                                                             </Style>
-                                                                        </Border.Style>
-                                                                        <Border CornerRadius="10" BorderThickness="2" Padding="8,0">
-                                                                            <Border.Style>
-                                                                                <Style TargetType="Border">
-                                                                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                                                                    <Style.Triggers>
-                                                                                        <DataTrigger Binding="{Binding RefundsFlagged}" Value="True"><Setter Property="BorderBrush" Value="{StaticResource CfDeepBlue}"/><Setter Property="Background" Value="White"/></DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </Border.Style>
-                                                                            <TextBlock Text="{Binding RefundsValue, StringFormat=£{0:N2}}" Style="{StaticResource BranchMetricTextStyle}"/>
-                                                                        </Border>
-                                                                    </Border>
-                                                                </StackPanel>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </Border>
                                                                 <TextBlock Grid.Column="5" Text="{Binding NoSales}" Style="{StaticResource BranchMetricTextStyle}"/>
                                                             </Grid>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
                                             </ScrollViewer>
-                                            <TextBlock Grid.Row="2" Text="Press Refresh to load voids, refunds and no sales for this date."
+                                            <TextBlock Grid.Row="2" Text="Press Refresh to load voids, returns and no sales for this date."
                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" FontSize="16">
+                                                       Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="12">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -1392,13 +1320,11 @@
                                             </TextBlock>
 
                                             <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
-                                                <Border Background="{StaticResource CfYellow}" CornerRadius="9" Padding="2">
-                                                    <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="1.5" CornerRadius="7" Padding="7,1">
-                                                        <TextBlock Text="£20.00+" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfFigures}" FontSize="11"/>
-                                                    </Border>
+                                                <Border Background="#FFF1DC" CornerRadius="7" Padding="7,2">
+                                                    <TextBlock Text="£20.00+" Foreground="#9A5B00" FontFamily="Arial" FontSize="9" FontWeight="Bold"/>
                                                 </Border>
-                                                <TextBlock Text="ringed in yellow to look into · voids include transaction and line voids" Margin="8,0,0,0"
-                                                           Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" FontSize="13" VerticalAlignment="Center"/>
+                                                <TextBlock Text="highlighted to look into · voids include transaction and line voids" Margin="6,0,0,0"
+                                                           Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
@@ -1413,49 +1339,66 @@
                                     </Grid.RowDefinitions>
 
                                     <Canvas Grid.Row="0" Height="42" Width="1212" ClipToBounds="False">
-                                        <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42" Style="{StaticResource FormsSectionBarStyle}">
+                                        <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42"
+                                                Background="{StaticResource CfDeepBlue}"
+                                                BorderBrush="{StaticResource CfDeepBlue}"
+                                                BorderThickness="2"
+                                                CornerRadius="16,16,0,0">
                                             <!-- Stage 6B.47: the same title treatment as Team Performance - centred
                                                  artwork in the same font (Chewy, matched against TeamTitleTextExact.png)
                                                  at the same height, instead of left-aligned Arial and a FLOOID REPORT tag. -->
-                                            <TextBlock Text="Branch Performance" Style="{StaticResource FormsSectionTitleStyle}" />
+                                            <Image Width="147" Height="22"
+                                                   Source="Assets/BranchTitleTextExact.png"
+                                                   Stretch="Fill"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                                   SnapsToDevicePixels="False" />
                                         </Border>
                                         <Image Canvas.Left="-4" Canvas.Top="-12" Width="66" Height="66"
                                                Source="Assets/SectionSmiley.png" Stretch="Uniform"
                                                RenderOptions.BitmapScalingMode="HighQuality"/>
                                     </Canvas>
 
-                                    <Border Grid.Row="1" Width="1184" Height="427" Margin="28,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left"
-                                            Style="{StaticResource FormsSectionBodyStyle}" ClipToBounds="True">
-                                        <Grid Width="1180">
+                                    <Border Grid.Row="1" Width="1184" Height="432" Margin="28,0,0,0" HorizontalAlignment="Left"
+                                            Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1"
+                                            CornerRadius="0,0,13,13" ClipToBounds="True">
+                                        <Grid Width="1182">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="43"/>
                                                 <RowDefinition Height="0"/>
-                                                <RowDefinition Height="336"/>
+                                                <RowDefinition Height="345"/>
                                                 <RowDefinition Height="44"/>
                                             </Grid.RowDefinitions>
 
                                             <!-- One uncluttered navigation/status line. -->
-                                            <Grid Grid.Row="0" Margin="12,7,12,4">
+                                            <Grid Grid.Row="0" Background="#FBFDFF" Margin="12,6,12,5">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <!-- Stage 6B.67 (B1): the split card used by Day / Range and Fast / Safe. -->
-                                                <!-- Company forms theme: two chips, the active one blue in a yellow ring. -->
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <Button x:Name="BranchHourlyTabButton" Width="130" Height="30" Content="Performance" Tag="Active"
-                                                            Style="{StaticResource BranchSplitLeftStyle}" Click="BranchHourlyTab_Click"/>
-                                                    <Button x:Name="BranchGiftCardsTabButton" Width="120" Height="30" Margin="8,0,0,0" Content="Gift Cards"
-                                                            Style="{StaticResource BranchSplitRightStyle}" Click="BranchGiftCardsTab_Click"/>
-                                                </StackPanel>
+                                                <Border Width="220" Height="30" VerticalAlignment="Center" Background="White"
+                                                        BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="10">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/><ColumnDefinition Width="1"/><ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Button x:Name="BranchHourlyTabButton" Grid.Column="0" Content="Performance" Tag="Active"
+                                                                Style="{StaticResource BranchSplitLeftStyle}" Click="BranchHourlyTab_Click"/>
+                                                        <Border Grid.Column="1" Background="{StaticResource CfLine}" />
+                                                        <Button x:Name="BranchGiftCardsTabButton" Grid.Column="2" Content="Gift Cards"
+                                                                Style="{StaticResource BranchSplitRightStyle}" Click="BranchGiftCardsTab_Click"/>
+                                                    </Grid>
+                                                </Border>
                                                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <!-- Stage 6B.11: the separator went with the status text it used to
                                                          divide. Last updated stays - it answers "how old are these
                                                          figures", which the overlay cannot, since the overlay is only
                                                          on screen while a retrieval is running. -->
                                                     <Ellipse Width="6" Height="6" Fill="{StaticResource CfBlue}" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="{Binding FlooidLastUpdatedText}" Foreground="#598BC1" FontFamily="{StaticResource CfChewy}" FontSize="12"/>
+                                                    <TextBlock Text="{Binding FlooidLastUpdatedText}" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="7.8"/>
                                                 </StackPanel>
                                                 <!-- Stage 6B.01: moved to the target row beside PERIOD. -->
                                             </Grid>
@@ -1468,25 +1411,25 @@
                                             <Grid x:Name="BranchHourlyPanel" Grid.Row="2" Margin="12,0,12,0">
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="29"/>
-                                                    <RowDefinition Height="307"/>
+                                                    <RowDefinition Height="316"/>
                                                 </Grid.RowDefinitions>
-                                                <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1.5">
+                                                <Border Grid.Row="0" Background="#F3F7FD" BorderBrush="{StaticResource CfLine}" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="150"/><ColumnDefinition Width="170"/><ColumnDefinition Width="180"/>
                                                             <ColumnDefinition Width="150"/><ColumnDefinition Width="160"/><ColumnDefinition Width="160"/>
                                                             <ColumnDefinition Width="196"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="Time" Style="{StaticResource FormsHeadingTextStyle}"/>
-                                                        <TextBlock Grid.Column="1" Text="Sales" Style="{StaticResource FormsHeadingTextStyle}"/>
-                                                        <TextBlock Grid.Column="2" Text="Transactions" Style="{StaticResource FormsHeadingTextStyle}"/>
-                                                        <TextBlock Grid.Column="3" Text="Units" Style="{StaticResource FormsHeadingTextStyle}"/>
-                                                        <TextBlock Grid.Column="4" Text="AUB" Style="{StaticResource FormsHeadingTextStyle}"/>
-                                                        <TextBlock Grid.Column="5" Text="ABV" Style="{StaticResource FormsHeadingTextStyle}"/>
-                                                        <TextBlock Grid.Column="6" Text="% Sales" Style="{StaticResource FormsHeadingTextStyle}"/>
+                                                        <TextBlock Grid.Column="0" Text="TIME" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="TRANSACTIONS" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="3" Text="UNITS" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="4" Text="AUB" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="5" Text="ABV" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="6" Text="% SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Grid>
                                                 </Border>
-                                                <Border Grid.Row="1" BorderThickness="0" ClipToBounds="True">
+                                                <Border Grid.Row="1" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1" CornerRadius="0,0,8,8" ClipToBounds="True">
                                                     <Grid>
                                                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True">
                                                             <ScrollViewer.Resources>
@@ -1496,13 +1439,13 @@
                                                                 <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
-                                                                        <Border Height="34" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1">
+                                                                        <Border Height="34" BorderBrush="{StaticResource CfLineSoft}" BorderThickness="0,0,0,1">
                                                                             <Border.Style>
                                                                                 <Style TargetType="Border">
                                                                                     <Setter Property="Background" Value="White"/>
                                                                                     <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding IsStrongestHour}" Value="True">
-                                                                                            <Setter Property="Background" Value="#FFF6D6"/>
+                                                                                            <Setter Property="Background" Value="#FFF6C7"/>
                                                                                         </DataTrigger>
                                                                                     </Style.Triggers>
                                                                                 </Style>
@@ -1513,7 +1456,7 @@
                                                                                     <ColumnDefinition Width="150"/><ColumnDefinition Width="160"/><ColumnDefinition Width="160"/>
                                                                                     <ColumnDefinition Width="196"/>
                                                                                 </Grid.ColumnDefinitions>
-                                                                                <TextBlock Grid.Column="0" Text="{Binding TimeBand}" Style="{StaticResource BranchMetricTextStyle}" FontFamily="{StaticResource CfChewy}" FontSize="15"/>
+                                                                                <TextBlock Grid.Column="0" Text="{Binding TimeBand}" Style="{StaticResource BranchMetricTextStyle}" FontWeight="Bold"/>
                                                                                 <TextBlock Grid.Column="1" Text="{Binding Sales, StringFormat=£{0:N2}}" Style="{StaticResource BranchMetricTextStyle}"/>
                                                                                 <TextBlock Grid.Column="2" Text="{Binding Transactions}" Style="{StaticResource BranchMetricTextStyle}"/>
                                                                                 <TextBlock Grid.Column="3" Text="{Binding Units}" Style="{StaticResource BranchMetricTextStyle}"/>
@@ -1522,12 +1465,12 @@
                                                                                 <!-- % Sales with a bar (design 5A): blue, the busiest hour yellow. -->
                                                                                 <Grid Grid.Column="6" Margin="14,0,10,0">
                                                                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/></Grid.ColumnDefinitions>
-                                                                                    <Border Height="8" CornerRadius="4" Background="{StaticResource CfBlueSoft}" VerticalAlignment="Center">
+                                                                                    <Border Height="8" CornerRadius="4" Background="#EEF3FA" VerticalAlignment="Center">
                                                                                         <Border CornerRadius="4" HorizontalAlignment="Stretch" RenderTransformOrigin="0,0.5">
                                                                                             <Border.RenderTransform><ScaleTransform ScaleX="{Binding BarFraction}" /></Border.RenderTransform>
                                                                                             <Border.Style>
                                                                                                 <Style TargetType="Border">
-                                                                                                    <Setter Property="Background" Value="{StaticResource CfBlue}"/>
+                                                                                                    <Setter Property="Background" Value="#7FA6DD"/>
                                                                                                     <Style.Triggers>
                                                                                                         <DataTrigger Binding="{Binding IsStrongestHour}" Value="True"><Setter Property="Background" Value="{StaticResource CfYellow}"/></DataTrigger>
                                                                                                     </Style.Triggers>
@@ -1544,7 +1487,7 @@
                                                             </ItemsControl>
                                                         </ScrollViewer>
                                                         <TextBlock Text="{Binding BranchDataMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                   Foreground="#B33A46" FontFamily="{StaticResource CfChewy}" FontSize="14" IsHitTestVisible="False">
+                                                                   Foreground="#B33A46" FontFamily="Arial" FontSize="10" FontWeight="Bold" IsHitTestVisible="False">
                                                             <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
                                                                     <Setter Property="Visibility" Value="Visible"/>
@@ -1560,22 +1503,22 @@
                                             <Grid x:Name="BranchGiftCardsPanel" Grid.Row="2" Margin="12,0,12,0" Visibility="Hidden">
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="29"/>
-                                                    <RowDefinition Height="307"/>
+                                                    <RowDefinition Height="316"/>
                                                 </Grid.RowDefinitions>
-                                                <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1.5">
+                                                <Border Grid.Row="0" Background="#F3F7FD" BorderBrush="{StaticResource CfLine}" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="170"/><ColumnDefinition Width="210"/><ColumnDefinition Width="440"/>
                                                             <ColumnDefinition Width="250"/><ColumnDefinition Width="96"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="Gift Card Qty" Style="{StaticResource FormsHeadingTextStyle}"/>
-                                                        <TextBlock Grid.Column="1" Text="Gift Card Sales" Style="{StaticResource FormsHeadingTextStyle}"/>
-                                                        <TextBlock Grid.Column="2" Text="Card / Item" Style="{StaticResource FormsHeadingTextStyle}"/>
-                                                        <TextBlock Grid.Column="3" Text="Operator" Style="{StaticResource FormsHeadingTextStyle}"/>
+                                                        <TextBlock Grid.Column="0" Text="GIFT CARD QTY" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="GIFT CARD SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="2" Text="CARD / ITEM" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="3" Text="OPERATOR" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                                                     </Grid>
                                                 </Border>
-                                                <Border Grid.Row="1" BorderThickness="0" ClipToBounds="True">
+                                                <Border Grid.Row="1" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1" CornerRadius="0,0,8,8" ClipToBounds="True">
                                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True">
                                                         <ScrollViewer.Resources>
                                                             <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}"/>
@@ -1584,7 +1527,7 @@
                                                             <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate>
-                                                                    <Border Height="38" Background="White" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1">
+                                                                    <Border Height="38" Background="White" BorderBrush="{StaticResource CfLineSoft}" BorderThickness="0,0,0,1">
                                                                         <Grid>
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="170"/><ColumnDefinition Width="210"/><ColumnDefinition Width="440"/>
@@ -1609,10 +1552,10 @@
                                                  accent. It is inset 12px each side like the totals strip above it,
                                                  so the rounded corners are visible instead of being clipped flat
                                                  against the panel edge. -->
-                                            <Border Grid.Row="3" Margin="10,0,10,6"
-                                                    Background="{StaticResource CfBlueSoft}"
-                                                    BorderBrush="{StaticResource CfYellow}"
-                                                    BorderThickness="2.5"
+                                            <Border Grid.Row="3" Margin="12,0,12,6"
+                                                    Background="#F3F7FD"
+                                                    BorderBrush="#DCE6F3"
+                                                    BorderThickness="1"
                                                     CornerRadius="12">
                                                 <!-- Stage 6B.44 (concept B): five headline totals, gift cards to the right of a
                                                      divider. Stage 6B.53 (shorter option 2): one line - each label beside its
@@ -1623,17 +1566,18 @@
                                                         <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="1"/><ColumnDefinition Width="230"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="Branch Total" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" FontSize="19" VerticalAlignment="Center" Margin="16,0,0,0"/>
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="Sales" FontSize="13" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalSales, StringFormat=£{0:N2}}" FontSize="15" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfFigures}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="Transactions" FontSize="13" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalTransactions}" FontSize="15" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfFigures}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="Units" FontSize="13" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalUnits}" FontSize="15" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfFigures}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="AUB" FontSize="13" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAub, StringFormat={}{0:N2}}" FontSize="15" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfFigures}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="ABV" FontSize="13" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAbv, StringFormat=£{0:N2}}" FontSize="15" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfFigures}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <Border Grid.Column="6" Background="#A5C0DD" Height="23" VerticalAlignment="Center"/>
+                                                    <Border Grid.Column="0" Width="4" Background="{StaticResource CfDeepBlue}" CornerRadius="12,0,0,12" HorizontalAlignment="Left" />
+                                                    <TextBlock Grid.Column="0" Text="BRANCH TOTAL" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="22,0,0,0"/>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="SALES" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalSales, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="TRANSACTIONS" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalTransactions}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="UNITS" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalUnits}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="AUB" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAub, StringFormat={}{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="ABV" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAbv, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <Border Grid.Column="6" Background="#DCE6F3" Height="23" VerticalAlignment="Center"/>
                                                     <Grid Grid.Column="7">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="Gift Qty" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardQuantity}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfFigures}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="Gift Sales" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardSales, StringFormat=£{0:N2}}" FontSize="13" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfFigures}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT QTY" FontSize="8" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardQuantity}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT SALES" FontSize="8" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardSales, StringFormat=£{0:N2}}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -1646,8 +1590,18 @@
                         <!-- PERFORMANCE SUMMARY: accepted 28px inset + 66px smiley geometry. -->
                         <StackPanel x:Name="PerformanceSummarySection" Margin="0,12,0,0">
                             <Canvas Height="40" Width="1212" ClipToBounds="False">
-                                <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="40" Style="{StaticResource FormsSectionBarStyle}">
-                                    <TextBlock Text="Performance Summary" Style="{StaticResource FormsSectionTitleStyle}" FontSize="21" />
+                                <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="40"
+                                        Background="{StaticResource CfDeepBlue}"
+                                        BorderBrush="{StaticResource CfDeepBlue}"
+                                        BorderThickness="2"
+                                        CornerRadius="16,16,0,0">
+                                    <Image Width="162" Height="19.5"
+                                           Source="Assets/PerformanceTitleTextExact.png"
+                                           Stretch="Fill"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                           SnapsToDevicePixels="False" />
                                 </Border>
                                 <Image Canvas.Left="-4" Canvas.Top="-13"
                                        Width="66" Height="66"
@@ -1657,26 +1611,26 @@
                                        SnapsToDevicePixels="False" />
                             </Canvas>
 
-                            <Grid Width="1184" Height="72.5" Margin="28,5,0,0" HorizontalAlignment="Left">
+                            <Grid Width="1184" Height="77.5" Margin="28,0,0,0" HorizontalAlignment="Left">
                                 <!-- Stage 6B.67: drawn live instead of the captured SummaryGridStaticExact image -
                                      same colours (sampled from it), lines and labels, in the app's Arial. -->
-                                <Border Style="{StaticResource FormsSectionBodyStyle}">
+                                <Border Background="#FBFCFD" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1" CornerRadius="0,0,13,13">
                                     <Grid>
-                                        <Grid.RowDefinitions><RowDefinition Height="28"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                        <Grid.RowDefinitions><RowDefinition Height="30.5"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                        <Border Grid.Row="0" Grid.ColumnSpan="3" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="0,0,0,1.5" />
-                                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" BorderBrush="{StaticResource CfBlueSoft}" BorderThickness="1.5,0,1.5,0" />
-                                        <TextBlock Grid.Column="0" Text="Sales vs Target" Style="{StaticResource FormsHeadingTextStyle}" />
-                                        <TextBlock Grid.Column="1" Text="ABV vs Target" Style="{StaticResource FormsHeadingTextStyle}" />
-                                        <TextBlock Grid.Column="2" Text="AUB vs Target" Style="{StaticResource FormsHeadingTextStyle}" />
+                                        <Border Grid.Row="0" Grid.ColumnSpan="3" BorderBrush="{StaticResource CfLine}" BorderThickness="0,0,0,1" />
+                                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,0" />
+                                        <TextBlock Grid.Column="0" Text="SALES VS TARGET" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="ABV VS TARGET" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="AUB VS TARGET" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Grid>
                                 </Border>
                                 <Grid>
-                                    <Grid.RowDefinitions><RowDefinition Height="30"/><RowDefinition Height="42.5"/></Grid.RowDefinitions>
+                                    <Grid.RowDefinitions><RowDefinition Height="30.5"/><RowDefinition Height="47"/></Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="394.7"/><ColumnDefinition Width="394.7"/><ColumnDefinition Width="394.6"/></Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding SalesSummaryText}" Tag="{Binding SalesVarianceState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="15" />
-                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AbvSummaryText}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="15" />
-                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding AubSummaryText}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="15" />
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding SalesSummaryText}" Tag="{Binding SalesVarianceState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AbvSummaryText}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" />
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding AubSummaryText}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" />
                                 </Grid>
                             </Grid>
                         </StackPanel>
@@ -1685,7 +1639,7 @@
                              Hidden reserves the exact old 40px control slot and its margins while remaining non-interactive. -->
                         <Border x:Name="CalculateSpacer"
                                 Width="122"
-                                Height="30"
+                                Height="40"
                                 Margin="28,12,0,0"
                                 HorizontalAlignment="Left"
                                 Visibility="Hidden"
@@ -1696,9 +1650,10 @@
                         <!-- Stage 6A.24: native one-row formula strip. At 3+ people, surrounding vertical chrome compacts by exactly one team-row height so the Viewbox scale stays unchanged. -->
                         <Border x:Name="FormulaStrip" Width="1212" Height="42.5"
                                 Margin="0,12,0,0"
-                                Background="{StaticResource CfBlueSoft}"
-                                BorderThickness="0"
-                                CornerRadius="14">
+                                Background="#F3F7FD"
+                                BorderBrush="#DCE6F3"
+                                BorderThickness="1"
+                                CornerRadius="12">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -1706,24 +1661,25 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0" Margin="22,0,12,0" VerticalAlignment="Center" FontFamily="{StaticResource CfChewy}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" TextWrapping="NoWrap">
-                                    <Run Text="ABV" Foreground="{StaticResource CfBlue}" />
+                                <Border Grid.Column="0" Width="4" Background="{StaticResource CfDeepBlue}" CornerRadius="12,0,0,12" HorizontalAlignment="Left" />
+
+                                <TextBlock Grid.Column="0" Margin="22,0,12,0" VerticalAlignment="Center" FontFamily="Arial" FontSize="10.5" Foreground="#46617F" TextWrapping="NoWrap">
+                                    <Run Text="ABV" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
                                     <Run Text=" = (Total sales − Gift cards) ÷ Transactions" />
                                 </TextBlock>
 
-                                <TextBlock Grid.Column="1" Margin="16,0,12,0" VerticalAlignment="Center" FontFamily="{StaticResource CfChewy}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" TextWrapping="NoWrap">
-                                    <Run Text="AUB" Foreground="{StaticResource CfBlue}" />
+                                <TextBlock Grid.Column="1" Margin="16,0,12,0" VerticalAlignment="Center" FontFamily="Arial" FontSize="10.5" Foreground="#46617F" TextWrapping="NoWrap">
+                                    <Run Text="AUB" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
                                     <Run Text=" = (Units sold − Gift Card Qty) ÷ Transactions" />
                                 </TextBlock>
 
-                                <TextBlock Grid.Column="2" Margin="16,0,18,0" VerticalAlignment="Center" FontFamily="{StaticResource CfChewy}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" TextWrapping="NoWrap">
-                                    <Run Text="P&amp;L" Foreground="{StaticResource CfBlue}" />
+                                <TextBlock Grid.Column="2" Margin="16,0,18,0" VerticalAlignment="Center" FontFamily="Arial" FontSize="10.5" Foreground="#46617F" TextWrapping="NoWrap">
+                                    <Run Text="P&amp;L" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
                                     <Run Text=" = (ABV − ABV target) × Transactions" />
                                 </TextBlock>
                             </Grid>
                         </Border>
                     </StackPanel>
-                    </Grid>
                 </Border>
         </Viewbox>
 

@@ -2,17 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- Exact palette from the approved audited HTML. -->
-    <!-- Company forms theme (Daily / Weekly Briefing, Line Count Tracker): bar blue #005BBB,
-         ink #004EA1 for text and outlines, pale label blue #E3ECF7, yellow #FFC907 and the
-         pale grey of the smiley watermark. Chewy for headings and labels, as on the forms;
-         figures in Fredoka so they read cleanly. Both fonts are embedded (Assets/Fonts). -->
-    <SolidColorBrush x:Key="CfBlue" Color="#005BBB" />
-    <SolidColorBrush x:Key="CfDeepBlue" Color="#004EA1" />
-    <SolidColorBrush x:Key="CfBlueSoft" Color="#E3ECF7" />
-    <SolidColorBrush x:Key="CfWatermark" Color="#F2F2F2" />
-    <SolidColorBrush x:Key="CfTabIdle" Color="#7FA3CF" />
-    <FontFamily x:Key="CfChewy">pack://application:,,,/CardFactory.ProfitLoss;component/Assets/Fonts/#Chewy</FontFamily>
-    <FontFamily x:Key="CfFigures">pack://application:,,,/CardFactory.ProfitLoss;component/Assets/Fonts/#CF Fredoka</FontFamily>
+    <SolidColorBrush x:Key="CfBlue" Color="#004EA1" />
+    <SolidColorBrush x:Key="CfDeepBlue" Color="#00376E" />
+    <SolidColorBrush x:Key="CfBlueSoft" Color="#EAF2FF" />
     <SolidColorBrush x:Key="CfYellow" Color="#FFC907" />
     <SolidColorBrush x:Key="CfPaper" Color="#FFFFFF" />
     <SolidColorBrush x:Key="CfInk" Color="#183153" />
@@ -103,12 +95,12 @@
          TextBlock, so this is plain bold rather than the tracked small caps of the
          artwork; at 10px it is sharp, which the artwork was not. -->
     <Style x:Key="TargetLabelTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource CfChewy}" />
-        <Setter Property="FontSize" Value="12.5" />
-        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="VerticalAlignment" Value="Bottom" />
-        <Setter Property="Margin" Value="0,0,0,2" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource CfBlue}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="11,0,0,0" />
     </Style>
 
     <Style x:Key="HtmlTargetTextBoxStyle" TargetType="TextBox">
@@ -125,20 +117,20 @@
         <Setter Property="Background" Value="White" />
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="FontFamily" Value="{StaticResource CfFigures}" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
         <Setter Property="CaretBrush" Value="{StaticResource CfBlue}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
                     <Border x:Name="Field"
                             Background="{TemplateBinding Background}"
-                            BorderBrush="{StaticResource CfDeepBlue}"
-                            BorderThickness="2"
-                            CornerRadius="10">
+                            BorderBrush="Transparent"
+                            BorderThickness="1"
+                            CornerRadius="8">
                     <Grid>
                         <ScrollViewer x:Name="PART_ContentHost"
                                       Margin="{TemplateBinding Padding}"
@@ -146,8 +138,9 @@
                         <TextBlock x:Name="Watermark"
                                    Text="{TemplateBinding Tag}"
                                    Foreground="#92A3BA"
-                                   FontFamily="{StaticResource CfChewy}"
-                                   FontSize="12"
+                                   FontFamily="Arial"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    Visibility="Collapsed"
@@ -158,8 +151,8 @@
                         <!-- Focus turns the field white with a blue edge. Once something looks
                              like an input it has to behave like one when you are in it. -->
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Field" Property="Background" Value="#F7FAFE" />
-                            <Setter TargetName="Field" Property="BorderBrush" Value="{StaticResource CfYellow}" />
+                            <Setter TargetName="Field" Property="Background" Value="#F1F6FC" />
+                            <Setter TargetName="Field" Property="BorderBrush" Value="{StaticResource CfBlue}" />
                         </Trigger>
                         <Trigger Property="Text" Value="">
                             <Setter TargetName="Watermark" Property="Visibility" Value="Visible" />
@@ -176,10 +169,10 @@
         <Setter Property="Padding" Value="7,3" />
         <Setter Property="Background" Value="White" />
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="BorderBrush" Value="#A5C0DD" />
-        <Setter Property="BorderThickness" Value="1.5" />
-        <Setter Property="FontFamily" Value="{StaticResource CfFigures}" />
-        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="BorderBrush" Value="#CFDAE8" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="12" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="CaretBrush" Value="{StaticResource CfBlue}" />
         <Setter Property="Template">
@@ -189,12 +182,12 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="10">
+                            CornerRadius="12">
                         <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="{StaticResource CfDeepBlue}" /></Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="{StaticResource CfYellow}" /><Setter TargetName="B" Property="BorderThickness" Value="2" /></Trigger>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="#AFC4DE" /></Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="{StaticResource CfBlue}" /></Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -205,8 +198,9 @@
         <Setter Property="Background" Value="{StaticResource CfBadBackground}" />
         <Setter Property="Foreground" Value="{StaticResource CfBad}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="FontFamily" Value="{StaticResource CfChewy}" />
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Padding" Value="8,4" />
         <Setter Property="Height" Value="23" />
         <Setter Property="MinWidth" Value="55" />
@@ -228,9 +222,9 @@
 
     <Style x:Key="HtmlMetricTextStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="FontFamily" Value="{StaticResource CfFigures}" />
-        <Setter Property="FontSize" Value="13" />
-        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Style.Triggers>
@@ -246,10 +240,10 @@
              the totals row and were the loudest yellow on the page while carrying figures
              nobody clicks. Quiet field, thin grey edge; the numbers still colour themselves
              green or red through HtmlMetricTextStyle, which is what actually matters here. -->
-        <Setter Property="Background" Value="White" />
-        <Setter Property="BorderBrush" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="BorderThickness" Value="2" />
-        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Background" Value="#F7F9FC" />
+        <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
     </Style>
 
 
@@ -579,23 +573,23 @@
          ModeCardSegmentStyle but for Buttons whose Tag="Active" is set in code. Outer
          corners 9 = the card's 10 less its 1px border. -->
     <Style x:Key="BranchSplitLeftStyle" TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource CfBlueSoft}" />
+        <Setter Property="Background" Value="White" />
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="FontFamily" Value="{StaticResource CfChewy}" />
-        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Half" Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="2" CornerRadius="11">
+                    <Border x:Name="Half" Background="{TemplateBinding Background}" CornerRadius="9,0,0,9">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Half" Property="Background" Value="#D3E1F2" /></Trigger>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Half" Property="Background" Value="#F5F9FF" /></Trigger>
                         <Trigger Property="Tag" Value="Active">
                             <Setter TargetName="Half" Property="Background" Value="{StaticResource CfBlue}" />
-                            <Setter TargetName="Half" Property="BorderBrush" Value="{StaticResource CfYellow}" />
                             <Setter Property="Foreground" Value="White" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -605,23 +599,23 @@
     </Style>
 
     <Style x:Key="BranchSplitRightStyle" TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource CfBlueSoft}" />
+        <Setter Property="Background" Value="White" />
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="FontFamily" Value="{StaticResource CfChewy}" />
-        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Half" Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="2" CornerRadius="11">
+                    <Border x:Name="Half" Background="{TemplateBinding Background}" CornerRadius="0,9,9,0">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Half" Property="Background" Value="#D3E1F2" /></Trigger>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Half" Property="Background" Value="#F5F9FF" /></Trigger>
                         <Trigger Property="Tag" Value="Active">
                             <Setter TargetName="Half" Property="Background" Value="{StaticResource CfBlue}" />
-                            <Setter TargetName="Half" Property="BorderBrush" Value="{StaticResource CfYellow}" />
                             <Setter Property="Foreground" Value="White" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -677,8 +671,9 @@
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
         <Setter Property="BorderBrush" Value="#E0AC00" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="FontFamily" Value="{StaticResource CfChewy}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="8.5" />
+        <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
@@ -888,9 +883,10 @@
          white one. Used only by the two header tabs. -->
     <Style x:Key="SectionTabButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource CfTabIdle}" />
-        <Setter Property="FontFamily" Value="{StaticResource CfChewy}" />
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Foreground" Value="#9FB6D6" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
@@ -907,17 +903,17 @@
                              would otherwise be a ~160px yellow bar, which after 6B.06 reserved yellow
                              for the controls you act on would make it the loudest thing in the header.
                              Under the middle of the label it still reads as the active tab. -->
-                        <Border x:Name="Rule" Grid.Row="1" Background="Transparent" CornerRadius="2" Margin="10,0" />
+                        <Border x:Name="Rule" Grid.Row="1" Background="Transparent" CornerRadius="2" Margin="22,0" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource CfBlue}" />
-                            <Setter TargetName="Rule" Property="Background" Value="{StaticResource CfBlueSoft}" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter TargetName="Rule" Property="Background" Value="#335F8E" />
                         </Trigger>
                         <!-- After hover on purpose: the active tab keeps its yellow rule when
                              the pointer crosses it. -->
                         <Trigger Property="Tag" Value="Active">
-                            <Setter Property="Foreground" Value="{StaticResource CfBlue}" />
+                            <Setter Property="Foreground" Value="White" />
                             <Setter TargetName="Rule" Property="Background" Value="{StaticResource CfYellow}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -940,9 +936,9 @@
          unchanged. Used only by those two tables. -->
     <Style x:Key="BranchMetricTextStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="FontFamily" Value="{StaticResource CfFigures}" />
-        <Setter Property="FontSize" Value="13" />
-        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -961,39 +957,6 @@
         <Setter Property="FontSize" Value="9" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="HorizontalAlignment" Value="Center" />
-    </Style>
-
-    <!-- Company forms theme: shared pieces used by the main window. -->
-    <Style x:Key="FormsHeadingTextStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="FontFamily" Value="{StaticResource CfChewy}" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-
-    <Style x:Key="FormsSectionTitleStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="White" />
-        <Setter Property="FontFamily" Value="{StaticResource CfChewy}" />
-        <Setter Property="FontSize" Value="22" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-
-    <!-- The forms' section bar: bar blue, yellow outline, fully rounded. -->
-    <Style x:Key="FormsSectionBarStyle" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource CfBlue}" />
-        <Setter Property="BorderBrush" Value="{StaticResource CfYellow}" />
-        <Setter Property="BorderThickness" Value="3" />
-        <Setter Property="CornerRadius" Value="14" />
-    </Style>
-
-    <!-- The outlined box under each section bar. -->
-    <Style x:Key="FormsSectionBodyStyle" TargetType="Border">
-        <Setter Property="Background" Value="White" />
-        <Setter Property="BorderBrush" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="BorderThickness" Value="2" />
-        <Setter Property="CornerRadius" Value="14" />
     </Style>
 
 </ResourceDictionary>
