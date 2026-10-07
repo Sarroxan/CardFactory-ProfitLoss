@@ -1104,7 +1104,6 @@
                                     <!-- Company forms theme: Team Total in a pale card with the yellow ring the forms
                                          put round their Total row. -->
                                     <Grid Height="43" Background="White" ClipToBounds="True">
-                                        <Border Grid.ColumnSpan="7" Margin="8,1,8,1" Background="{StaticResource CfBlueSoft}" BorderBrush="{StaticResource CfYellow}" BorderThickness="2.5" CornerRadius="12" />
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="594" />
                                             <ColumnDefinition Width="108" />
@@ -1114,6 +1113,7 @@
                                             <ColumnDefinition Width="88" />
                                             <ColumnDefinition Width="96" />
                                         </Grid.ColumnDefinitions>
+                                        <Border Grid.ColumnSpan="7" Margin="8,1,8,1" Background="{StaticResource CfBlueSoft}" BorderBrush="{StaticResource CfYellow}" BorderThickness="2.5" CornerRadius="12" />
 
                                         <!-- Stage 6B.67: live text in the app's Arial; these two were captured images in Baloo 2. -->
                                         <TextBlock Grid.Column="0" Text="Team Total" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfChewy}" FontSize="21" HorizontalAlignment="Center" VerticalAlignment="Center" />
