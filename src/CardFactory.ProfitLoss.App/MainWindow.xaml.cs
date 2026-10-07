@@ -445,36 +445,6 @@ public partial class MainWindow : Window
         if (dialog.Installed) Application.Current.Shutdown();
     }
 
-    // Copy summary (design 8A).
-    private System.Windows.Threading.DispatcherTimer? _copiedToastTimer;
-
-    private void CopySummary_Click(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is not MainViewModel viewModel) return;
-        try
-        {
-            Clipboard.SetText(viewModel.BuildSummaryText());
-        }
-        catch (Exception ex)
-        {
-            viewModel.SetStatus("Could not copy the summary · " + ex.Message);
-            return;
-        }
-
-        CopiedToast.IsOpen = true;
-        _copiedToastTimer ??= new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2.5) };
-        _copiedToastTimer.Tick -= CopiedToastTimer_Tick;
-        _copiedToastTimer.Tick += CopiedToastTimer_Tick;
-        _copiedToastTimer.Stop();
-        _copiedToastTimer.Start();
-    }
-
-    private void CopiedToastTimer_Tick(object? sender, EventArgs e)
-    {
-        _copiedToastTimer?.Stop();
-        CopiedToast.IsOpen = false;
-    }
-
     private void VersionChip_Click(object sender, RoutedEventArgs e)
     {
         if (Equals(VersionChip.Tag, "Available")) ShowUpdateDialog();

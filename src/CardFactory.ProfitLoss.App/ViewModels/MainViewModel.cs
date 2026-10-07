@@ -125,36 +125,6 @@ public sealed class MainViewModel : ObservableObject
         IsStale = minutes >= 60;
     }
 
-    /// <summary>Copy summary (design 8A): today's figures as plain text to paste anywhere.</summary>
-    public string BuildSummaryText()
-    {
-        var lines = new List<string>();
-        var date = HistoricalTargetMode == "Date Range" && RangeStartDate is { } from && SelectedDate is { } to
-            ? from.ToString("ddd d MMM") + " to " + to.ToString("ddd d MMM yyyy")
-            : (SelectedDate ?? DateTime.Today).ToString("ddd d MMM yyyy");
-        lines.Add((string.IsNullOrWhiteSpace(HeaderStoreText) ? "Profit & Loss" : HeaderStoreText) + " · " + date);
-        lines.Add("Sales: £" + TotalSales.ToString("N2") + (SalesTarget > 0m ? " (target £" + SalesTarget.ToString("N2") + ")" : string.Empty));
-        lines.Add("ABV: £" + ActualAbv.ToString("N2") + (AbvTarget > 0m ? " (target £" + AbvTarget.ToString("N2") + ")" : string.Empty));
-        lines.Add("AUB: " + ActualAub.ToString("N2") + (AubTarget > 0m ? " (target " + AubTarget.ToString("N2") + ")" : string.Empty));
-        if (AbvTarget > 0m) lines.Add("P&L: " + TotalProfitLossText);
-
-        if (TopPerformerChips.Count > 0)
-        {
-            lines.Add(string.Empty);
-            lines.Add("Top performers");
-            foreach (var chip in TopPerformerChips)
-                lines.Add("★ " + chip.Label.Replace("BEST ", string.Empty) + ": " + chip.Names + " " + chip.Value);
-        }
-
-        var busiest = BranchHours.FirstOrDefault(row => row.IsStrongestHour);
-        if (busiest is not null)
-        {
-            lines.Add(string.Empty);
-            lines.Add("Busiest hour: " + busiest.TimeBand + " (" + busiest.PercentOfSales.ToString("N1") + "% of sales)");
-        }
-        return string.Join(Environment.NewLine, lines);
-    }
-
     public DateTime? SelectedDate
     {
         get => _selectedDate;
