@@ -54,7 +54,16 @@ public partial class MainWindow : Window
         if (DataContext is MainViewModel viewModel)
         {
             viewModel.Operators.CollectionChanged += Operators_CollectionChanged;
+            viewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
+    }
+
+    // The Top performers strip appears after a Refresh and adds 36px to the Team page.
+    // Without this the window stays the same size and the whole dashboard is scaled down
+    // to fit; instead the strip takes its room from the Team-only space at the bottom.
+    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainViewModel.HasTopPerformers)) UpdateTeamSpacer();
     }
 
     private void Window_SourceInitialized(object? sender, EventArgs e) => WindowAppearance.PreferRoundedCorners(this);
@@ -140,6 +149,15 @@ public partial class MainWindow : Window
     // are gone and the hint line under Targets takes 24px, so the spacer grows by 56px to
     // keep the Team view the same height as Branch and Reports (474px panels).
     private const double TeamSpacerHeight = 96.0;
+    private const double TopPerformersStripHeight = 36.0;
+
+    private void UpdateTeamSpacer()
+    {
+        var height = TeamSpacerHeight;
+        if (_threeRowCompact) height -= 18.5;                       // what the formula strip and target row used to give up
+        if (DataContext is MainViewModel { HasTopPerformers: true }) height -= TopPerformersStripHeight;
+        CalculateSpacer.Height = Math.Max(0, height);
+    }
 
     private void ApplyTeamLayout(int operatorCount)
     {
@@ -150,7 +168,7 @@ public partial class MainWindow : Window
             : ScrollBarVisibility.Hidden;
 
         var compact = operatorCount >= 3;
-        if (_threeRowCompact == compact) return;
+        if (_threeRowCompact == compact) { UpdateTeamSpacer(); return; }
         _threeRowCompact = compact;
 
         if (compact)
@@ -162,7 +180,6 @@ public partial class MainWindow : Window
             AddPersonButton.Margin = new Thickness(28, 4, 0, 0);         // 3px
             PerformanceSummarySection.Margin = new Thickness(0, 6, 0, 0);// 6px
             CalculateSpacer.Margin = new Thickness(28, 6, 0, 0);          // 6px
-            CalculateSpacer.Height = TeamSpacerHeight - 18.5;             // what the formula strip and target row used to give up
         }
         else
         {
@@ -172,8 +189,9 @@ public partial class MainWindow : Window
             AddPersonButton.Margin = new Thickness(28, 7, 0, 0);
             PerformanceSummarySection.Margin = new Thickness(0, 12, 0, 0);
             CalculateSpacer.Margin = new Thickness(28, 12, 0, 0);
-            CalculateSpacer.Height = TeamSpacerHeight;
         }
+
+        UpdateTeamSpacer();
     }
 
     private void ResizeWindowForVisibleTeamRows(int rows)
@@ -397,6 +415,7 @@ public partial class MainWindow : Window
         if (DataContext is MainViewModel viewModel)
         {
             viewModel.Operators.CollectionChanged -= Operators_CollectionChanged;
+            viewModel.PropertyChanged -= ViewModel_PropertyChanged;
         }
 
         if (_flooidLoginWindow is not null)
