@@ -36,7 +36,7 @@
                         </Border>
                         <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Update available" Foreground="White" FontFamily="Arial" FontSize="18" FontWeight="Bold" />
-                            <TextBlock x:Name="VersionText" Foreground="#C9D6E8" FontFamily="Arial" FontSize="10" Margin="0,2,0,0" />
+                            <TextBlock x:Name="VersionText" Foreground="#D6E4F5" FontFamily="Arial" FontSize="10" Margin="0,2,0,0" />
                         </StackPanel>
                     </StackPanel>
                     <Button x:Name="CloseButton" Grid.Column="1" Width="30" Height="30" Content="×" FontSize="18"

@@ -469,7 +469,7 @@
                                         <TextBlock FontFamily="Arial" FontSize="10" VerticalAlignment="Center">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="#C9D6E8" />
+                                                    <Setter Property="Foreground" Value="#D6E4F5" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsStale}" Value="True">
                                                             <Setter Property="Foreground" Value="#FFD27A" />
@@ -529,7 +529,7 @@
                                                     <TextBlock x:Name="AccountMenuStore" FontFamily="Arial" FontSize="12" FontWeight="Bold"
                                                                Foreground="White" TextTrimming="CharacterEllipsis" />
                                                     <TextBlock x:Name="AccountMenuUser" FontFamily="Arial" FontSize="10"
-                                                               Foreground="#C9D6E8" Margin="0,2,0,0" />
+                                                               Foreground="#D6E4F5" Margin="0,2,0,0" />
                                                 </StackPanel>
                                             </Border>
                                             <!-- Stage 6B.50: only for accounts Flooid gives a choice of stores. -->
@@ -672,7 +672,7 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </StackPanel.Style>
-                                            <Border Background="#EAF2FF" CornerRadius="9,0,0,9" Margin="0,-1,8,-1" Padding="10,0">
+                                            <Border Background="{StaticResource CfBlueSoft}" CornerRadius="9,0,0,9" Margin="0,-1,8,-1" Padding="10,0">
                                                 <TextBlock Text="DATE" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}"
                                                            FontFamily="Arial" FontSize="8.5" FontWeight="Bold" />
                                             </Border>
@@ -701,7 +701,7 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </StackPanel.Style>
-                                            <Border Background="#EAF2FF" CornerRadius="9,0,0,9" Margin="0,-1,8,-1" Padding="10,0">
+                                            <Border Background="{StaticResource CfBlueSoft}" CornerRadius="9,0,0,9" Margin="0,-1,8,-1" Padding="10,0">
                                                 <TextBlock Text="FROM" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}"
                                                            FontFamily="Arial" FontSize="8.5" FontWeight="Bold" />
                                             </Border>
@@ -872,9 +872,9 @@
                                 <StackPanel x:Name="TeamModePanel">
                             <Canvas Height="42" Width="1212" ClipToBounds="False">
                                 <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42"
-                                        Background="{StaticResource CfDeepBlue}"
-                                        BorderBrush="{StaticResource CfDeepBlue}"
-                                        BorderThickness="2"
+                                        Background="{StaticResource CfBlue}"
+                                        BorderBrush="{StaticResource CfYellow}"
+                                        BorderThickness="3,3,3,0"
                                         CornerRadius="16,16,0,0">
                                     <Image Width="132.5" Height="22"
                                            Source="Assets/TeamTitleTextExact.png"
@@ -953,7 +953,7 @@
                                     <!-- Stage 6B.67 (T1): live headings - navy Arial on the pale strip - in the
                                          rows' own columns. They were a captured image in Baloo 2, a font nothing
                                          else in the app uses. The Branch headings now match. -->
-                                    <Border Height="34.5" Background="#F3F7FD">
+                                    <Border Height="34.5" Background="{StaticResource CfBlueSoft}">
                                         <Grid Width="1182">
                                             <Grid.ColumnDefinitions><ColumnDefinition Width="200" /><ColumnDefinition Width="98" /><ColumnDefinition Width="98" /><ColumnDefinition Width="94" /><ColumnDefinition Width="104" /><ColumnDefinition Width="108" /><ColumnDefinition Width="112" /><ColumnDefinition Width="92" /><ColumnDefinition Width="92" /><ColumnDefinition Width="88" /><ColumnDefinition Width="96" /></Grid.ColumnDefinitions>
                                             <TextBlock Grid.Column="0" Text="NAME" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -1066,7 +1066,7 @@
                                     -->
                                     <Border Height="2" Background="{StaticResource CfBlue}" />
 
-                                    <Grid Height="43" Background="White" ClipToBounds="True">
+                                    <Grid Height="43" Background="{StaticResource CfBlueSoft}" ClipToBounds="True">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="594" />
                                             <ColumnDefinition Width="108" />
@@ -1152,8 +1152,8 @@
 
                                     <Canvas Grid.Row="0" Height="42" Width="1212" ClipToBounds="False">
                                         <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42"
-                                                Background="{StaticResource CfDeepBlue}" BorderBrush="{StaticResource CfDeepBlue}"
-                                                BorderThickness="2" CornerRadius="16,16,0,0">
+                                                Background="{StaticResource CfBlue}" BorderBrush="{StaticResource CfYellow}"
+                                                BorderThickness="3,3,3,0" CornerRadius="16,16,0,0">
                                             <Image Width="55" Height="22" Source="Assets/ReportsTitleTextExact.png" Stretch="Fill"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                                    RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="False" />
@@ -1177,7 +1177,7 @@
                                                     <Border Margin="0,0,14,0" Height="62" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
                                                         <Grid>
                                                             <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                                            <Border Background="#EAF2FF" CornerRadius="13,13,0,0">
+                                                            <Border Background="{StaticResource CfBlueSoft}" CornerRadius="13,13,0,0">
                                                                 <TextBlock Text="VOIDS" Margin="11,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="10" FontWeight="Bold" />
                                                             </Border>
                                                             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="11,0,0,0" VerticalAlignment="Center">
@@ -1189,7 +1189,7 @@
                                                     <Border Margin="0,0,14,0" Height="62" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
                                                         <Grid>
                                                             <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                                            <Border Background="#EAF2FF" CornerRadius="13,13,0,0">
+                                                            <Border Background="{StaticResource CfBlueSoft}" CornerRadius="13,13,0,0">
                                                                 <TextBlock Text="RETURNS" Margin="11,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="10" FontWeight="Bold" />
                                                             </Border>
                                                             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="11,0,0,0" VerticalAlignment="Center">
@@ -1201,7 +1201,7 @@
                                                     <Border Margin="0,0,14,0" Height="62" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
                                                         <Grid>
                                                             <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                                                            <Border Background="#EAF2FF" CornerRadius="13,13,0,0">
+                                                            <Border Background="{StaticResource CfBlueSoft}" CornerRadius="13,13,0,0">
                                                                 <TextBlock Text="NO SALES" Margin="11,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="10" FontWeight="Bold" />
                                                             </Border>
                                                             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="11,0,0,0" VerticalAlignment="Center">
@@ -1212,7 +1212,7 @@
                                                     </Border>
                                             </UniformGrid>
 
-                                            <Grid Grid.Row="1" Background="#F3F7FD">
+                                            <Grid Grid.Row="1" Background="{StaticResource CfBlueSoft}">
                                                 <Grid.ColumnDefinitions><ColumnDefinition Width="232"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Column="0" Text="NAME" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="14,0,0,0" HorizontalAlignment="Left" />
                                                 <TextBlock Grid.Column="1" Text="VOIDS QTY" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
@@ -1310,9 +1310,9 @@
 
                                     <Canvas Grid.Row="0" Height="42" Width="1212" ClipToBounds="False">
                                         <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42"
-                                                Background="{StaticResource CfDeepBlue}"
-                                                BorderBrush="{StaticResource CfDeepBlue}"
-                                                BorderThickness="2"
+                                                Background="{StaticResource CfBlue}"
+                                                BorderBrush="{StaticResource CfYellow}"
+                                                BorderThickness="3,3,3,0"
                                                 CornerRadius="16,16,0,0">
                                             <!-- Stage 6B.47: the same title treatment as Team Performance - centred
                                                  artwork in the same font (Chewy, matched against TeamTitleTextExact.png)
@@ -1383,7 +1383,7 @@
                                                     <RowDefinition Height="29"/>
                                                     <RowDefinition Height="316"/>
                                                 </Grid.RowDefinitions>
-                                                <Border Grid.Row="0" Background="#F3F7FD" BorderBrush="{StaticResource CfLine}" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0">
+                                                <Border Grid.Row="0" Background="{StaticResource CfBlueSoft}" BorderBrush="{StaticResource CfLine}" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="150"/><ColumnDefinition Width="170"/><ColumnDefinition Width="180"/>
@@ -1475,7 +1475,7 @@
                                                     <RowDefinition Height="29"/>
                                                     <RowDefinition Height="316"/>
                                                 </Grid.RowDefinitions>
-                                                <Border Grid.Row="0" Background="#F3F7FD" BorderBrush="{StaticResource CfLine}" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0">
+                                                <Border Grid.Row="0" Background="{StaticResource CfBlueSoft}" BorderBrush="{StaticResource CfLine}" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="170"/><ColumnDefinition Width="210"/><ColumnDefinition Width="440"/>
@@ -1523,8 +1523,8 @@
                                                  so the rounded corners are visible instead of being clipped flat
                                                  against the panel edge. -->
                                             <Border Grid.Row="3" Margin="12,0,12,6"
-                                                    Background="#F3F7FD"
-                                                    BorderBrush="#DCE6F3"
+                                                    Background="{StaticResource CfBlueSoft}"
+                                                    BorderBrush="{StaticResource CfLine}"
                                                     BorderThickness="1"
                                                     CornerRadius="12">
                                                 <!-- Stage 6B.44 (concept B): five headline totals, gift cards to the right of a
@@ -1543,7 +1543,7 @@
                                                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="UNITS" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalUnits}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
                                                     <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="AUB" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAub, StringFormat={}{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
                                                     <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="ABV" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAbv, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <Border Grid.Column="6" Background="#DCE6F3" Height="23" VerticalAlignment="Center"/>
+                                                    <Border Grid.Column="6" Background="{StaticResource CfLine}" Height="23" VerticalAlignment="Center"/>
                                                     <Grid Grid.Column="7">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT QTY" FontSize="8" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardQuantity}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
@@ -1561,9 +1561,9 @@
                         <StackPanel x:Name="PerformanceSummarySection" Margin="0,12,0,0">
                             <Canvas Height="40" Width="1212" ClipToBounds="False">
                                 <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="40"
-                                        Background="{StaticResource CfDeepBlue}"
-                                        BorderBrush="{StaticResource CfDeepBlue}"
-                                        BorderThickness="2"
+                                        Background="{StaticResource CfBlue}"
+                                        BorderBrush="{StaticResource CfYellow}"
+                                        BorderThickness="3,3,3,0"
                                         CornerRadius="16,16,0,0">
                                     <Image Width="162" Height="19.5"
                                            Source="Assets/PerformanceTitleTextExact.png"
@@ -1620,8 +1620,8 @@
                         <!-- Stage 6A.24: native one-row formula strip. At 3+ people, surrounding vertical chrome compacts by exactly one team-row height so the Viewbox scale stays unchanged. -->
                         <Border x:Name="FormulaStrip" Width="1212" Height="42.5"
                                 Margin="0,12,0,0"
-                                Background="#F3F7FD"
-                                BorderBrush="#DCE6F3"
+                                Background="{StaticResource CfBlueSoft}"
+                                BorderBrush="{StaticResource CfLine}"
                                 BorderThickness="1"
                                 CornerRadius="12">
                             <Grid>
@@ -1685,7 +1685,7 @@
                             </Border>
                             <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Text="Menu" Foreground="White" FontFamily="Arial" FontSize="16" FontWeight="Bold" />
-                                <TextBlock Text="Files, retrieval speed and settings" Foreground="#C9D6E8" FontFamily="Arial" FontSize="9" Margin="0,2,0,0" />
+                                <TextBlock Text="Files, retrieval speed and settings" Foreground="#D6E4F5" FontFamily="Arial" FontSize="9" Margin="0,2,0,0" />
                             </StackPanel>
                         </StackPanel>
                     </Border>

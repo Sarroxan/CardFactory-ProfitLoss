@@ -95,7 +95,7 @@
                             <Ellipse x:Name="StatusDot" Width="7" Height="7" Fill="#9AA8B8" VerticalAlignment="Center" Margin="0,0,5,0" />
                             <TextBlock x:Name="StatusText"
                                        Text="Preparing secure sign-in…"
-                                       Foreground="#C9D6E8"
+                                       Foreground="#D6E4F5"
                                        FontFamily="Arial"
                                        FontSize="9" />
                         </StackPanel>

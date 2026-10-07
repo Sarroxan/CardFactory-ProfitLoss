@@ -2,14 +2,16 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- Exact palette from the approved audited HTML. -->
-    <SolidColorBrush x:Key="CfBlue" Color="#004EA1" />
-    <SolidColorBrush x:Key="CfDeepBlue" Color="#00376E" />
-    <SolidColorBrush x:Key="CfBlueSoft" Color="#EAF2FF" />
+    <!-- Colours from the company forms (Daily / Weekly Briefing): bar blue #005BBB, ink #004EA1,
+         pale label blue #E3ECF7 and soft outline blue #A5C0DD. Layout and lettering unchanged. -->
+    <SolidColorBrush x:Key="CfBlue" Color="#005BBB" />
+    <SolidColorBrush x:Key="CfDeepBlue" Color="#004EA1" />
+    <SolidColorBrush x:Key="CfBlueSoft" Color="#E3ECF7" />
     <SolidColorBrush x:Key="CfYellow" Color="#FFC907" />
     <SolidColorBrush x:Key="CfPaper" Color="#FFFFFF" />
     <SolidColorBrush x:Key="CfInk" Color="#183153" />
     <SolidColorBrush x:Key="CfMuted" Color="#667891" />
-    <SolidColorBrush x:Key="CfLine" Color="#D4DEEA" />
+    <SolidColorBrush x:Key="CfLine" Color="#A5C0DD" />
     <SolidColorBrush x:Key="CfLineSoft" Color="#EDF1F6" />
     <SolidColorBrush x:Key="CfPanelSoft" Color="#F7F9FC" />
     <SolidColorBrush x:Key="CfGood" Color="#0B7A35" />
@@ -240,9 +242,9 @@
              the totals row and were the loudest yellow on the page while carrying figures
              nobody clicks. Quiet field, thin grey edge; the numbers still colour themselves
              green or red through HtmlMetricTextStyle, which is what actually matters here. -->
-        <Setter Property="Background" Value="#F7F9FC" />
-        <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="BorderBrush" Value="{StaticResource CfYellow}" />
+        <Setter Property="BorderThickness" Value="2" />
         <Setter Property="CornerRadius" Value="12" />
     </Style>
 
@@ -336,7 +338,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#0E5BB8" /></Trigger>
-                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#00376E" /></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#00468F" /></Trigger>
                         <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.42" /></Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -472,7 +474,7 @@
                             <Border Grid.Column="1"
                                     Width="20" Height="20"
                                     HorizontalAlignment="Right"
-                                    Background="#EAF2FF"
+                                    Background="#E3ECF7"
                                     CornerRadius="6">
                                 <Grid Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <Path Data="M2,3.5 L10,3.5 M3.5,1.5 L3.5,4.5 M8.5,1.5 L8.5,4.5 M2,3.5 L2,10 L10,10 L10,3.5 Z"
@@ -883,7 +885,7 @@
          white one. Used only by the two header tabs. -->
     <Style x:Key="SectionTabButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="#9FB6D6" />
+        <Setter Property="Foreground" Value="#A9C4E6" />
         <Setter Property="FontFamily" Value="Arial" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="Bold" />

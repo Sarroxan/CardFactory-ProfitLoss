@@ -45,7 +45,7 @@
                         </Border>
                         <StackPanel Margin="10,0,0,0">
                             <TextBlock Text="Preferences" Foreground="White" FontFamily="Arial" FontSize="17" FontWeight="Bold" />
-                            <TextBlock Text="Saved for this portable app" Foreground="#C9D6E8" FontFamily="Arial" FontSize="9" Margin="0,2,0,0" />
+                            <TextBlock Text="Saved for this portable app" Foreground="#D6E4F5" FontFamily="Arial" FontSize="9" Margin="0,2,0,0" />
                         </StackPanel>
                     </StackPanel>
                     <Button Grid.Column="1" Width="28" Height="28" Content="×" FontSize="17"
