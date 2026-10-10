@@ -747,22 +747,67 @@ public sealed class MainViewModel : ObservableObject
     public int ReportNoSales { get => _reportNoSales; private set => SetProperty(ref _reportNoSales, value); }
     public bool HasReportData => ReportRows.Count > 0;
 
+    // Staff discounts come from a separate report (Discounts and Price Overrides), so they
+    // can be missing when the Refunds figures are not. Null means "not retrieved" and shows
+    // as a dash, never as £0.00.
+    private IReadOnlyList<OperatorActivityRecord> _reportActivity = Array.Empty<OperatorActivityRecord>();
+    private IReadOnlyList<DiscountLineRecord>? _reportStaffDiscounts;
+    private string _reportStaffDiscountText = "—";
+    private string _reportStaffDiscountDetail = string.Empty;
+
+    public string ReportStaffDiscountText { get => _reportStaffDiscountText; private set => SetProperty(ref _reportStaffDiscountText, value); }
+    public string ReportStaffDiscountDetail { get => _reportStaffDiscountDetail; private set => SetProperty(ref _reportStaffDiscountDetail, value); }
+
     public void ApplyActivityReport(IReadOnlyList<OperatorActivityRecord> activity)
     {
+        _reportActivity = activity;
+        RebuildReportRows();
+    }
+
+    /// <param name="staffDiscountLines">The report's staff discount lines, or null when the
+    /// report could not be retrieved.</param>
+    public void ApplyStaffDiscounts(IReadOnlyList<DiscountLineRecord>? staffDiscountLines)
+    {
+        _reportStaffDiscounts = staffDiscountLines;
+        RebuildReportRows();
+    }
+
+    private void RebuildReportRows()
+    {
+        var activity = _reportActivity;
+        var discounts = _reportStaffDiscounts;
+        // The discounts report gives an operator code only; the name comes from the Refunds
+        // report, where every row is "code - name".
+        var discountByOperator = (discounts ?? Array.Empty<DiscountLineRecord>())
+            .GroupBy(line => line.OperatorId)
+            .ToDictionary(group => group.Key, group => group.Sum(line => line.DiscountValue));
+        string StaffDiscountFor(string operatorId) => discounts is null
+            ? "—"
+            : $"£{(discountByOperator.TryGetValue(operatorId, out var value) ? value : 0m):N2}";
+
+        var people = activity
+            .Select(p => (p.OperatorId, Row: new ReportPersonRow(
+                p.Name,
+                p.VoidsQuantity,
+                p.VoidsValue,
+                p.RefundsQuantity,
+                p.TotalRefundsValue,
+                p.NoSales,
+                p.VoidsValue >= ReportFlagValue,
+                p.TotalRefundsValue >= ReportFlagValue,
+                StaffDiscountFor(p.OperatorId))))
+            .ToList();
+        // Anyone who gave a staff discount but is not on the Refunds report still appears.
+        foreach (var operatorId in discountByOperator.Keys.Where(id => activity.All(p => p.OperatorId != id)))
+            people.Add((operatorId, new ReportPersonRow(operatorId, 0, 0m, 0, 0m, 0, false, false, StaffDiscountFor(operatorId))));
+
         ReportRows.Clear();
-        foreach (var person in activity
-                     .OrderByDescending(p => p.VoidsValue + p.TotalRefundsValue)
-                     .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase))
+        foreach (var (_, row) in people
+                     .OrderByDescending(p => p.Row.VoidsValue + p.Row.RefundsValue)
+                     .ThenByDescending(p => discountByOperator.GetValueOrDefault(p.OperatorId))
+                     .ThenBy(p => p.Row.Name, StringComparer.OrdinalIgnoreCase))
         {
-            ReportRows.Add(new ReportPersonRow(
-                person.Name,
-                person.VoidsQuantity,
-                person.VoidsValue,
-                person.RefundsQuantity,
-                person.TotalRefundsValue,
-                person.NoSales,
-                person.VoidsValue >= ReportFlagValue,
-                person.TotalRefundsValue >= ReportFlagValue));
+            ReportRows.Add(row);
         }
 
         ReportVoidsValue = activity.Sum(p => p.VoidsValue);
@@ -770,10 +815,17 @@ public sealed class MainViewModel : ObservableObject
         ReportRefundsValue = activity.Sum(p => p.TotalRefundsValue);
         ReportRefundsQuantity = activity.Sum(p => p.RefundsQuantity);
         ReportNoSales = activity.Sum(p => p.NoSales);
+        ReportStaffDiscountText = discounts is null ? "—" : $"£{discounts.Sum(line => line.DiscountValue):N2}";
+        ReportStaffDiscountDetail = discounts is null ? "not retrieved" : $"{discounts.Sum(line => line.Quantity):0.##} items";
         OnPropertyChanged(nameof(HasReportData));
     }
 
-    public void ClearActivityReport() => ApplyActivityReport(Array.Empty<OperatorActivityRecord>());
+    public void ClearActivityReport()
+    {
+        _reportActivity = Array.Empty<OperatorActivityRecord>();
+        _reportStaffDiscounts = null;
+        RebuildReportRows();
+    }
 
     private static string NormaliseName(string? value) =>
         string.Concat((value ?? string.Empty).Where(char.IsLetterOrDigit)).ToUpperInvariant();
@@ -796,4 +848,5 @@ public sealed record ReportPersonRow(
     decimal RefundsValue,
     int NoSales,
     bool VoidsFlagged,
-    bool RefundsFlagged);
+    bool RefundsFlagged,
+    string StaffDiscount);

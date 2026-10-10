@@ -1123,6 +1123,26 @@ public partial class MainWindow : Window
                 viewModel.SetBranchDataMessage("Branch Performance retrieval failed · " + ex.Message);
             }
 
+            // Staff discounts for the Reports section, from Discounts and Price Overrides.
+            // Run last so a problem with it cannot get in the way of the three reports
+            // above; a failure shows the figures as "—" rather than keeping another day's.
+            string? discountsError = null;
+            var discountsUpdated = false;
+            try
+            {
+                viewModel.SetFlooidStatus("Retrieving Staff Discounts…", "Working");
+                SetRetrievalStep(4);
+                var discountsHtml = await loginWindow.FetchDiscountsHtmlAsync(startDate, endDate);
+                var discounts = new DiscountsReportParser().Parse(discountsHtml);
+                viewModel.ApplyStaffDiscounts(discounts.StaffDiscountLines);
+                discountsUpdated = true;
+            }
+            catch (Exception ex)
+            {
+                discountsError = ex.Message;
+                viewModel.ApplyStaffDiscounts(null);
+            }
+
             if (teamUpdated || giftUpdated || branchUpdated)
                 viewModel.SetFlooidLastUpdated(DateTime.Now);
 
@@ -1130,19 +1150,20 @@ public partial class MainWindow : Window
             if (!teamUpdated && !string.IsNullOrWhiteSpace(teamError)) errors.Add("Team: " + teamError);
             if (!giftUpdated && !string.IsNullOrWhiteSpace(giftError)) errors.Add("Gift Cards: " + giftError);
             if (!branchUpdated && !string.IsNullOrWhiteSpace(branchError)) errors.Add("Branch: " + branchError);
+            if (!discountsUpdated && !string.IsNullOrWhiteSpace(discountsError)) errors.Add("Staff Discounts: " + discountsError);
 
             // Stage 6B.11: the overlay carries the outcome now. On success it closes; on
             // any failure it stays up with the detail, because the labels that used to
             // report it are gone and an error with nowhere to appear is worse than a
             // cluttered header.
-            if (teamUpdated && giftUpdated && branchUpdated) HideRetrievalOverlay();
+            if (teamUpdated && giftUpdated && branchUpdated && discountsUpdated) HideRetrievalOverlay();
             else ShowRetrievalError(string.Join(Environment.NewLine, errors));
 
             // Stage 6B.21: the header carries the retrieval time now.
             if (teamUpdated || branchUpdated || giftUpdated)
                 viewModel.LastUpdatedAt = DateTime.Now;   // header shows "updated … ago" (design 1A)
 
-            if (teamUpdated && giftUpdated && branchUpdated)
+            if (teamUpdated && giftUpdated && branchUpdated && discountsUpdated)
             {
                 viewModel.SetFlooidStatus("Updated", "Good");
                 viewModel.SetStatus(branchActualPeriod is null
@@ -1214,8 +1235,8 @@ public partial class MainWindow : Window
     /// <summary>0 is nothing started, 1 to 3 mark that step running and earlier ones done.</summary>
     private void SetRetrievalStep(int running)
     {
-        var markers = new[] { RetrievalStep1Marker, RetrievalStep2Marker, RetrievalStep3Marker };
-        var texts = new[] { RetrievalStep1Text, RetrievalStep2Text, RetrievalStep3Text };
+        var markers = new[] { RetrievalStep1Marker, RetrievalStep2Marker, RetrievalStep3Marker, RetrievalStep4Marker };
+        var texts = new[] { RetrievalStep1Text, RetrievalStep2Text, RetrievalStep3Text, RetrievalStep4Text };
 
         for (var i = 0; i < markers.Length; i++)
         {

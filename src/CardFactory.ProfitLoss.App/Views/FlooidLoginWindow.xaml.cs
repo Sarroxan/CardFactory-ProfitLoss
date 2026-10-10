@@ -323,6 +323,9 @@ public partial class FlooidLoginWindow : Window
     public Task<string> FetchGiftCardHtmlAsync(DateTime fromDate, DateTime toDate) =>
         FlooidView.FetchGiftCardHtmlAsync(fromDate, toDate);
 
+    public Task<string> FetchDiscountsHtmlAsync(DateTime fromDate, DateTime toDate) =>
+        FlooidView.FetchDiscountsHtmlAsync(fromDate, toDate);
+
     public async Task EnsureOpenAsync()
     {
         // Stage 6B.31: each time this window is opened for a sign in, start with our card.

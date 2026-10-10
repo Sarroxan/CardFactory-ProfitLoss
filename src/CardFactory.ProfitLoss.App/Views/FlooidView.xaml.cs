@@ -2050,6 +2050,177 @@ public partial class FlooidView : UserControl
         return reportHtml;
     }
 
+    // Discounts and Price Overrides (Daily Reports), for staff discounts in the Reports
+    // section. Every id below is read from genuine saves of this page: the criteria form
+    // (05/10/2026) and its Detailed output (10/10/2026). It is NOT built like the other
+    // three criteria pages:
+    //   - there is no Report Periods dropdown, so no "Today" preset - just Date From / Date
+    //     To, which Flooid pre-fills with today (the 05/10 save reads 05/10/2026 in both);
+    //   - the date fields are components.dateRange.fromDate / toDate, not
+    //     components.calendar.searchFromDate / searchToDate;
+    //   - Next is an <input type="button"> with no onclick, wrapped in
+    //     <a href="javascript:setCriteriaDescriptions()">. That function copies the chosen
+    //     Discount Type and Reason text into hidden fields and calls document.form.submit().
+    // The report is pulled with Discount Type and Reason both "All"; staff discount lines
+    // are picked out afterwards by their Reason ("25% Staff Discount"), which avoids
+    // depending on the Reason list, an AJAX fill (dropdownReasonCode.action) whose codes
+    // are not in any save.
+    public async Task<string> FetchDiscountsHtmlAsync(DateTime fromDate, DateTime toDate)
+    {
+        var timing = new PhaseLog("Discounts");
+        var succeeded = false;
+        try
+        {
+            var html = await FetchDiscountsHtmlCoreAsync(fromDate, toDate, timing);
+            succeeded = true;
+            return html;
+        }
+        finally
+        {
+            timing.Write(succeeded ? "ok" : "failed");
+        }
+    }
+
+    private async Task<string> FetchDiscountsHtmlCoreAsync(DateTime fromDate, DateTime toDate, PhaseLog timing)
+    {
+        const string label = "Discounts and Price Overrides";
+        await InitialiseBrowserAsync();
+        EnsureReadyForAutomation();
+        ResetReportPopupContext();
+        ResetGeneratedReportCapture();
+        timing.Mark("browser ready");
+
+        await OpenReportCriteriaFromMenuAsync(
+            new[] { "Discounts and Price Overrides Report", "Discounts and Price Overrides" },
+            label,
+            DiscountsCriteriaMatchScript,
+            new[] { "Daily Reports", "Reports" });
+        timing.Mark("criteria page opened");
+
+        // Changing Discount Type makes Flooid reload the Reason list over AJAX, so "All" is
+        // put back (if anything else is showing) and then polled for rather than set and
+        // submitted in one go.
+        var reasonDeadline = DateTime.UtcNow + TimeSpan.FromSeconds(8);
+        while (!await CurrentPageMatchesAsync(DiscountsReasonAllScript))
+        {
+            if (DateTime.UtcNow > reasonDeadline)
+                throw new InvalidOperationException($"{label}: Discount Type and Reason could not both be set to \"All\" · {await SafeCurrentPageSummaryAsync()}");
+            await FlooidTimings.PollAsync(300);
+        }
+
+        var skipDateEntry = fromDate.Date == DateTime.Today && toDate.Date == DateTime.Today;
+        var configure = DiscountsConfigureScript
+            .Replace("__FROM__", JsonSerializer.Serialize(fromDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)), StringComparison.Ordinal)
+            .Replace("__TO__", JsonSerializer.Serialize(toDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)), StringComparison.Ordinal)
+            .Replace("__SKIP_DATES__", skipDateEntry ? "true" : "false", StringComparison.Ordinal);
+
+        timing.Mark("criteria configured");
+        await SubmitCurrentCriteriaAsync(configure, label, TimeSpan.FromSeconds(15));
+        await CheckForImmediateCriteriaValidationErrorAsync(label);
+        timing.Mark("criteria submitted");
+
+        // The Detailed output appears inside <iframe id="reportFrame"> on
+        // discountsAndPriceOverridesReportCriteriaSubmit.action, loaded from
+        // htmlReportGenerator.action - the response the capture already listens for.
+        var reportHtml = await WaitForGeneratedReportHtmlAsync(
+            new[] { "discounts", "price overrides", "end of report" },
+            label + " — Detailed",
+            TimeSpan.FromSeconds(35));
+        timing.Mark("report generated and captured");
+        return reportHtml;
+    }
+
+    private const string DiscountsCriteriaMatchScript = """
+        (() => {
+          const form = document.querySelector('form[action*="discountsandpriceoverridesreportcriteriasubmit.action" i]');
+          return form && document.getElementById('nextButton') && document.getElementById('components_reasonTypeAndCode_reasonType')
+            ? 'MATCH' : 'NO';
+        })()
+        """;
+
+    // MATCH once Discount Type and Reason both read "All" (value ""). Setting Discount Type
+    // fires Flooid's own onchange (updateReasonSelection), which replaces the Reason list.
+    private const string DiscountsReasonAllScript = """
+        (() => {
+          const form = document.querySelector('form[action*="discountsandpriceoverridesreportcriteriasubmit.action" i]');
+          const type = document.getElementById('components_reasonTypeAndCode_reasonType');
+          const code = document.getElementById('components_reasonTypeAndCode_reasonCode');
+          if (!form || !type || !code) return 'NO';
+          if (type.value !== '') {
+            type.value = '';
+            type.dispatchEvent(new Event('change'));
+            return 'NO';
+          }
+          if (code.value !== '') {
+            if (![...code.options].some(o => o.value === '')) return 'NO';
+            code.value = '';
+          }
+          return code.value === '' ? 'MATCH' : 'NO';
+        })()
+        """;
+
+    private const string DiscountsConfigureScript = """
+        (() => {
+          const from = __FROM__;
+          const to = __TO__;
+          const skipDates = __SKIP_DATES__;
+          const form = document.querySelector('form[action*="discountsandpriceoverridesreportcriteriasubmit.action" i]');
+          if (!form) return 'NOT_HERE';
+
+          const problems = [];
+          const textNear = el => (el.parentElement?.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+          const choose = (id, wanted) => {
+            const radio = document.getElementById(id);
+            if (!radio) { problems.push('"' + wanted + '" (' + id + ') is not on the page'); return; }
+            if (textNear(radio) !== wanted.toLowerCase()) { problems.push(id + ' reads "' + textNear(radio) + '", not "' + wanted + '"'); return; }
+            if (!radio.checked) radio.click();
+            radio.checked = true;
+          };
+          choose('components_displayType_displayType0', 'Report');
+          choose('components_reportType_reportType0', 'Detail');
+
+          const type = document.getElementById('components_reasonTypeAndCode_reasonType');
+          const code = document.getElementById('components_reasonTypeAndCode_reasonCode');
+          if (!type || type.value !== '') problems.push('Discount Type is not "All"');
+          if (!code || code.value !== '') problems.push('Reason is not "All"');
+
+          const operator = document.getElementById('components.user.operatorCode');
+          if (operator && operator.value) operator.value = '';
+
+          // A Date From/To box is a dijit DateTextBox: a visible dd/MM/yyyy box (id, no
+          // name) and a hidden yyyy-MM-dd input (name) that is what gets posted. Today is
+          // Flooid's own default, so dates are only written for another day or a range.
+          const setDate = (field, text) => {
+            const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text);
+            if (!m) return field + ': "' + text + '" is not dd/MM/yyyy';
+            const iso = m[3] + '-' + m[2] + '-' + m[1];
+            const visible = document.getElementById(field);
+            const hidden = form.querySelector('input[type=hidden][name="' + field + '"]');
+            if (!hidden) return field + ': the hidden date field is not on the page';
+            try {
+              const widget = window.dijit && window.dijit.byId ? window.dijit.byId(field) : null;
+              const value = new Date(+m[3], +m[2] - 1, +m[1]);
+              if (widget && typeof widget.set === 'function') widget.set('value', value);
+              else if (widget && typeof widget.attr === 'function') widget.attr('value', value);
+            } catch (_) {}
+            if (visible && visible.value !== text) visible.value = text;
+            if (hidden.value !== iso) hidden.value = iso;
+            return hidden.value === iso ? null : field + ': hidden field reads "' + hidden.value + '", not "' + iso + '"';
+          };
+          if (!skipDates) {
+            for (const problem of [setDate('components.dateRange.fromDate', from), setDate('components.dateRange.toDate', to)])
+              if (problem) problems.push(problem);
+          }
+
+          const next = document.getElementById('nextButton');
+          if (!next || (next.value || '').trim().toLowerCase() !== 'next') problems.push('the Next button (#nextButton) is not on the page');
+          if (problems.length) return 'ERROR: ' + 'Discounts and Price Overrides criteria · ' + problems.join(' · ');
+
+          setTimeout(() => next.click(), 0);
+          return 'OK';
+        })()
+        """;
+
 
     private async Task EnsurePrimaryFlooidReportMenuAsync()
     {

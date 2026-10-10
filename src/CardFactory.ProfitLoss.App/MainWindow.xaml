@@ -1210,16 +1210,29 @@
                                                             </StackPanel>
                                                         </Grid>
                                                     </Border>
+                                                    <Border Margin="0,0,14,0" Height="62" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                                            <Border Background="{StaticResource CfBlueSoft}" CornerRadius="13,13,0,0">
+                                                                <TextBlock Text="STAFF DISCOUNT" Margin="11,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="10" FontWeight="Bold" />
+                                                            </Border>
+                                                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="11,0,0,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding ReportStaffDiscountText}" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="17" FontWeight="Bold" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding ReportStaffDiscountDetail}" Margin="8,0,0,0" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
                                             </UniformGrid>
 
                                             <Grid Grid.Row="1" Background="{StaticResource CfBlueSoft}">
-                                                <Grid.ColumnDefinitions><ColumnDefinition Width="232"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="232"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Column="0" Text="NAME" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="14,0,0,0" HorizontalAlignment="Left" />
                                                 <TextBlock Grid.Column="1" Text="VOIDS QTY" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
                                                 <TextBlock Grid.Column="2" Text="VOIDS VALUE" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
                                                 <TextBlock Grid.Column="3" Text="RETURNS QTY" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
                                                 <TextBlock Grid.Column="4" Text="RETURNS VALUE" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
                                                 <TextBlock Grid.Column="5" Text="NO SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                                <TextBlock Grid.Column="6" Text="STAFF DISCOUNT" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" />
                                             </Grid>
 
                                             <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -1227,8 +1240,8 @@
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <Grid Height="38">
-                                                                <Grid.ColumnDefinitions><ColumnDefinition Width="232"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                                <Border Grid.ColumnSpan="6" BorderBrush="{StaticResource CfLineSoft}" BorderThickness="0,0,0,1"/>
+                                                                <Grid.ColumnDefinitions><ColumnDefinition Width="232"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                                <Border Grid.ColumnSpan="7" BorderBrush="{StaticResource CfLineSoft}" BorderThickness="0,0,0,1"/>
                                                                 <TextBlock Grid.Column="0" Text="{Binding Name}" Margin="14,0,0,0" HorizontalAlignment="Left" Style="{StaticResource BranchMetricTextStyle}" TextTrimming="CharacterEllipsis"/>
                                                                 <TextBlock Grid.Column="1" Text="{Binding VoidsQuantity}" Style="{StaticResource BranchMetricTextStyle}"/>
                                                                 <Border Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="8,3" CornerRadius="8">
@@ -1271,6 +1284,7 @@
                                                                     </TextBlock>
                                                                 </Border>
                                                                 <TextBlock Grid.Column="5" Text="{Binding NoSales}" Style="{StaticResource BranchMetricTextStyle}"/>
+                                                                <TextBlock Grid.Column="6" Text="{Binding StaffDiscount}" Style="{StaticResource BranchMetricTextStyle}"/>
                                                             </Grid>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
@@ -1841,9 +1855,13 @@
                                 <TextBlock x:Name="RetrievalStep2Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
                                 <TextBlock x:Name="RetrievalStep2Text" Text="Gift Cards" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                                 <TextBlock x:Name="RetrievalStep3Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
                                 <TextBlock x:Name="RetrievalStep3Text" Text="Branch Performance" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="RetrievalStep4Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
+                                <TextBlock x:Name="RetrievalStep4Text" Text="Staff Discounts" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
                             </StackPanel>
                         </StackPanel>
 

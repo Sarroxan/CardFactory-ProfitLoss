@@ -20,13 +20,14 @@ CardFactory.ProfitLoss.sln
 where essentially every bug in this project has lived. It hosts a WebView2
 browser and drives Flooid's real web UI.
 
-## The three reports
+## The reports
 
 | Report | Flooid menu item | Parser | Used for |
 |---|---|---|---|
 | Refunds/Voids | Refunds, Voids & No Sales Report | `RefundsVoidsReportParser` | per-operator refunds, voids, no-sales |
 | Branch Performance | Branch Performance | `BranchPerformanceReportParser` | hourly/daily sales, transactions, units |
 | Gift Cards | Item Sales By Operator Report | `GiftCardReportParser` | gift card sales to exclude from ABV/AUB |
+| Staff Discounts | Discounts and Price Overrides Report | `DiscountsReportParser` | staff discount per person in the Reports section |
 
 Team Performance = Refunds/Voids merged with Gift Cards
 (`OperatorReportMerger`).
@@ -112,6 +113,30 @@ Report Periods · Operator to Include.
 
 Never write into "Products to Include → Product": it is an item-code lookup
 that fires a blocking Search.
+
+### Discounts and Price Overrides (criteria saved 05/10/2026, output 10/10/2026)
+Built differently from the other three criteria pages:
+- No Report Periods dropdown and no "Today" preset. Only Date From / Date To,
+  pre-filled with today. The fields are `components.dateRange.fromDate` /
+  `toDate` (same dijit visible-box + hidden ISO pairing as elsewhere).
+- Report Type is Detail / Summary (`components_reportType_reportType0/1`).
+- Discount Type (`components_reasonTypeAndCode_reasonType`): All, Line Discount,
+  Transaction Discount, Price Override. Changing it reloads the Reason list via
+  `dropdownReasonCode.action`, so the Reason codes are not in any save.
+- Next is `<input type="button" id="nextButton">` with no onclick, inside
+  `<a href="javascript:setCriteriaDescriptions()">`; that copies the chosen
+  type/reason text into hidden fields and calls `document.form.submit()`.
+  Next precedes Cancel in the DOM here. Clicking the button does fire the link
+  in Chromium (checked offline against the saved page).
+- The output loads in `<iframe id="reportFrame">` on
+  `discountsAndPriceOverridesReportCriteriaSubmit.action`, from
+  `htmlReportGenerator.action`. Data is `table#detailReportTable`, one
+  `tr.report` per line, ending in a `REPORT TOTAL` row. Operator is a code
+  only; names come from the Refunds report. Prices and discount values are line
+  totals.
+- The app pulls Discount Type and Reason "All" and keeps lines whose Reason
+  contains "Staff" (seen: "25% Staff Discount", a Transaction Discount).
+- Not yet seen: the output for a day with no discounts at all.
 
 ## Popup handling
 
