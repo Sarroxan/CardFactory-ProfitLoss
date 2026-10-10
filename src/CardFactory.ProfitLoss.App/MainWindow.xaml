@@ -1855,11 +1855,13 @@
                                 <TextBlock x:Name="RetrievalStep2Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
                                 <TextBlock x:Name="RetrievalStep2Text" Text="Gift Cards" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                            <StackPanel Orientation="Horizontal">
                                 <TextBlock x:Name="RetrievalStep3Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
                                 <TextBlock x:Name="RetrievalStep3Text" Text="Branch Performance" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal">
+                            <!-- Shown only when Refresh runs from the Reports section, the only time
+                                 the Discounts and Price Overrides report is pulled. -->
+                            <StackPanel x:Name="RetrievalStep4Row" Orientation="Horizontal" Margin="0,5,0,0" Visibility="Collapsed">
                                 <TextBlock x:Name="RetrievalStep4Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
                                 <TextBlock x:Name="RetrievalStep4Text" Text="Staff Discounts" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
                             </StackPanel>

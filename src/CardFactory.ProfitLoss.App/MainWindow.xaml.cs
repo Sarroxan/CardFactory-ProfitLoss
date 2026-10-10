@@ -36,6 +36,7 @@ public partial class MainWindow : Window
     private bool _threeRowCompact;
     private bool _branchPerformanceActive;
     private bool _reportsActive;
+    private (DateTime From, DateTime To)? _staffDiscountPeriod;   // the day or range the Reports staff discounts are for
     private bool _branchGiftCardsActive;
     private FlooidLoginWindow? _flooidLoginWindow;
     private bool _grabAfterFlooidSignIn;
@@ -1042,6 +1043,7 @@ public partial class MainWindow : Window
             viewModel.SetStatus($"Retrieving Flooid reports · {startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}");
 
             // Stage 6B.11: the overlay replaces the two section labels 6A.94 was setting.
+            RetrievalStep4Row.Visibility = wasReportsView ? Visibility.Visible : Visibility.Collapsed;
             ShowRetrievalOverlay();
 
             RefundReportParseResult? refunds = null;
@@ -1124,24 +1126,38 @@ public partial class MainWindow : Window
             }
 
             // Staff discounts for the Reports section, from Discounts and Price Overrides.
-            // Run last so a problem with it cannot get in the way of the three reports
-            // above; a failure shows the figures as "—" rather than keeping another day's.
+            // Pulled only when Refresh is pressed from the Reports section. Run last so a
+            // problem with it cannot get in the way of the three reports above; a failure
+            // shows the figures as "—" rather than keeping another day's.
             string? discountsError = null;
             var discountsUpdated = false;
-            try
+            var period = (startDate, endDate);
+            if (wasReportsView)
             {
-                viewModel.SetFlooidStatus("Retrieving Staff Discounts…", "Working");
-                SetRetrievalStep(4);
-                var discountsHtml = await loginWindow.FetchDiscountsHtmlAsync(startDate, endDate);
-                var discounts = new DiscountsReportParser().Parse(discountsHtml);
-                viewModel.ApplyStaffDiscounts(discounts.StaffDiscountLines);
-                discountsUpdated = true;
+                try
+                {
+                    viewModel.SetFlooidStatus("Retrieving Staff Discounts…", "Working");
+                    SetRetrievalStep(4);
+                    var discountsHtml = await loginWindow.FetchDiscountsHtmlAsync(startDate, endDate);
+                    var discounts = new DiscountsReportParser().Parse(discountsHtml);
+                    viewModel.ApplyStaffDiscounts(discounts.StaffDiscountLines);
+                    _staffDiscountPeriod = period;
+                    discountsUpdated = true;
+                }
+                catch (Exception ex)
+                {
+                    discountsError = ex.Message;
+                    viewModel.ApplyStaffDiscounts(null);
+                    _staffDiscountPeriod = null;
+                }
             }
-            catch (Exception ex)
+            else if (_staffDiscountPeriod != period)
             {
-                discountsError = ex.Message;
+                // Not pulled this time, and what is held is for another day or range.
                 viewModel.ApplyStaffDiscounts(null);
+                _staffDiscountPeriod = null;
             }
+            var discountsOk = !wasReportsView || discountsUpdated;
 
             if (teamUpdated || giftUpdated || branchUpdated)
                 viewModel.SetFlooidLastUpdated(DateTime.Now);
@@ -1156,14 +1172,14 @@ public partial class MainWindow : Window
             // any failure it stays up with the detail, because the labels that used to
             // report it are gone and an error with nowhere to appear is worse than a
             // cluttered header.
-            if (teamUpdated && giftUpdated && branchUpdated && discountsUpdated) HideRetrievalOverlay();
+            if (teamUpdated && giftUpdated && branchUpdated && discountsOk) HideRetrievalOverlay();
             else ShowRetrievalError(string.Join(Environment.NewLine, errors));
 
             // Stage 6B.21: the header carries the retrieval time now.
             if (teamUpdated || branchUpdated || giftUpdated)
                 viewModel.LastUpdatedAt = DateTime.Now;   // header shows "updated … ago" (design 1A)
 
-            if (teamUpdated && giftUpdated && branchUpdated && discountsUpdated)
+            if (teamUpdated && giftUpdated && branchUpdated && discountsOk)
             {
                 viewModel.SetFlooidStatus("Updated", "Good");
                 viewModel.SetStatus(branchActualPeriod is null

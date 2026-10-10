@@ -136,6 +136,8 @@ Built differently from the other three criteria pages:
   totals.
 - The app pulls Discount Type and Reason "All" and keeps lines whose Reason
   contains "Staff" (seen: "25% Staff Discount", a Transaction Discount).
+- Pulled only when Refresh is pressed with the Reports section showing; from
+  Team or Branch it is skipped (figures for another day are cleared to "—").
 - Not yet seen: the output for a day with no discounts at all.
 
 ## Popup handling
