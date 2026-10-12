@@ -736,6 +736,14 @@
                         <Trigger Property="Tag" Value="NoGlyph">
                             <Setter TargetName="Glyph" Property="Visibility" Value="Collapsed" />
                         </Trigger>
+                        <!-- Generate reports (concept B): on the Reports section the same button
+                             carries a report mark instead of the refresh arrows. Tabler Icons
+                             "file-analytics" (MIT), 24x24 grid: the page outline with its folded
+                             corner, and three bars. Same size, stroke and colour as the arrows. -->
+                        <Trigger Property="Tag" Value="Reports">
+                            <Setter TargetName="Glyph" Property="Data"
+                                    Value="M14,3 V7 A1,1 0 0 0 15,8 H19 M17,21 H7 A2,2 0 0 1 5,19 V5 A2,2 0 0 1 7,3 H14 L19,8 V19 A2,2 0 0 1 17,21 Z M9,17 V12 M12,17 V16 M15,17 V14" />
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

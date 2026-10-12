@@ -639,7 +639,11 @@
                                      retrieval depends on the date: mode, date and pull are now one
                                      place and one glance. This column is Auto inside a * spacer, so the
                                      row simply grows leftwards into empty space and nothing moves. -->
-                                <Button Content="Refresh"
+                                <!-- On the Reports section this reads "Generate reports" with a report
+                                     mark (Tag="Reports") and pulls only the Reports reports; see
+                                     SetBranchPerformanceView. -->
+                                <Button x:Name="RefreshButton"
+                                        Content="Refresh"
                                         Style="{StaticResource FlooidActionButtonStyle}"
                                         Height="26"
                                         Click="GrabFromFlooid_Click"
@@ -1149,7 +1153,7 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
                                             </ScrollViewer>
-                                            <TextBlock Grid.Row="2" Text="Press Refresh to load voids, returns and no sales for this date."
+                                            <TextBlock Grid.Row="2" Text="Press Generate reports to load voids, returns, no sales and staff discounts for this date."
                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
                                                        Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="12">
                                                 <TextBlock.Style>

@@ -40,6 +40,7 @@ public partial class MainWindow : Window
     private bool _branchGiftCardsActive;
     private FlooidLoginWindow? _flooidLoginWindow;
     private bool _grabAfterFlooidSignIn;
+    private bool _grabReportsOnlyAfterSignIn;   // the button pressed before sign-in was Generate reports
     private bool _flooidGrabBusy;
     // Stage 6A.93: signing in triggers a grab, so the signed-in state has to be read as
     // a transition rather than a level. The status event fires on every navigation and
@@ -521,6 +522,17 @@ public partial class MainWindow : Window
             PerformanceSummarySection.Visibility = otherThanTeam ? Visibility.Collapsed : Visibility.Visible;
         if (CalculateSpacer is not null)
             CalculateSpacer.Visibility = otherThanTeam ? Visibility.Collapsed : Visibility.Hidden;
+
+        // Generate reports (concept B): the same button, renamed on Reports, with a report
+        // mark in place of the refresh arrows. It pulls only what Reports shows.
+        if (RefreshButton is not null)
+        {
+            RefreshButton.Content = reports ? "Generate reports" : "Refresh";
+            RefreshButton.Tag = reports ? "Reports" : null;
+            RefreshButton.ToolTip = reports
+                ? "Generate voids, returns, no sales and staff discounts from Flooid"
+                : "Refresh Team and Branch Performance from Flooid";
+        }
 
         // Stage 6B.02: the header tabs. All are always visible; the active one is marked by Tag.
         if (TeamSectionSegment is not null)
@@ -1008,6 +1020,9 @@ public partial class MainWindow : Window
         if (!loginWindow.IsSignedIn)
         {
             _grabAfterFlooidSignIn = true;
+            // The pull that follows sign-in is the one this button asked for: from Reports,
+            // Generate reports; from Team or Branch, the full Refresh.
+            _grabReportsOnlyAfterSignIn = _reportsActive;
             viewModel.SetFlooidStatus("Sign in to continue", "Working");
             viewModel.SetStatus("Sign in to Flooid, then the reports will be retrieved automatically");
             try { await loginWindow.EnsureOpenAsync(); }
@@ -1018,11 +1033,19 @@ public partial class MainWindow : Window
         await GrabFlooidReportsAsync();
     }
 
-    private async Task GrabFlooidReportsAsync()
+    /// <param name="reportsOnly">True: only what the Reports section shows (Refunds/Voids and
+    /// Discounts and Price Overrides). Null: whatever the section on screen needs.</param>
+    private async Task GrabFlooidReportsAsync(bool? reportsOnly = null)
     {
         if (_flooidGrabBusy || DataContext is not MainViewModel viewModel) return;
         var loginWindow = GetOrCreateFlooidLoginWindow();
         if (!loginWindow.IsSignedIn) return;
+
+        if (reportsOnly ?? _reportsActive)
+        {
+            await GenerateReportsAsync(viewModel, loginWindow);
+            return;
+        }
 
         _flooidGrabBusy = true;
         // Stage 6A.93: remember which section is showing. Both Refresh buttons run this
@@ -1214,6 +1237,96 @@ public partial class MainWindow : Window
         }
     }
 
+    // Generate reports (the Reports section's button): only the two reports that section
+    // shows - Refunds/Voids for voids, returns and no sales, and Discounts and Price
+    // Overrides for staff discounts. Gift Cards and Branch Performance are not pulled, and
+    // Team, Gift Card and Branch figures and both "updated" times are left as they were:
+    // Reports are separate from them.
+    private async Task GenerateReportsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow)
+    {
+        _flooidGrabBusy = true;
+        var wasBranchView = _branchPerformanceActive;
+        var wasReportsView = _reportsActive;
+        var wasGiftCardsView = _branchGiftCardsActive;
+        try
+        {
+            var endDate = (viewModel.SelectedDate ?? DateTime.Today).Date;
+            var weekly = string.Equals(viewModel.HistoricalTargetMode, "Date Range", StringComparison.OrdinalIgnoreCase);
+            viewModel.NormaliseDateRange();
+            var startDate = weekly ? (viewModel.RangeStartDate ?? endDate.AddDays(-6)).Date : endDate;
+            viewModel.SetStatus($"Generating reports · {startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}");
+
+            ShowRetrievalOverlay(reportsOnly: true);
+
+            string? activityError = null;
+            string? discountsError = null;
+            var activityUpdated = false;
+            var discountsUpdated = false;
+
+            try
+            {
+                viewModel.SetFlooidStatus("Retrieving voids, returns and no sales…", "Working");
+                SetRetrievalStep(1);
+                var refundsHtml = await loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate);
+                var refunds = new RefundsVoidsReportParser().Parse(refundsHtml);
+                viewModel.ApplyActivityReport(refunds.Activity);
+                activityUpdated = true;
+            }
+            catch (Exception ex)
+            {
+                activityError = ex.Message;
+            }
+
+            // A failure shows the staff discounts as "—" rather than keeping another day's.
+            try
+            {
+                viewModel.SetFlooidStatus("Retrieving Staff Discounts…", "Working");
+                SetRetrievalStep(4);
+                var discountsHtml = await loginWindow.FetchDiscountsHtmlAsync(startDate, endDate);
+                var discounts = new DiscountsReportParser().Parse(discountsHtml);
+                viewModel.ApplyStaffDiscounts(discounts.StaffDiscountLines);
+                _staffDiscountPeriod = (startDate, endDate);
+                discountsUpdated = true;
+            }
+            catch (Exception ex)
+            {
+                discountsError = ex.Message;
+                viewModel.ApplyStaffDiscounts(null);
+                _staffDiscountPeriod = null;
+            }
+
+            var errors = new List<string>();
+            if (!activityUpdated && !string.IsNullOrWhiteSpace(activityError)) errors.Add("Voids, returns and no sales: " + activityError);
+            if (!discountsUpdated && !string.IsNullOrWhiteSpace(discountsError)) errors.Add("Staff Discounts: " + discountsError);
+
+            if (activityUpdated && discountsUpdated)
+            {
+                HideRetrievalOverlay();
+                viewModel.SetFlooidStatus("Updated", "Good");
+                viewModel.SetStatus("Reports generated from Flooid · voids, returns, no sales and staff discounts");
+            }
+            else
+            {
+                ShowRetrievalError(string.Join(Environment.NewLine, errors));
+                viewModel.SetFlooidStatus(activityUpdated || discountsUpdated ? "Partial update" : "Retrieval failed", "Bad");
+                viewModel.SetStatus((activityUpdated || discountsUpdated ? "Reports partly generated · " : "Reports could not be generated · ")
+                    + string.Join(" | ", errors));
+            }
+        }
+        catch (Exception ex)
+        {
+            viewModel.SetFlooidStatus("Retrieval failed", "Bad");
+            viewModel.SetStatus("Reports could not be generated · " + ex.Message);
+            ShowRetrievalError(ex.Message);
+        }
+        finally
+        {
+            _flooidGrabBusy = false;
+            SetBranchPerformanceView(wasBranchView, wasReportsView);
+            SetBranchDetailView(wasGiftCardsView);
+        }
+    }
+
     // Stage 6B.11: the retrieval overlay. Three steps, marked pending, running or done,
     // so a twelve second grab shows progress rather than an undifferentiated spinner -
     // and a hang is visible as the step it hangs on.
@@ -1236,10 +1349,17 @@ public partial class MainWindow : Window
         RetrievalSpinnerRotate.BeginAnimation(RotateTransform.AngleProperty, spin);
     }
 
-    private void ShowRetrievalOverlay()
+    private void ShowRetrievalOverlay(bool reportsOnly = false)
     {
         StartRetrievalSpinner();
-        RetrievalTitle.Text = "Retrieving reports";
+        // Generate reports shows just its own two steps: the Refunds/Voids report (step 1,
+        // relabelled) and Staff Discounts (step 4). Gift Cards and Branch are not pulled.
+        RetrievalStep1Text.Text = reportsOnly ? "Voids, returns and no sales" : "Team Performance";
+        if (RetrievalStep2Marker.Parent is UIElement step2Row) step2Row.Visibility = reportsOnly ? Visibility.Collapsed : Visibility.Visible;
+        if (RetrievalStep3Marker.Parent is UIElement step3Row) step3Row.Visibility = reportsOnly ? Visibility.Collapsed : Visibility.Visible;
+        if (reportsOnly) RetrievalStep4Row.Visibility = Visibility.Visible;
+        RetrievalStep4Row.Margin = reportsOnly ? new Thickness(0) : new Thickness(0, 5, 0, 0);   // step 1 already leaves 5px below it
+        RetrievalTitle.Text = reportsOnly ? "Generating reports" : "Retrieving reports";
         RetrievalSteps.Visibility = Visibility.Visible;
         RetrievalSpinner.Visibility = Visibility.Visible;
         RetrievalErrorText.Visibility = Visibility.Collapsed;
@@ -1341,7 +1461,7 @@ viewModel.SetFlooidStatus(e.Snapshot.StatusText, state);
             _grabAfterFlooidSignIn = false;
             _lastAutoGrabUtc = DateTime.UtcNow;
             _flooidLoginWindow?.HideAfterSignIn();
-            _ = GrabFlooidReportsAsync();
+            _ = GrabFlooidReportsAsync(_grabReportsOnlyAfterSignIn);
             return;
         }
 

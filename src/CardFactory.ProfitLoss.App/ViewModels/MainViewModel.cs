@@ -128,7 +128,7 @@ public sealed class MainViewModel : ObservableObject
     public DateTime? SelectedDate
     {
         get => _selectedDate;
-        set { if (SetProperty(ref _selectedDate, value)) { OnPropertyChanged(nameof(RangeDayCountText)); OnPropertyChanged(nameof(PeriodDisplayText)); } }
+        set { if (SetProperty(ref _selectedDate, value)) { OnPropertyChanged(nameof(RangeDayCountText)); OnPropertyChanged(nameof(PeriodDisplayText)); ClearReportsIfPeriodChanged(); } }
     }
 
     // Stage 6A.75: in Date Range mode the PERIOD control is an explicit range rather
@@ -137,7 +137,7 @@ public sealed class MainViewModel : ObservableObject
     public DateTime? RangeStartDate
     {
         get => _rangeStartDate;
-        set { if (SetProperty(ref _rangeStartDate, value)) { OnPropertyChanged(nameof(RangeDayCountText)); OnPropertyChanged(nameof(PeriodDisplayText)); } }
+        set { if (SetProperty(ref _rangeStartDate, value)) { OnPropertyChanged(nameof(RangeDayCountText)); OnPropertyChanged(nameof(PeriodDisplayText)); ClearReportsIfPeriodChanged(); } }
     }
 
     // Shown beside the range so a long pull is never silent.
@@ -194,6 +194,7 @@ public sealed class MainViewModel : ObservableObject
             // control did until one end is deliberately changed.
             if (string.Equals(value, "Date Range", StringComparison.OrdinalIgnoreCase))
                 RangeStartDate = (_selectedDate ?? DateTime.Today).Date.AddDays(-6);
+            ClearReportsIfPeriodChanged();
         }
     }
     public decimal SalesTarget
@@ -779,6 +780,7 @@ public sealed class MainViewModel : ObservableObject
     public void ApplyActivityReport(IReadOnlyList<OperatorActivityRecord> activity)
     {
         _reportActivity = activity;
+        _reportPeriod = CurrentPeriod();
         RebuildReportRows();
     }
 
@@ -787,6 +789,7 @@ public sealed class MainViewModel : ObservableObject
     public void ApplyStaffDiscounts(IReadOnlyList<DiscountLineRecord>? staffDiscountLines)
     {
         _reportStaffDiscounts = staffDiscountLines;
+        if (staffDiscountLines is not null) _reportPeriod = CurrentPeriod();
         RebuildReportRows();
     }
 
@@ -842,7 +845,26 @@ public sealed class MainViewModel : ObservableObject
     {
         _reportActivity = Array.Empty<OperatorActivityRecord>();
         _reportStaffDiscounts = null;
+        _reportPeriod = null;
         RebuildReportRows();
+    }
+
+    // Reports have no date line of their own, so figures for one day must never sit on
+    // screen under another. The day or range the Reports figures were pulled for; when the
+    // date or range is changed away from it they are cleared ("—") until Generate reports
+    // is pressed again. Team and Branch figures are not affected.
+    private (DateTime From, DateTime To)? _reportPeriod;
+
+    private (DateTime From, DateTime To) CurrentPeriod()
+    {
+        var end = (_selectedDate ?? DateTime.Today).Date;
+        var start = IsRangeMode ? (_rangeStartDate ?? end.AddDays(-6)).Date : end;
+        return (start, end);
+    }
+
+    private void ClearReportsIfPeriodChanged()
+    {
+        if (_reportPeriod is { } held && held != CurrentPeriod()) ClearActivityReport();
     }
 
     private static string NormaliseName(string? value) =>
