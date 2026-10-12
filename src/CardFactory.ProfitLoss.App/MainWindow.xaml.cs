@@ -428,11 +428,32 @@ public partial class MainWindow : Window
     }
 
     private UpdateInfo? _availableUpdate;
+    private bool _updateCheckBusy;
+    private DateTime? _lastUpdateCheck;
 
-    private async Task CheckForUpdateAsync()
+    /// <param name="userAsked">From the Menu's "Check for updates" or a click on the version
+    /// chip, rather than the automatic check at launch: shows "Checking…" on the chip and puts
+    /// the outcome in the status line, since the menu has closed by then.</param>
+    private async Task CheckForUpdateAsync(bool userAsked = false)
+    {
+        if (_updateCheckBusy) return;
+        _updateCheckBusy = true;
+        try
+        {
+            await CheckForUpdateCoreAsync(userAsked);
+        }
+        finally
+        {
+            _updateCheckBusy = false;
+            _lastUpdateCheck = DateTime.Now;
+        }
+    }
+
+    private async Task CheckForUpdateCoreAsync(bool userAsked)
     {
         var current = UpdateService.Display(UpdateService.CurrentVersion);
-        VersionChip.Content = "v" + current;
+        VersionChip.Tag = "Unknown";
+        VersionChip.Content = userAsked ? "Checking… · v" + current : "v" + current;
         VersionChip.ToolTip = "Checking for updates…";
 
         var check = await UpdateService.CheckAsync();
@@ -440,14 +461,19 @@ public partial class MainWindow : Window
         {
             VersionChip.Tag = "CantCheck";
             VersionChip.Content = "Can't check · v" + current;
-            VersionChip.ToolTip = "Could not reach GitHub to check for updates";
+            VersionChip.ToolTip = "Could not reach GitHub to check for updates. Click to try again.";
+            if (userAsked && DataContext is MainViewModel failedViewModel)
+                failedViewModel.SetStatus("Could not reach GitHub to check for updates · try again later");
             return;
         }
         if (check.Update is not { } update)
         {
+            _availableUpdate = null;
             VersionChip.Tag = "UpToDate";
             VersionChip.Content = "Up to date · v" + current;
-            VersionChip.ToolTip = "This is the latest version";
+            VersionChip.ToolTip = "This is the latest version. Click to check again.";
+            if (userAsked && DataContext is MainViewModel latestViewModel)
+                latestViewModel.SetStatus("You have the latest version · v" + current);
             return;
         }
 
@@ -469,14 +495,39 @@ public partial class MainWindow : Window
         if (dialog.Installed) Application.Current.Shutdown();
     }
 
+    // Concept C: the chip checks again when clicked; with an update waiting it opens the box.
     private void VersionChip_Click(object sender, RoutedEventArgs e)
     {
         if (Equals(VersionChip.Tag, "Available")) ShowUpdateDialog();
+        else _ = CheckForUpdateAsync(userAsked: true);
+    }
+
+    // Concept A: Menu > Settings > Check for updates.
+    private void CheckForUpdatesMenu_Click(object sender, RoutedEventArgs e)
+    {
+        MainMenuPopup.IsOpen = false;
+        _ = CheckForUpdateAsync(userAsked: true);
+    }
+
+    // The menu row's second line: "v1.3.0 · checked 5 min ago".
+    private void UpdateCheckForUpdatesDetail()
+    {
+        var text = "v" + UpdateService.Display(UpdateService.CurrentVersion);
+        if (_updateCheckBusy) text += " · checking…";
+        else if (_lastUpdateCheck is { } at)
+        {
+            var minutes = (int)Math.Max(0, (DateTime.Now - at).TotalMinutes);
+            text += minutes < 1 ? " · checked just now"
+                : minutes < 60 ? " · checked " + minutes + " min ago"
+                : " · checked " + (minutes / 60) + " hr " + (minutes % 60) + " min ago";
+        }
+        CheckForUpdatesDetail.Text = text;
     }
 
     private void MenuButton_Click(object sender, RoutedEventArgs e)
     {
         MainMenuPopup.PlacementTarget = MenuButton;
+        UpdateCheckForUpdatesDetail();
         // Stage 6B.30: read the setting each time the menu opens, so it always shows what is
         // actually in force - including a value written into the file by hand.
         if (!MainMenuPopup.IsOpen) LoadRetrievalSpeedOptions();

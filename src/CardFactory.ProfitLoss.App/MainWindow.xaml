@@ -258,6 +258,7 @@
                                             <Setter TargetName="FaceHappy" Property="Visibility" Value="Visible" />
                                             <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
                                             <Setter TargetName="ChipText" Property="Margin" Value="0" />
+                                            <Setter Property="Cursor" Value="Hand" />   <!-- click to check again -->
                                         </Trigger>
                                         <Trigger Property="Tag" Value="Available">
                                             <Setter TargetName="FacePlain" Property="Visibility" Value="Visible" />
@@ -271,6 +272,7 @@
                                             <Setter TargetName="FaceSad" Property="Visibility" Value="Visible" />
                                             <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
                                             <Setter TargetName="ChipText" Property="Margin" Value="0" />
+                                            <Setter Property="Cursor" Value="Hand" />   <!-- click to check again -->
                                         </Trigger>
                                         <MultiTrigger>
                                             <MultiTrigger.Conditions>
@@ -1646,6 +1648,22 @@
                                       StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
                             </Border>
                             <TextBlock Text="Preferences" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <!-- Check for updates (concept A): the same check the app makes at launch,
+                         on demand. The second line is the running version and when it last
+                         checked; the result shows on the version chip, and a newer version
+                         opens the update box. -->
+                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="40" Click="CheckForUpdatesMenu_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
+                                <Path Data="M20,11 A8.1,8.1 0 0 0 4.5,9 M4,5 V9 H8 M4,13 A8.1,8.1 0 0 0 19.5,15 M20,19 V15 H16" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Check for updates" FontWeight="Bold" />
+                                <TextBlock x:Name="CheckForUpdatesDetail" Text="" FontFamily="Arial" FontSize="9.5" FontWeight="Normal" Foreground="{StaticResource CfMuted}" Margin="0,1,0,0" />
+                            </StackPanel>
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="ClearFigures_Click" Foreground="#B03A3A">
