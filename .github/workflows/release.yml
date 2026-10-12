@@ -1,0 +1,89 @@
+name: Publish release
+
+# The "Publish release" button: Actions tab -> Publish release -> Run workflow (on main).
+# Type the version and the "What's new" text; this tags main and starts the build, which
+# publishes the release with the app, its .sha256 and those notes, marked latest.
+#
+# It replaces making the release on the website (a lightweight tag with no notes, then
+# deleting the release so the build could create its own) and running git commands by hand.
+# Nothing here runs by itself: only a person pressing Run workflow starts it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version, e.g. 1.3.0 - must match Version in Directory.Build.props"
+        required: true
+        type: string
+      notes:
+        description: "What's new - start each point with • (each • begins a new line)"
+        required: true
+        type: string
+
+permissions:
+  contents: write   # create the tag
+  actions: write    # start the build on that tag
+
+concurrency:
+  group: publish-release
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only from main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Run this from the main branch (Use workflow from: main)."
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Check the version
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="${VERSION#v}"; VERSION="${VERSION#V}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$VERSION' is not a version like 1.3.0."; exit 1
+          fi
+          PROPS=$(grep -oP '(?<=<Version>)[^<]+' Directory.Build.props | head -1)
+          if [ "$PROPS" != "$VERSION" ]; then
+            echo "::error::Directory.Build.props says $PROPS, not $VERSION. Change it there first, or type $PROPS."; exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null; then
+            echo "::error::Tag v$VERSION already exists."; exit 1
+          fi
+          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::Release v$VERSION already exists."; exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Create the annotated tag
+        env:
+          NOTES: ${{ inputs.notes }}
+        run: |
+          set -euo pipefail
+          # One line per point: a new line before every • except a leading one.
+          printf '%s' "$NOTES" | sed -e 's/[[:space:]]*•/\n•/g' | sed -e '/^[[:space:]]*$/d' -e 's/[[:space:]]*$//' > notes.txt
+          echo "Release notes:"; cat notes.txt
+          git config user.name "Card Factory Profit and Loss"
+          git config user.email "cardfactory-profitloss@users.noreply.github.com"
+          git tag -a "v$VERSION" "$GITHUB_SHA" --cleanup=verbatim -F notes.txt
+          git push origin "refs/tags/v$VERSION"
+
+      # A tag pushed with this workflow's token does not start other workflows by itself,
+      # but a dispatched run does, so the build is started on the new tag explicitly. On a
+      # tag it checks the version again and publishes the release from the tag's message.
+      - name: Start the build on the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run build.yml --repo "$GITHUB_REPOSITORY" --ref "v$VERSION"
+          echo "Build started for v$VERSION - see the 'Build Card Factory Profit & Loss' run."

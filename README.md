@@ -66,7 +66,13 @@ publish one:
 
 1. Set the new number in `Directory.Build.props` (`Version`, `AssemblyVersion`,
    `FileVersion`), commit and push.
-2. Tag that commit with an annotated tag whose message is the "What's new" text,
+2. On GitHub, open **Actions → Publish release → Run workflow** (on `main`), type
+   the version (e.g. `1.3.0`) and the "What's new" text, starting each point with
+   `•`, and press **Run workflow**. It checks the version, tags `main` with an
+   annotated tag carrying those notes, and starts the build on the tag. Nothing else
+   is needed, and it works from a phone.
+
+   Or tag by hand with an annotated tag whose message is the "What's new" text,
    and push the tag:
 
    ```bash
@@ -76,7 +82,8 @@ publish one:
    ```
 
 The build checks the tag matches the version, then publishes release `v1.0.1`
-with the app and a `.sha256` checksum. Running copies see it at their next launch
+with the app and a `.sha256` checksum. Running copies see it at their next launch,
+or straight away from **Menu → Check for updates** or a click on the version chip
 (a yellow **Update** button in the title bar), check the download against the
 checksum, replace themselves and restart. The version chip in the title bar shows
 the running version and whether it is up to date.
