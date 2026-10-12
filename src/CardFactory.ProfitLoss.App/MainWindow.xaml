@@ -728,13 +728,7 @@
                                         BorderBrush="{StaticResource CfYellow}"
                                         BorderThickness="3,3,3,0"
                                         CornerRadius="16,16,0,0">
-                                    <Image Width="132.5" Height="22"
-                                           Source="Assets/TeamTitleTextExact.png"
-                                           Stretch="Fill"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"
-                                           RenderOptions.BitmapScalingMode="HighQuality"
-                                           SnapsToDevicePixels="False" />
+                                    <TextBlock Text="Team Performance" Style="{StaticResource SectionTitleTextStyle}" />
                                 </Border>
                                 <!-- Stage 6B.11: the Team status text is gone; the retrieval overlay reports progress and failure now. -->
                                 <!-- Stage 6B.01: the Refresh button that stood here has moved to the
@@ -1019,9 +1013,7 @@
                                         <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42"
                                                 Background="{StaticResource CfBlue}" BorderBrush="{StaticResource CfYellow}"
                                                 BorderThickness="3,3,3,0" CornerRadius="16,16,0,0">
-                                            <Image Width="55" Height="22" Source="Assets/ReportsTitleTextExact.png" Stretch="Fill"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="False" />
+                                            <TextBlock Text="Reports" Style="{StaticResource SectionTitleTextStyle}" />
                                         </Border>
                                         <Image Canvas.Left="-4" Canvas.Top="-12" Width="66" Height="66"
                                                Source="Assets/SectionSmiley.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
@@ -1193,16 +1185,10 @@
                                                 BorderBrush="{StaticResource CfYellow}"
                                                 BorderThickness="3,3,3,0"
                                                 CornerRadius="16,16,0,0">
-                                            <!-- Stage 6B.47: the same title treatment as Team Performance - centred
-                                                 artwork in the same font (Chewy, matched against TeamTitleTextExact.png)
-                                                 at the same height, instead of left-aligned Arial and a FLOOID REPORT tag. -->
-                                            <Image Width="147" Height="22"
-                                                   Source="Assets/BranchTitleTextExact.png"
-                                                   Stretch="Fill"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   RenderOptions.BitmapScalingMode="HighQuality"
-                                                   SnapsToDevicePixels="False" />
+                                            <!-- Stage 6B.47: the same title treatment as Team Performance - centred,
+                                                 in the same font (Chewy) at the same height, instead of left-aligned
+                                                 Arial and a FLOOID REPORT tag. Real text since v1.3.0 (SectionTitleTextStyle). -->
+                                            <TextBlock Text="Branch Performance" Style="{StaticResource SectionTitleTextStyle}" />
                                         </Border>
                                         <Image Canvas.Left="-4" Canvas.Top="-12" Width="66" Height="66"
                                                Source="Assets/SectionSmiley.png" Stretch="Uniform"
@@ -1444,13 +1430,7 @@
                                         BorderBrush="{StaticResource CfYellow}"
                                         BorderThickness="3,3,3,0"
                                         CornerRadius="16,16,0,0">
-                                    <Image Width="53.5" Height="22"
-                                           Source="Assets/TargetsTitleTextExact.png"
-                                           Stretch="Fill"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"
-                                           RenderOptions.BitmapScalingMode="HighQuality"
-                                           SnapsToDevicePixels="False" />
+                                    <TextBlock Text="Targets" Style="{StaticResource SectionTitleTextStyle}" />
                                 </Border>
                                 <Image Canvas.Left="-4" Canvas.Top="-13"
                                        Width="66" Height="66"

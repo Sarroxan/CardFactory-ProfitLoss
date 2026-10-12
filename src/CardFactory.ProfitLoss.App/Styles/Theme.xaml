@@ -28,7 +28,21 @@
         <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
     </Style>
 
-    <!-- HTML-like small labels. Fixed Chewy headings are rendered from the original embedded font as high-DPI artwork. -->
+    <!-- The blue section bars' titles (Team Performance, Branch Performance, Reports, Targets) are
+         real text in Chewy, embedded in the app (Assets/Fonts, Apache 2.0 - see Chewy-LICENSE.txt).
+         They used to be pictures of the text at four times size, shrunk to fit and then scaled
+         again by the dashboard's Viewbox, which softened them. Text is drawn sharp at any scale.
+         18px matches the old artwork's width to within 2px. -->
+    <FontFamily x:Key="CfTitleFont">pack://application:,,,/Assets/Fonts/#Chewy</FontFamily>
+    <Style x:Key="SectionTitleTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource CfTitleFont}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- HTML-like small labels. -->
     <Style x:Key="HtmlFieldLabelStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
         <Setter Property="FontFamily" Value="Arial" />
