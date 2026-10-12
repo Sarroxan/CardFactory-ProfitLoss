@@ -21,7 +21,10 @@ Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Target
 and strip-size fix from `next-update` were never merged; the dashboard changes size when
 switching sections; the section-bar titles are blurry.
 
-## Built, waiting for the owner to test - branch `v1.3.0-work`, version 1.3.0
+## On `main`, not yet released - version 1.3.0
+
+Built and test-built green on `v1.3.0-work` (run 38282171614), merged into `main` on
+13 Oct 2026 at the owner's say-so. Release with Actions -> Publish release (1.3.0).
 
 | # | Change | Proven offline | Needs checking in the app |
 |---|--------|----------------|---------------------------|
