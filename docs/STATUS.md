@@ -21,10 +21,14 @@ Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Target
 and strip-size fix from `next-update` were never merged; the dashboard changes size when
 switching sections; the section-bar titles are blurry.
 
-## On `main`, not yet released - version 1.3.0
+## Released - v1.3.0 (13 Oct 2026, from `a509c48`), latest
 
-Built and test-built green on `v1.3.0-work` (run 38282171614), merged into `main` on
-13 Oct 2026 at the owner's say-so. Release with Actions -> Publish release (1.3.0).
+Published by the owner with Actions -> Publish release (run 38325603649), build run
+38325613905 green with zero annotations. Annotated tag by "Card Factory Profit and Loss";
+zip and `.sha256` attached; notes are the seven points typed in. v1.2.0 and v1.1.0 still
+listed - removal of older releases awaits the owner's approval.
+
+The items below are in v1.3.0; the right-hand column is still what to confirm in the app.
 
 | # | Change | Proven offline | Needs checking in the app |
 |---|--------|----------------|---------------------------|
