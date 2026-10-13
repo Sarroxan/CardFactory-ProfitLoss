@@ -28,9 +28,13 @@ Published by the owner with Actions -> Publish release (run 38325603649), build 
 zip and `.sha256` attached; notes are the seven points typed in. v1.2.0 and v1.1.0 still
 listed - removal of older releases awaits the owner's approval.
 
-The items below are in v1.3.0; the right-hand column is still what to confirm in the app.
+**Confirmed by the owner in the app, 13 Oct 2026: v1.3.0 works with no issues** - every
+item below, including sections staying the same size and the sharp titles. v1.1.0 and its
+tag have been removed (owner, 13 Oct); v1.3.0 and v1.2.0 remain.
 
-| # | Change | Proven offline | Needs checking in the app |
+The items below are in v1.3.0 (the right-hand column was the checklist).
+
+| # | Change | Proven offline | Checked in the app (all confirmed) |
 |---|--------|----------------|---------------------------|
 | 1 | Menu > Settings > **Check for updates**, with "v1.3.0 · checked … ago" | Builds | Row looks right; runs the check; outcome in status line |
 | 2 | **Version chip** checks again when clicked (Up to date / Can't check), "Checking…" while it runs | Builds | Click → Checking… → result; Update available still opens the box |
