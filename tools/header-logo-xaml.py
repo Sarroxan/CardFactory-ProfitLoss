@@ -89,7 +89,7 @@ def build():
 def xaml(W, H, sm, data, bars):
     f = lambda v: ('%.2f' % (v / S)).rstrip('0').rstrip('.')
     out = []
-    out.append(f'<Image Canvas.Left="0" Canvas.Top="{f((H - sm) // 2)}" Width="{f(sm)}" Height="{f(sm)}" Source="Assets/HeaderSmiley.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />')
+    out.append(f'<Image Canvas.Left="0" Canvas.Top="{f((H - sm) // 2)}" Width="{f(sm)}" Height="{f(sm)}" Source="Assets/HeaderSmileyFace.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />')
     out.append(f'<Path Fill="White" Data="F1 {data}" />')
     for (x1, y1, x2, y2) in bars:
         r = f((y2 - y1) / 2)

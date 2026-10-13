@@ -35,9 +35,11 @@
   <ItemGroup>
     <None Remove="Assets\CardFactory.ProfitLoss.ico" />
     <None Remove="Assets\HeaderSmiley.png" />
+    <None Remove="Assets\HeaderSmileyFace.png" />
     <None Remove="Assets\SectionSmiley.png" />
     <Resource Include="Assets\CardFactory.ProfitLoss.ico" />
     <Resource Include="Assets\HeaderSmiley.png" />
+    <Resource Include="Assets\HeaderSmileyFace.png" />
     <Resource Include="Assets\SectionSmiley.png" />
     <Resource Include="Assets\Fonts\Chewy-Regular.ttf" />
   </ItemGroup>
