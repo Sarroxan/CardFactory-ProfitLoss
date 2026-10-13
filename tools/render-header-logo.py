@@ -1,4 +1,7 @@
 """
+The app no longer uses this picture: since v1.3.x the header logo is vector shapes made by
+tools/header-logo-xaml.py from the same layout. Kept as the record of the design.
+
 Renders Assets/HeaderLogoTitle.png at 3x: the smiley (HeaderSmiley.png, unchanged),
 "Card Factory", "Profit & Loss" in Chewy and CALCULATOR between two yellow bars.
 6B.58: concept F2. 6B.60: S1 (+2px title letter spacing) and white lettering for the
