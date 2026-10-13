@@ -4,6 +4,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- Debug symbols inside each .dll/.exe rather than separate .pdb files beside the
+         exe, so the release zip holds just the app. Error stack traces keep line numbers. -->
+    <DebugType>embedded</DebugType>
     <Version>1.3.0</Version>
     <AssemblyVersion>1.3.0.0</AssemblyVersion>
     <FileVersion>1.3.0.0</FileVersion>

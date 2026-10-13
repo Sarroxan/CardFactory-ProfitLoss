@@ -85,6 +85,22 @@ jobs:
         shell: pwsh
         run: Compress-Archive -Path publish/* -DestinationPath CardFactory-ProfitLoss-win-x64.zip -Force
 
+      # Size report, as a notice on the run (readable from the API, unlike the log): the
+      # download and exe sizes, the files in the zip, and whether Windows Forms and the
+      # framework's language packs are inside the exe (by their names in its bundle list).
+      - name: Report size
+        shell: pwsh
+        run: |
+          $zip = (Get-Item CardFactory-ProfitLoss-win-x64.zip).Length / 1MB
+          $exe = (Get-Item publish/CardFactory.ProfitLoss.exe).Length / 1MB
+          $files = (Get-ChildItem publish -File | ForEach-Object Name) -join ', '
+          $text = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes("publish/CardFactory.ProfitLoss.exe"))
+          $winForms = if ($text.Contains("System.Windows.Forms.dll")) { "yes" } else { "no" }
+          $langs = ([regex]::Matches($text, "(?<![A-Za-z])([a-z]{2}(-[A-Za-z]{2,4})?)/[A-Za-z.]+\.resources\.dll") | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique) -join ' '
+          if (-not $langs) { $langs = "none" }
+          $msg = "Download {0:N1} MB, exe {1:N1} MB. Windows Forms inside: {2}. Language packs: {3}. Files: {4}" -f $zip, $exe, $winForms, $langs, $files
+          Write-Output "::notice title=Size::$msg"
+
       # Releases hold numbered versions only. Test builds from pushes to main are a
       # workflow artifact instead (Actions tab -> the run -> Artifacts), kept 14 days,
       # so the public Releases page shows just the versions people should install.
