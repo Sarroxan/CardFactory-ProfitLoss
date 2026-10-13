@@ -85,7 +85,13 @@ public partial class MainWindow : Window
 
         if (_loadedAutoState) return;
         _loadedAutoState = true;
-        _ = CheckForUpdateAsync();   // once per launch, in the background
+        _ = CheckForUpdateAsync();   // at launch, in the background
+
+        // Then quietly every few hours, so a copy left open all day still learns of a new
+        // release: the chip turns yellow, with no box popping up over someone's work.
+        var updateTimer = new System.Windows.Threading.DispatcherTimer { Interval = BackgroundUpdateCheckInterval };
+        updateTimer.Tick += (_, _) => _ = CheckForUpdateAsync(background: true);
+        updateTimer.Start();
 
         // Freshness wording ("updated 12 min ago") moves on by itself.
         var freshnessTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
@@ -430,17 +436,21 @@ public partial class MainWindow : Window
     private UpdateInfo? _availableUpdate;
     private bool _updateCheckBusy;
     private DateTime? _lastUpdateCheck;
+    private static readonly TimeSpan BackgroundUpdateCheckInterval = TimeSpan.FromHours(3);
 
     /// <param name="userAsked">From the Menu's "Check for updates" or a click on the version
     /// chip, rather than the automatic check at launch: shows "Checking…" on the chip and puts
     /// the outcome in the status line, since the menu has closed by then.</param>
-    private async Task CheckForUpdateAsync(bool userAsked = false)
+    /// <param name="background">The timed check while the app is open: leaves the chip alone
+    /// until there is news, never shows "Can't check" for a passing network blip, and never
+    /// pops the update box up - a newer version just turns the chip yellow.</param>
+    private async Task CheckForUpdateAsync(bool userAsked = false, bool background = false)
     {
         if (_updateCheckBusy) return;
         _updateCheckBusy = true;
         try
         {
-            await CheckForUpdateCoreAsync(userAsked);
+            await CheckForUpdateCoreAsync(userAsked, background);
         }
         finally
         {
@@ -449,16 +459,20 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task CheckForUpdateCoreAsync(bool userAsked)
+    private async Task CheckForUpdateCoreAsync(bool userAsked, bool background)
     {
         var current = UpdateService.Display(UpdateService.CurrentVersion);
-        VersionChip.Tag = "Unknown";
-        VersionChip.Content = userAsked ? "Checking… · v" + current : "v" + current;
-        VersionChip.ToolTip = "Checking for updates…";
+        if (!background)
+        {
+            VersionChip.Tag = "Unknown";
+            VersionChip.Content = userAsked ? "Checking… · v" + current : "v" + current;
+            VersionChip.ToolTip = "Checking for updates…";
+        }
 
         var check = await UpdateService.CheckAsync();
         if (!check.Reached)
         {
+            if (background) return;   // try again next time; the chip keeps what it last knew
             VersionChip.Tag = "CantCheck";
             VersionChip.Content = "Can't check · v" + current;
             VersionChip.ToolTip = "Could not reach GitHub to check for updates. Click to try again.";
@@ -482,9 +496,10 @@ public partial class MainWindow : Window
         VersionChip.Content = "Update available · v" + UpdateService.Display(update.Version);
         VersionChip.ToolTip = "You have " + current + ". Click to update.";
 
-        // Offer it straight away, once per launch: update now, or Later and carry on (the
-        // Update button stays for later). Not over a Refresh already in progress.
-        if (RetrievalOverlay.Visibility != Visibility.Visible && IsLoaded) ShowUpdateDialog();
+        // Offer it straight away at launch or when asked: update now, or Later and carry on
+        // (the chip stays yellow for later). Not over a Refresh already in progress, and
+        // never from the background check.
+        if (!background && RetrievalOverlay.Visibility != Visibility.Visible && IsLoaded) ShowUpdateDialog();
     }
 
     private void ShowUpdateDialog()
