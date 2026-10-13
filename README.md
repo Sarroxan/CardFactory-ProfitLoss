@@ -15,13 +15,11 @@ as a different store and you get that store's numbers, no changes required.
 
 One thing to be aware of when using this at another store:
 
-- **The gift card product group is currently hardcoded**, as code `600527`
-  reached through the hierarchy
-  `200005 → 300017 → 400065 → 500303 → 600527`. Product group codes are
-  expected to be chain-wide rather than per-store, but this has only been
-  confirmed at one store. If gift card retrieval fails elsewhere, check that
-  hierarchy first — the app's error message names the exact code it could not
-  find. Making this configurable is a sensible future change.
+- **The gift card product group is fixed** as code `600527`, reached through
+  the hierarchy `200005 → 300017 → 400065 → 500303 → 600527`. The owner has
+  confirmed every store uses this same code (13 Oct 2026), so it is deliberately
+  not a setting. If gift card retrieval ever fails, check that hierarchy first —
+  the app's error message names the exact code it could not find.
 
 Nothing else in the app is store-specific.
 
@@ -101,7 +99,6 @@ straight to the newest.
 
 ## Known limitations
 
-- **The gift card product group is hardcoded** as `600527` (see above).
 - Requires the **Microsoft Edge WebView2 Runtime**.
 - This is automation of a third-party web app with no API. A change to
   Flooid's pages can break retrieval; the error messages name the page and
