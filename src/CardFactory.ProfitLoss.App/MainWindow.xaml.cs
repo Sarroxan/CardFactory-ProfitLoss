@@ -861,7 +861,7 @@ public partial class MainWindow : Window
         var start = weekly ? (vm.RangeStartDate ?? end.AddDays(-6)).Date : end;
         var sb = new StringBuilder();
         sb.Append("<!doctype html><html><head><meta charset='utf-8'><title>Card Factory Profit &amp; Loss Report</title>");
-        sb.Append("<style>body{font-family:Arial,sans-serif;color:#0B3972;margin:28px}h1{margin:0;color:#0057B8}h2{background:#0057B8;color:white;padding:9px 14px;border-radius:12px 12px 0 0;margin:24px 0 0}.meta{background:#FFF4A8;padding:10px 14px;border-radius:10px;margin-top:12px}.cards{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.card{border:1px solid #D7E2EF;border-radius:10px;padding:8px 12px;min-width:125px}.label{font-size:10px;color:#60758E}.value{font-weight:bold;font-size:16px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#F2F7FD;color:#0B3972;text-align:left}th,td{padding:7px;border-bottom:1px solid #E4EBF2}tr.best{background:#FFF9D8}.yellow{color:#A87C00}.foot{margin-top:20px;color:#6D7E91;font-size:10px}</style></head><body>");
+        sb.Append("<style>body{font-family:Arial,sans-serif;color:#183153;margin:28px}h1{margin:0;color:#004EA1}h2{background:#004EA1;color:white;padding:9px 14px;border-radius:12px 12px 0 0;margin:24px 0 0}.meta{background:#FFF4A8;padding:10px 14px;border-radius:10px;margin-top:12px}.cards{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.card{border:1px solid #D7E2EF;border-radius:10px;padding:8px 12px;min-width:125px}.label{font-size:10px;color:#60758E}.value{font-weight:bold;font-size:16px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#E3ECF7;color:#004EA1;text-align:left}th,td{padding:7px;border-bottom:1px solid #E4EBF2}tr.best{background:#FFF9D8}.yellow{color:#A87C00}td.flag{background:#FFF1DC;color:#9A5B00;font-weight:bold}.note{color:#667891;font-size:10px;margin-top:6px}.foot{margin-top:20px;color:#667891;font-size:10px}</style></head><body>");
         sb.Append("<h1>Card Factory Profit &amp; Loss Calculator</h1>");
         sb.Append($"<div class='meta'><b>{H(vm.StoreLocation)}</b><br>{start:dd/MM/yyyy} - {end:dd/MM/yyyy} · {H(vm.HistoricalTargetMode)}</div>");
         sb.Append("<div class='cards'>");
@@ -897,6 +897,31 @@ public partial class MainWindow : Window
         foreach (var row in vm.BranchGiftCards.Where(r => r.Quantity > 0 || r.Sales > 0 || !string.IsNullOrWhiteSpace(r.Item)))
             sb.Append($"<tr><td>{row.Quantity}</td><td>£{row.Sales:N2}</td><td>{H(row.Item)}</td><td>{H(row.OperatorName)}</td></tr>");
         sb.Append("</tbody></table>");
+
+        // Reports: voids, returns, no sales and staff discounts, as the Reports section shows
+        // them, with £20+ highlighted. Only for the date shown - the section is cleared when
+        // the date changes - so an export never carries another day's figures.
+        sb.Append("<h2>Reports</h2>");
+        if (!vm.HasReportData)
+        {
+            sb.Append("<p class='note'>Not generated for this date. Press Generate reports in the Reports section, then export again.</p>");
+        }
+        else
+        {
+            sb.Append("<div class='cards'>");
+            sb.Append($"<div class='card'><div class='label'>VOIDS</div><div class='value'>£{vm.ReportVoidsValue:N2}</div><div class='label'>{vm.ReportVoidsQuantity} items</div></div>");
+            sb.Append($"<div class='card'><div class='label'>RETURNS</div><div class='value'>£{vm.ReportRefundsValue:N2}</div><div class='label'>{vm.ReportRefundsQuantity} refunds</div></div>");
+            sb.Append($"<div class='card'><div class='label'>NO SALES</div><div class='value'>{vm.ReportNoSales}</div><div class='label'>drawer opens</div></div>");
+            sb.Append($"<div class='card'><div class='label'>STAFF DISCOUNT</div><div class='value'>{H(vm.ReportStaffDiscountText)}</div><div class='label'>{H(vm.ReportStaffDiscountDetail)}</div></div></div>");
+            sb.Append("<table><thead><tr><th>Name</th><th>Voids Qty</th><th>Voids Value</th><th>Returns Qty</th><th>Returns Value</th><th>No Sales</th><th>Staff Discount</th></tr></thead><tbody>");
+            foreach (var row in vm.ReportRows)
+            {
+                sb.Append($"<tr><td>{H(row.Name)}</td><td>{row.VoidsQuantity}</td><td{(row.VoidsFlagged ? " class='flag'" : "")}>£{row.VoidsValue:N2}</td>");
+                sb.Append($"<td>{row.RefundsQuantity}</td><td{(row.RefundsFlagged ? " class='flag'" : "")}>£{row.RefundsValue:N2}</td><td>{row.NoSales}</td><td>{H(row.StaffDiscount)}</td></tr>");
+            }
+            sb.Append("</tbody></table>");
+            sb.Append($"<div class='note'>£{MainViewModel.ReportFlagValue:N2}+ highlighted to look into · voids include transaction and line voids</div>");
+        }
         sb.Append($"<div class='foot'>Flooid: {H(vm.FlooidStatusText)} · {H(vm.FlooidLastUpdatedText)}. Gift-card exclusions are applied only to the P&amp;L counted figures; Branch Performance remains the Flooid report values.</div>");
         sb.Append("</body></html>");
         return sb.ToString();
@@ -904,8 +929,8 @@ public partial class MainWindow : Window
 
     private static FlowDocument BuildPrintableReport(MainViewModel vm)
     {
-        var doc = new FlowDocument { FontFamily = new FontFamily("Arial"), FontSize = 10, Foreground = new SolidColorBrush(Color.FromRgb(0x0B, 0x39, 0x72)) };
-        doc.Blocks.Add(new Paragraph(new Run("Card Factory Profit & Loss Report")) { FontSize = 20, FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0x57, 0xB8)), Margin = new Thickness(0, 0, 0, 8) });
+        var doc = new FlowDocument { FontFamily = new FontFamily("Arial"), FontSize = 10, Foreground = new SolidColorBrush(Color.FromRgb(0x18, 0x31, 0x53)) };
+        doc.Blocks.Add(new Paragraph(new Run("Card Factory Profit & Loss Report")) { FontSize = 20, FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0x4E, 0xA1)), Margin = new Thickness(0, 0, 0, 8) });
         var end = (vm.SelectedDate ?? DateTime.Today).Date;
         var start = string.Equals(vm.HistoricalTargetMode, "Date Range", StringComparison.OrdinalIgnoreCase)
             ? (vm.RangeStartDate ?? end.AddDays(-6)).Date
@@ -922,6 +947,25 @@ public partial class MainWindow : Window
         doc.Blocks.Add(MakePrintHeading("Gift Cards"));
         doc.Blocks.Add(MakePrintTable(new[] { "Qty", "Sales", "Card / Item", "Operator" },
             vm.BranchGiftCards.Where(r => r.Quantity > 0 || r.Sales > 0 || !string.IsNullOrWhiteSpace(r.Item)).Select(r => new[] { r.Quantity.ToString(), $"£{r.Sales:N2}", r.Item, r.OperatorName })));
+
+        // Reports, as on screen: £20+ voids and returns highlighted.
+        doc.Blocks.Add(MakePrintHeading("Reports"));
+        if (!vm.HasReportData)
+        {
+            doc.Blocks.Add(new Paragraph(new Run("Not generated for this date. Press Generate reports in the Reports section, then print again.")) { Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x78, 0x91)) });
+        }
+        else
+        {
+            doc.Blocks.Add(new Paragraph(new Run($"Voids £{vm.ReportVoidsValue:N2} ({vm.ReportVoidsQuantity} items)    Returns £{vm.ReportRefundsValue:N2} ({vm.ReportRefundsQuantity} refunds)    No sales {vm.ReportNoSales}    Staff discount {vm.ReportStaffDiscountText} ({vm.ReportStaffDiscountDetail})")) { FontWeight = FontWeights.Bold });
+            doc.Blocks.Add(MakePrintTable(new[] { "Name", "Voids Qty", "Voids Value", "Returns Qty", "Returns Value", "No Sales", "Staff Discount" },
+                vm.ReportRows.Select(r => new (string, bool)[]
+                {
+                    (r.Name, false), (r.VoidsQuantity.ToString(), false), ($"£{r.VoidsValue:N2}", r.VoidsFlagged),
+                    (r.RefundsQuantity.ToString(), false), ($"£{r.RefundsValue:N2}", r.RefundsFlagged),
+                    (r.NoSales.ToString(), false), (r.StaffDiscount, false)
+                })));
+            doc.Blocks.Add(new Paragraph(new Run($"£{MainViewModel.ReportFlagValue:N2}+ highlighted to look into · voids include transaction and line voids")) { FontSize = 8.5, Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x78, 0x91)), Margin = new Thickness(0, 4, 0, 0) });
+        }
         return doc;
     }
 
@@ -930,23 +974,38 @@ public partial class MainWindow : Window
         FontSize = 14,
         FontWeight = FontWeights.Bold,
         Foreground = Brushes.White,
-        Background = new SolidColorBrush(Color.FromRgb(0x00, 0x57, 0xB8)),
+        Background = new SolidColorBrush(Color.FromRgb(0x00, 0x4E, 0xA1)),   // CfDeepBlue, as the app
         Padding = new Thickness(7),
         Margin = new Thickness(0, 12, 0, 0)
     };
 
-    private static Table MakePrintTable(IReadOnlyList<string> headers, IEnumerable<string[]> rows)
+    private static Table MakePrintTable(IReadOnlyList<string> headers, IEnumerable<string[]> rows) =>
+        MakePrintTable(headers, rows.Select(values => values.Select(v => (v, false)).ToArray()));
+
+    /// <summary>A table whose cells can be highlighted (the Reports £20+ figures).</summary>
+    private static Table MakePrintTable(IReadOnlyList<string> headers, IEnumerable<(string Text, bool Flag)[]> rows)
     {
         var table = new Table { CellSpacing = 0, BorderBrush = new SolidColorBrush(Color.FromRgb(0xD7, 0xE2, 0xEF)), BorderThickness = new Thickness(0.5) };
         for (var i = 0; i < headers.Count; i++) table.Columns.Add(new TableColumn());
         var group = new TableRowGroup();
-        var header = new TableRow { Background = new SolidColorBrush(Color.FromRgb(0xF2, 0xF7, 0xFD)) };
+        var header = new TableRow { Background = new SolidColorBrush(Color.FromRgb(0xE3, 0xEC, 0xF7)) };   // CfBlueSoft
         foreach (var text in headers) header.Cells.Add(new TableCell(new Paragraph(new Run(text)) { FontWeight = FontWeights.Bold, Margin = new Thickness(2) }) { Padding = new Thickness(3) });
         group.Rows.Add(header);
         foreach (var values in rows)
         {
             var row = new TableRow();
-            foreach (var value in values) row.Cells.Add(new TableCell(new Paragraph(new Run(value ?? string.Empty)) { Margin = new Thickness(2) }) { Padding = new Thickness(3) });
+            foreach (var (text, flag) in values)
+            {
+                var paragraph = new Paragraph(new Run(text ?? string.Empty)) { Margin = new Thickness(2) };
+                var cell = new TableCell(paragraph) { Padding = new Thickness(3) };
+                if (flag)
+                {
+                    cell.Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xF1, 0xDC));
+                    paragraph.Foreground = new SolidColorBrush(Color.FromRgb(0x9A, 0x5B, 0x00));
+                    paragraph.FontWeight = FontWeights.Bold;
+                }
+                row.Cells.Add(cell);
+            }
             group.Rows.Add(row);
         }
         table.RowGroups.Add(group);
