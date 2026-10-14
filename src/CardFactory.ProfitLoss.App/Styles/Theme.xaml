@@ -677,6 +677,48 @@
 
          The box is deliberately unchanged - same height, same padding, same 8px radius,
          same font - so nothing on either header moves. Only the colours differ. -->
+    <!-- R1 (owner, 14 Oct): Refresh / Generate reports as the yellow end of the date card.
+         Square on the left where it meets the date, rounded on the right to the card's
+         corner (9 = the card's 10 less its 1px edge). Same glyphs as FlooidActionButtonStyle. -->
+    <Style x:Key="DateCardActionButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource CfYellow}" />
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="BorderBrush" Value="#E0AC00" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Padding" Value="13,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="B" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1,0,0,0" CornerRadius="0,9,9,0" Padding="{TemplateBinding Padding}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path x:Name="Glyph"
+                                  Data="M20,11 A8.1,8.1 0 0 0 4.5,9 M4,5 V9 H8 M4,13 A8.1,8.1 0 0 0 19.5,15 M20,19 V15 H16"
+                                  Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                  Width="13" Height="13" Stretch="Uniform" Margin="0,0,7,0" VerticalAlignment="Center" />
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#FFD640" /></Trigger>
+                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#EDB800" /></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Background" Value="#FFF6C9" /></Trigger>
+                        <Trigger Property="Tag" Value="Reports">
+                            <Setter TargetName="Glyph" Property="Data"
+                                    Value="M14,3 V7 A1,1 0 0 0 15,8 H19 M17,21 H7 A2,2 0 0 1 5,19 V5 A2,2 0 0 1 7,3 H14 L19,8 V19 A2,2 0 0 1 17,21 Z M9,17 V12 M12,17 V16 M15,17 V14" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="FlooidActionButtonStyle" TargetType="Button">
         <Setter Property="Height" Value="24" />
         <!-- Stage 6A.87: back down from 104. "Refresh" is far shorter than the old

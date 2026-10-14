@@ -640,23 +640,6 @@
                                         Orientation="Horizontal"
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Center">
-                                <!-- Stage 6B.01: one Refresh, here rather than inside the two sections.
-                                     Since 6A.93 both section buttons ran the same combined grab, so one
-                                     of them was redundant however it was arranged, and neither could be
-                                     reached from the other section. It sits beside PERIOD because a
-                                     retrieval depends on the date: mode, date and pull are now one
-                                     place and one glance. This column is Auto inside a * spacer, so the
-                                     row simply grows leftwards into empty space and nothing moves. -->
-                                <!-- On the Reports section this reads "Generate reports" with a report
-                                     mark (Tag="Reports") and pulls only the Reports reports; see
-                                     SetBranchPerformanceView. -->
-                                <Button x:Name="RefreshButton"
-                                        Content="Refresh"
-                                        Style="{StaticResource FlooidActionButtonStyle}"
-                                        Height="26"
-                                        Click="GrabFromFlooid_Click"
-                                        ToolTip="Refresh Team and Branch Performance from Flooid"
-                                        Margin="0,0,14,0" />
                                 <!-- Stage 6B.70 (P1): the date as a card like the targets - white, the
                                      CfLine edge and a pale-blue label segment - instead of a pale-yellow
                                      pill with PERIOD floating beside it. The row is 30px tall, so the
@@ -666,7 +649,7 @@
                                         BorderBrush="{StaticResource CfLine}"
                                         BorderThickness="1"
                                         CornerRadius="10"
-                                        Padding="0,1,3,1">
+                                        Padding="0,1,0,1">
                                     <!-- K1: one button. It opens the calendar, where Single day or Date range
                                          is chosen. Shows "Thu 24/09/2026", or a range with its day count. -->
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -703,6 +686,18 @@
                                                 </Style>
                                             </TextBlock.Style>
                                         </TextBlock>
+                                        <!-- R1 (owner, 14 Oct): Refresh is the yellow end of the date card -
+                                             day, date, then the action, one unit - so it reads as "pull
+                                             this date". On Reports it reads "Generate reports" with a report
+                                             mark (Tag="Reports") and pulls only the Reports reports; see
+                                             SetBranchPerformanceView. Stage 6B.01: one Refresh for all sections. -->
+                                        <Button x:Name="RefreshButton"
+                                                Content="Refresh"
+                                                Style="{StaticResource DateCardActionButtonStyle}"
+                                                Height="30"
+                                                Margin="0,-1,0,-1"
+                                                Click="GrabFromFlooid_Click"
+                                                ToolTip="Refresh Team and Branch Performance from Flooid" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
