@@ -21,7 +21,9 @@ Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Target
 and strip-size fix from `next-update` were never merged; the dashboard changes size when
 switching sections; the section-bar titles are blurry.
 
-## Next update - on branch `daily-briefing-export`, not built
+## Next update - on branch `daily-briefing-export`, test-built
+
+Test build run 38633642006 (from 3467ce8, 14 Oct): green, compiles, only annotation the size notice (61.6 MB). Not yet tried on a till. Version number still 1.3.5.
 
 | Change | Proven | Check in the app |
 |--------|--------|------------------|
