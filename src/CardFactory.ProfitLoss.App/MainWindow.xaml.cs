@@ -545,6 +545,8 @@ public partial class MainWindow : Window
         MainMenuPopup.PlacementTarget = MenuButton;
         UpdateCheckForUpdatesDetail();
         UpdateDailyBriefingCardDetail();
+        UpdateMenuVersionPill();
+        if (!MainMenuPopup.IsOpen) ShowMenuTab(MenuTabBriefing);   // opens on Daily Briefing
         // Stage 6B.30: read the setting each time the menu opens, so it always shows what is
         // actually in force - including a value written into the file by hand.
         if (!MainMenuPopup.IsOpen) LoadRetrievalSpeedOptions();
@@ -832,13 +834,51 @@ public partial class MainWindow : Window
         }
     }
 
-    // Export to Daily Briefing (Menu card, concept M1). One day only: the sheet is a daily form.
+    // Menu design P3: three tabs on the left, one pane showing at a time.
+    private void MenuTab_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button tab) ShowMenuTab(tab);
+    }
+
+    private void ShowMenuTab(Button open)
+    {
+        var tabs = new[] { (MenuTabBriefing, MenuPaneBriefing), (MenuTabShare, MenuPaneShare), (MenuTabSettings, MenuPaneSettings) };
+        foreach (var (tab, pane) in tabs)
+        {
+            var isOpen = ReferenceEquals(tab, open);
+            tab.Tag = isOpen ? "Active" : null;
+            pane.Visibility = isOpen ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    // The version chip's state, repeated in the menu's navy band.
+    private void UpdateMenuVersionPill()
+    {
+        var current = "v" + UpdateService.Display(UpdateService.CurrentVersion);
+        var (text, back, fore) = (VersionChip.Tag as string) switch
+        {
+            "UpToDate" => (current + " · up to date", "#EAF7EF", "#0B7A35"),
+            "Available" => (VersionChip.Content?.ToString() ?? "Update available", "#FFF1DC", "#9A5B00"),
+            "CantCheck" => (current + " · can't check", "#EDF1F6", "#667891"),
+            _ => (current, "#EDF1F6", "#004EA1")
+        };
+        MenuVersionText.Text = text;
+        MenuVersionPill.Background = (Brush)new BrushConverter().ConvertFromString(back)!;
+        MenuVersionText.Foreground = (Brush)new BrushConverter().ConvertFromString(fore)!;
+    }
+
+    // Export to Daily Briefing (Menu, Daily Briefing tab). One day only: the sheet is a daily form.
     private void UpdateDailyBriefingCardDetail()
     {
         if (DataContext is not MainViewModel viewModel) return;
-        DailyBriefingCard.Tag = viewModel.IsRangeMode
-            ? "One day only · choose Single day in the calendar first"
-            : $"Pulls every report for {(viewModel.SelectedDate ?? DateTime.Today):ddd dd/MM} and fills it in";
+        var range = viewModel.IsRangeMode;
+        DailyBriefingDayText.Text = range
+            ? "A date range is chosen"
+            : (viewModel.SelectedDate ?? DateTime.Today).ToString("ddd dd/MM/yyyy");
+        DailyBriefingExportButton.IsEnabled = !range;
+        DailyBriefingNote.Text = range
+            ? "The briefing is for one day · choose Single day in the calendar first"
+            : "Opens a preview to print or save as PDF";
     }
 
     private async void ExportDailyBriefing_Click(object sender, RoutedEventArgs e)

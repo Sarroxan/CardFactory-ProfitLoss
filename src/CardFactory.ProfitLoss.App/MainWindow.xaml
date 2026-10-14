@@ -1527,22 +1527,110 @@
                 </Border>
         </Viewbox>
 
-        <!--
-            Main menu: navigation is intentionally separated from settings.
-            Branch Performance is a top-level destination, not a preference.
-        -->
-        <!-- Stage 6B.65: menu design A - a navy header band like the dialogs (6B.61), and an
-             icon for every item, grouped as File / Retrieval speed / Settings. Fast / Safe is the
-             split card used for Day / Range (6B.48). "Clear all figures" is last and red: it is
-             the only item that deletes anything. Same items, names and handlers as before. -->
+        <!-- Menu design P3 (owner, 14 Oct): the dialogs' navy band across the top with the
+             store and the version state, three tabs down the left (Daily Briefing, Save &
+             Share, Settings) and only the open tab's items on the right. Every item keeps
+             its handler; the names and the grey line under each were agreed with the owner. -->
         <Popup x:Name="MainMenuPopup"
                Placement="Bottom"
                StaysOpen="False"
                AllowsTransparency="True"
                PopupAnimation="Fade"
                VerticalOffset="10"
-               HorizontalOffset="-362">
-            <Border Width="430"
+               HorizontalOffset="-452">
+            <Popup.Resources>
+                <!-- A tab on the left: pale blue when open (Tag="Active"). The icon follows the text colour. -->
+                <Style x:Key="MenuTabStyle" TargetType="Button">
+                    <Setter Property="Foreground" Value="#4A5D78" />
+                    <Setter Property="FontFamily" Value="Arial" />
+                    <Setter Property="FontSize" Value="11.5" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="Height" Value="36" />
+                    <Setter Property="Margin" Value="0,0,0,2" />
+                    <Setter Property="Cursor" Value="Hand" />
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Tab" Background="Transparent" CornerRadius="9" Padding="10,0">
+                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Tab" Property="Background" Value="#F1F6FC" /></Trigger>
+                                    <Trigger Property="Tag" Value="Active">
+                                        <Setter TargetName="Tab" Property="Background" Value="{StaticResource CfBlueSoft}" />
+                                        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+                <Style x:Key="MenuTabIconStyle" TargetType="Path">
+                    <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                    <Setter Property="StrokeThickness" Value="1.6" />
+                    <Setter Property="StrokeLineJoin" Value="Round" />
+                    <Setter Property="StrokeStartLineCap" Value="Round" />
+                    <Setter Property="StrokeEndLineCap" Value="Round" />
+                    <Setter Property="Width" Value="15" />
+                    <Setter Property="Height" Value="15" />
+                    <Setter Property="Stretch" Value="Uniform" />
+                    <Setter Property="Margin" Value="0,0,9,0" />
+                </Style>
+                <!-- An item on the right: icon, name, grey line, and a chevron or control at the end. -->
+                <Style x:Key="MenuItemIconStyle" TargetType="Path">
+                    <Setter Property="Stroke" Value="{StaticResource CfDeepBlue}" />
+                    <Setter Property="StrokeThickness" Value="1.6" />
+                    <Setter Property="StrokeLineJoin" Value="Round" />
+                    <Setter Property="StrokeStartLineCap" Value="Round" />
+                    <Setter Property="StrokeEndLineCap" Value="Round" />
+                    <Setter Property="Width" Value="16" />
+                    <Setter Property="Height" Value="16" />
+                    <Setter Property="Stretch" Value="Uniform" />
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                    <Setter Property="Margin" Value="0,0,12,0" />
+                </Style>
+                <Style x:Key="MenuItemNameStyle" TargetType="TextBlock">
+                    <Setter Property="FontFamily" Value="Arial" />
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                    <Setter Property="Foreground" Value="{StaticResource CfInk}" />
+                </Style>
+                <Style x:Key="MenuItemNoteStyle" TargetType="TextBlock">
+                    <Setter Property="FontFamily" Value="Arial" />
+                    <Setter Property="FontSize" Value="9.5" />
+                    <Setter Property="Foreground" Value="#8A99AD" />
+                    <Setter Property="Margin" Value="0,2,0,0" />
+                    <Setter Property="TextWrapping" Value="Wrap" />
+                </Style>
+                <Style x:Key="MenuChevronStyle" TargetType="Path">
+                    <Setter Property="Data" Value="M8,5 L13,10 L8,15" />
+                    <Setter Property="Stroke" Value="#A5C0DD" />
+                    <Setter Property="StrokeThickness" Value="1.6" />
+                    <Setter Property="StrokeStartLineCap" Value="Round" />
+                    <Setter Property="StrokeEndLineCap" Value="Round" />
+                    <Setter Property="Width" Value="12" />
+                    <Setter Property="Height" Value="12" />
+                    <Setter Property="Stretch" Value="Uniform" />
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                </Style>
+                <Style x:Key="MenuItemRowStyle" TargetType="Border">
+                    <Setter Property="BorderBrush" Value="#F0F3F8" />
+                    <Setter Property="BorderThickness" Value="0,0,0,1" />
+                </Style>
+                <Style x:Key="MenuPaneTitleStyle" TargetType="TextBlock">
+                    <Setter Property="FontFamily" Value="{StaticResource CfTitleFont}" />
+                    <Setter Property="FontSize" Value="22" />
+                    <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                </Style>
+                <Style x:Key="MenuPaneSubtitleStyle" TargetType="TextBlock">
+                    <Setter Property="FontFamily" Value="Arial" />
+                    <Setter Property="FontSize" Value="10.5" />
+                    <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
+                    <Setter Property="Margin" Value="0,1,0,10" />
+                </Style>
+            </Popup.Resources>
+            <Border Width="520"
                     Background="White"
                     BorderBrush="#D6E2EF"
                     BorderThickness="1"
@@ -1550,156 +1638,233 @@
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.18" Color="#183153" />
                 </Border.Effect>
-                <StackPanel>
-                    <Border Background="{StaticResource CfDeepBlue}" CornerRadius="17,17,0,0" Padding="18,16">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="34" Height="34" CornerRadius="10" Background="#FFF6C9">
-                                <Path Data="M13,10 A3,3 0 1 1 7,10 A3,3 0 1 1 13,10 Z M10,2 L10,4 M10,16 L10,18 M2,10 L4,10 M16,10 L18,10 M4.3,4.3 L5.7,5.7 M14.3,14.3 L15.7,15.7 M4.3,15.7 L5.7,14.3 M14.3,5.7 L15.7,4.3" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="18" Height="18" Stretch="Uniform" />
-                            </Border>
-                            <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="Menu" Foreground="White" FontFamily="Arial" FontSize="16" FontWeight="Bold" />
-                                <TextBlock Text="Files, retrieval speed and settings" Foreground="#D6E4F5" FontFamily="Arial" FontSize="9" Margin="0,2,0,0" />
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                    <StackPanel Margin="16,2,16,16">
-                    <!-- Export to Daily Briefing (concept M1): first in the menu. Pulls every report
-                         for the day, then opens the store's sheet filled in, to print or save as a PDF.
-                         The second line is the button's Tag: the day it will pull, set when the menu opens. -->
-                    <Button x:Name="DailyBriefingCard" Margin="0,14,0,0" Cursor="Hand" Click="ExportDailyBriefing_Click"
-                            ToolTip="Pull every report for the day and fill in the Daily Briefing">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border x:Name="Card" Background="#FFFBEA" BorderBrush="{StaticResource CfYellow}" BorderThickness="2"
-                                        CornerRadius="14" Padding="10,9,10,9">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <Border Width="38" Height="38" CornerRadius="11" Background="{StaticResource CfYellow}">
-                                            <Path Data="M5,3 L15,3 L15,17 L5,17 Z M8,7 L12,7 M8,10 L12,10 M8,13 L10.5,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.8" StrokeLineJoin="Round"
-                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="18" Height="18" Stretch="Uniform" />
-                                        </Border>
-                                        <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
-                                            <TextBlock Text="Daily Briefing" FontFamily="{StaticResource CfTitleFont}" FontSize="19"
-                                                       Foreground="{StaticResource CfDeepBlue}" />
-                                            <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="Arial" FontSize="10"
-                                                       Foreground="{StaticResource CfInk}" TextWrapping="Wrap" Margin="0,1,0,0" />
-                                        </StackPanel>
-                                        <Border Grid.Column="2" Background="{StaticResource CfDeepBlue}" CornerRadius="9" Padding="11,6" VerticalAlignment="Center">
-                                            <TextBlock Text="Export" Foreground="White" FontFamily="Arial" FontSize="10.5" FontWeight="Bold" />
-                                        </Border>
-                                    </Grid>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Card" Property="Background" Value="#FFF6C9" /></Trigger>
-                                    <Trigger Property="IsPressed" Value="True"><Setter TargetName="Card" Property="Background" Value="#FFEFA6" /></Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                    <TextBlock Text="FILE" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" FontWeight="Bold" Margin="2,14,0,6" />
-                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="LoadFile_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
-                                <Path Data="M3,6 L8,6 L10,8 L17,8 L17,16 L3,16 Z" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
-                            </Border>
-                            <TextBlock Text="Load a saved calculator" FontWeight="Bold" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="SaveFile_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
-                                <Path Data="M4,3 L14,3 L17,6 L17,17 L4,17 Z M7,3 L7,8 L13,8 L13,3 M7,17 L7,12 L14,12 L14,17" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
-                            </Border>
-                            <TextBlock Text="Save a portable copy" FontWeight="Bold" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="ExportReport_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
-                                <Path Data="M10,3 L10,12 M6,7 L10,3 L14,7 M4,13 L4,17 L16,17 L16,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
-                            </Border>
-                            <TextBlock Text="Export report as HTML" FontWeight="Bold" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="PrintReport_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
-                                <Path Data="M6,8 L6,3 L14,3 L14,8 M4,8 L16,8 L16,14 L4,14 Z M6,12 L14,12 L14,17 L6,17 Z" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
-                            </Border>
-                            <TextBlock Text="Print" FontWeight="Bold" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                    <TextBlock Text="RETRIEVAL SPEED" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" FontWeight="Bold" Margin="2,14,0,6" />
-                    <Border Height="40" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Navy band: title, store, and the version chip's state as a pill. -->
+                    <Border Background="{StaticResource CfDeepBlue}" CornerRadius="17,17,0,0" Padding="18,11,16,11">
                         <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="1" />
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <RadioButton x:Name="SpeedFastOption" Grid.Column="0" Content="Fast" GroupName="RetrievalSpeed"
-                                         Style="{StaticResource ModeCardSegmentStyle}" Checked="RetrievalSpeed_Changed">
-                                <RadioButton.Tag><CornerRadius>11,0,0,11</CornerRadius></RadioButton.Tag>
-                            </RadioButton>
-                            <Border Grid.Column="1" Background="{StaticResource CfLine}" />
-                            <RadioButton x:Name="SpeedSafeOption" Grid.Column="2" Content="Safe" GroupName="RetrievalSpeed"
-                                         Style="{StaticResource ModeCardSegmentStyle}" Checked="RetrievalSpeed_Changed">
-                                <RadioButton.Tag><CornerRadius>0,11,11,0</CornerRadius></RadioButton.Tag>
-                            </RadioButton>
+                            <TextBlock Text="Menu" FontFamily="{StaticResource CfTitleFont}" FontSize="23" Foreground="White" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{Binding HeaderStoreText}" Foreground="#D6E4F5" FontFamily="Arial" FontSize="10"
+                                       HorizontalAlignment="Right" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="16,0,10,0" />
+                            <Border x:Name="MenuVersionPill" Grid.Column="2" CornerRadius="9" Padding="8,3" Background="#EAF7EF" VerticalAlignment="Center">
+                                <TextBlock x:Name="MenuVersionText" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" Foreground="#0B7A35" />
+                            </Border>
                         </Grid>
                     </Border>
-                    <TextBlock x:Name="RetrievalSpeedHint"
-                               Foreground="{StaticResource CfMuted}"
-                               FontFamily="Arial"
-                               FontSize="9.5"
-                               TextWrapping="Wrap"
-                               Margin="2,6,2,0" />
-                    <TextBlock Text="SETTINGS" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" FontWeight="Bold" Margin="2,14,0,6" />
-                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="PreferencesMenu_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
-                                <Path Data="M13,10 A3,3 0 1 1 7,10 A3,3 0 1 1 13,10 Z M10,2 L10,4 M10,16 L10,18 M2,10 L4,10 M16,10 L18,10 M4.3,4.3 L5.7,5.7 M14.3,14.3 L15.7,15.7 M4.3,15.7 L5.7,14.3 M14.3,5.7 L15.7,4.3" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
-                            </Border>
-                            <TextBlock Text="Preferences" FontWeight="Bold" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                    <!-- Check for updates (concept A): the same check the app makes at launch,
-                         on demand. The second line is the running version and when it last
-                         checked; the result shows on the version chip, and a newer version
-                         opens the update box. -->
-                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="40" Click="CheckForUpdatesMenu_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="28" Height="28" CornerRadius="8" Background="#EEF4FC" Margin="-4,0,12,0">
-                                <Path Data="M20,11 A8.1,8.1 0 0 0 4.5,9 M4,5 V9 H8 M4,13 A8.1,8.1 0 0 0 19.5,15 M20,19 V15 H16" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
-                            </Border>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Check for updates" FontWeight="Bold" />
-                                <TextBlock x:Name="CheckForUpdatesDetail" Text="" FontFamily="Arial" FontSize="9.5" FontWeight="Normal" Foreground="{StaticResource CfMuted}" Margin="0,1,0,0" />
+
+                    <Grid Grid.Row="1" MinHeight="272">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Tabs -->
+                        <Border BorderBrush="#EDF1F6" BorderThickness="0,0,1,0">
+                            <StackPanel Margin="8,10,8,10">
+                                <Button x:Name="MenuTabBriefing" Style="{StaticResource MenuTabStyle}" Tag="Active" Click="MenuTab_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="M5,3 L15,3 L15,17 L5,17 Z M8,7 L12,7 M8,10 L12,10 M8,13 L10.5,13" Style="{StaticResource MenuTabIconStyle}" />
+                                        <TextBlock Text="Daily Briefing" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="MenuTabShare" Style="{StaticResource MenuTabStyle}" Click="MenuTab_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="M3,6 L8,6 L10,8 L17,8 L17,16 L3,16 Z" Style="{StaticResource MenuTabIconStyle}" />
+                                        <TextBlock Text="Save &amp; Share" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="MenuTabSettings" Style="{StaticResource MenuTabStyle}" Click="MenuTab_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="M13,10 A3,3 0 1 1 7,10 A3,3 0 1 1 13,10 Z M10,2 L10,4 M10,16 L10,18 M2,10 L4,10 M16,10 L18,10 M4.3,4.3 L5.7,5.7 M14.3,14.3 L15.7,15.7 M4.3,15.7 L5.7,14.3 M14.3,5.7 L15.7,4.3" Style="{StaticResource MenuTabIconStyle}" />
+                                        <TextBlock Text="Settings" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
+                        </Border>
+
+                        <!-- Daily Briefing -->
+                        <StackPanel x:Name="MenuPaneBriefing" Grid.Column="1" Margin="18,14,18,14">
+                            <TextBlock Text="Daily Briefing" Style="{StaticResource MenuPaneTitleStyle}" />
+                            <TextBlock Text="The store's sheet, filled in from Flooid." Style="{StaticResource MenuPaneSubtitleStyle}" />
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="6" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Background="#F4F7FB" CornerRadius="9" Padding="9,7">
+                                    <StackPanel>
+                                        <TextBlock Text="Day" FontFamily="Arial" FontSize="9.5" Foreground="{StaticResource CfMuted}" />
+                                        <TextBlock x:Name="DailyBriefingDayText" FontFamily="Arial" FontSize="12" FontWeight="Bold"
+                                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Background="#F4F7FB" CornerRadius="9" Padding="9,7">
+                                    <StackPanel>
+                                        <TextBlock Text="Pulls" FontFamily="Arial" FontSize="9.5" Foreground="{StaticResource CfMuted}" />
+                                        <TextBlock Text="Team · Branch · Gift · Discounts" FontFamily="Arial" FontSize="12" FontWeight="Bold"
+                                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            <Button x:Name="DailyBriefingExportButton" Height="40" Cursor="Hand" Click="ExportDailyBriefing_Click"
+                                    ToolTip="Pull every report for the day and fill in the Daily Briefing">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="B" Background="{StaticResource CfYellow}" BorderBrush="#E0AC00" BorderThickness="1" CornerRadius="11">
+                                            <TextBlock Text="Export to Daily Briefing" FontFamily="Arial" FontSize="12.5" FontWeight="Bold"
+                                                       Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#FFD53D" /></Trigger>
+                                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#F2BC00" /></Trigger>
+                                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.45" /></Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            <TextBlock x:Name="DailyBriefingNote" Text="Opens a preview to print or save as PDF"
+                                       FontFamily="Arial" FontSize="9.5" Foreground="#8A99AD" Margin="0,10,0,0" TextWrapping="Wrap" />
                         </StackPanel>
-                    </Button>
-                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="ClearFigures_Click" Foreground="#B03A3A">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="28" Height="28" CornerRadius="8" Background="#FDF2F2" Margin="-4,0,12,0">
-                                <Path Data="M4,6 L16,6 M8,6 L8,4 L12,4 L12,6 M6,6 L7,17 L13,17 L14,6" Stroke="#B03A3A" StrokeThickness="1.6" StrokeLineJoin="Round"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+
+                        <!-- Save & Share -->
+                        <StackPanel x:Name="MenuPaneShare" Grid.Column="1" Margin="18,14,18,14" Visibility="Collapsed">
+                            <TextBlock Text="Save &amp; Share" Style="{StaticResource MenuPaneTitleStyle}" />
+                            <TextBlock Text="Keep this day, open another, or pass it on." Style="{StaticResource MenuPaneSubtitleStyle}" />
+                            <Border Style="{StaticResource MenuItemRowStyle}">
+                                <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="LoadFile_Click">
+                                    <Grid Width="300">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <Path Data="M3,6 L8,6 L10,8 L17,8 L17,16 L3,16 Z" Style="{StaticResource MenuItemIconStyle}" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Open a saved day" Style="{StaticResource MenuItemNameStyle}" />
+                                            <TextBlock Text="A .cfpl file you saved earlier" Style="{StaticResource MenuItemNoteStyle}" />
+                                        </StackPanel>
+                                        <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
+                                    </Grid>
+                                </Button>
                             </Border>
-                            <TextBlock Text="Clear all figures" FontWeight="Bold" VerticalAlignment="Center" />
+                            <Border Style="{StaticResource MenuItemRowStyle}">
+                                <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="SaveFile_Click">
+                                    <Grid Width="300">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <Path Data="M4,3 L14,3 L17,6 L17,17 L4,17 Z M7,3 L7,8 L13,8 L13,3 M7,17 L7,12 L14,12 L14,17" Style="{StaticResource MenuItemIconStyle}" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Save this day" Style="{StaticResource MenuItemNameStyle}" />
+                                            <TextBlock Text="As a .cfpl file, to open later or on another till" Style="{StaticResource MenuItemNoteStyle}" />
+                                        </StackPanel>
+                                        <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
+                                    </Grid>
+                                </Button>
+                            </Border>
+                            <Border Style="{StaticResource MenuItemRowStyle}">
+                                <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="ExportReport_Click">
+                                    <Grid Width="300">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <Path Data="M10,3 L10,12 M6,7 L10,3 L14,7 M4,13 L4,17 L16,17 L16,13" Style="{StaticResource MenuItemIconStyle}" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Export as a web page" Style="{StaticResource MenuItemNameStyle}" />
+                                            <TextBlock Text="To email or keep; opens in any browser" Style="{StaticResource MenuItemNoteStyle}" />
+                                        </StackPanel>
+                                        <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
+                                    </Grid>
+                                </Button>
+                            </Border>
+                            <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="PrintReport_Click">
+                                <Grid Width="300">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <Path Data="M6,8 L6,3 L14,3 L14,8 M4,8 L16,8 L16,14 L4,14 Z M6,12 L14,12 L14,17 L6,17 Z" Style="{StaticResource MenuItemIconStyle}" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Print summary" Style="{StaticResource MenuItemNameStyle}" />
+                                        <TextBlock Text="Team, Branch and Reports on paper" Style="{StaticResource MenuItemNoteStyle}" />
+                                    </StackPanel>
+                                    <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
+                                </Grid>
+                            </Button>
                         </StackPanel>
-                    </Button>
-                    </StackPanel>
-                </StackPanel>
+
+                        <!-- Settings -->
+                        <StackPanel x:Name="MenuPaneSettings" Grid.Column="1" Margin="18,14,18,14" Visibility="Collapsed">
+                            <TextBlock Text="Settings" Style="{StaticResource MenuPaneTitleStyle}" />
+                            <TextBlock Text="How the app works with Flooid." Style="{StaticResource MenuPaneSubtitleStyle}" />
+                            <Border Style="{StaticResource MenuItemRowStyle}" Padding="12,0" Height="46">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <Path Data="M3,15 A7,7 0 1 1 17,15 M10,15 L13,9" Style="{StaticResource MenuItemIconStyle}" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                        <TextBlock Text="Flooid speed" Style="{StaticResource MenuItemNameStyle}" />
+                                        <!-- Set in code from the speed in force. -->
+                                        <TextBlock x:Name="RetrievalSpeedHint" Style="{StaticResource MenuItemNoteStyle}" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Width="112" Height="28" Background="White" BorderBrush="{StaticResource CfLine}"
+                                            BorderThickness="1" CornerRadius="9" VerticalAlignment="Center">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="1" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <RadioButton x:Name="SpeedFastOption" Grid.Column="0" Content="Fast" GroupName="RetrievalSpeed" FontSize="10.5"
+                                                         Style="{StaticResource ModeCardSegmentStyle}" Checked="RetrievalSpeed_Changed">
+                                                <RadioButton.Tag><CornerRadius>8,0,0,8</CornerRadius></RadioButton.Tag>
+                                            </RadioButton>
+                                            <Border Grid.Column="1" Background="{StaticResource CfLine}" />
+                                            <RadioButton x:Name="SpeedSafeOption" Grid.Column="2" Content="Safe" GroupName="RetrievalSpeed" FontSize="10.5"
+                                                         Style="{StaticResource ModeCardSegmentStyle}" Checked="RetrievalSpeed_Changed">
+                                                <RadioButton.Tag><CornerRadius>0,8,8,0</CornerRadius></RadioButton.Tag>
+                                            </RadioButton>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource MenuItemRowStyle}">
+                                <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="PreferencesMenu_Click">
+                                    <Grid Width="300">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <Path Data="M3,9 L10,3 L17,9 L17,17 L3,17 Z M8,17 L8,12 L12,12 L12,17" Style="{StaticResource MenuItemIconStyle}" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Store &amp; defaults" Style="{StaticResource MenuItemNameStyle}" />
+                                            <TextBlock Text="Store name, and reset the app's settings" Style="{StaticResource MenuItemNoteStyle}" />
+                                        </StackPanel>
+                                        <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
+                                    </Grid>
+                                </Button>
+                            </Border>
+                            <Border Style="{StaticResource MenuItemRowStyle}">
+                                <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="CheckForUpdatesMenu_Click">
+                                    <Grid Width="300">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <Path Data="M20,11 A8.1,8.1 0 0 0 4.5,9 M4,5 V9 H8 M4,13 A8.1,8.1 0 0 0 19.5,15 M20,19 V15 H16" Style="{StaticResource MenuItemIconStyle}" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Check for updates" Style="{StaticResource MenuItemNameStyle}" />
+                                            <TextBlock x:Name="CheckForUpdatesDetail" Style="{StaticResource MenuItemNoteStyle}" />
+                                        </StackPanel>
+                                        <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
+                                    </Grid>
+                                </Button>
+                            </Border>
+                            <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="ClearFigures_Click">
+                                <Grid Width="300">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                    <Path Data="M4,6 L16,6 M8,6 L8,4 L12,4 L12,6 M6,6 L7,17 L13,17 L14,6" Style="{StaticResource MenuItemIconStyle}" Stroke="#B03A3A" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Start fresh" Style="{StaticResource MenuItemNameStyle}" Foreground="#B03A3A" />
+                                        <TextBlock Text="Empties every section · can't be undone" Style="{StaticResource MenuItemNoteStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
             </Border>
         </Popup>
 

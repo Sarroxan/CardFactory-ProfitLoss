@@ -26,6 +26,7 @@ switching sections; the section-bar titles are blurry.
 | Change | Proven | Check in the app |
 |--------|--------|------------------|
 | **Export to Daily Briefing** (concept M1): a yellow card at the top of the Menu, "Pulls every report for Mon 12/10 and fills it in". Pulls Team, Gift Cards, Branch and Staff Discounts for the day (overlay: "Getting the Daily Briefing ready"), then opens the filled-in sheet in a preview with **Print** and **Save as PDF**. Not signed in: sign in and it carries on. Range mode: refuses with a status line. A failed pull leaves the error up and opens nothing. Replaces the Menu's "Print Daily Briefing" row. | XAML parses, handlers and names match; not compiled yet | Card look; pull from each section; signed-out start; preview fits the screen; Print; Save as PDF (Windows asks for the file name) |
+| **Menu redesign P3**: navy band (Menu, store, version state as a pill), tabs on the left - Daily Briefing, Save & Share, Settings - and only the open tab's items. Renamed: Open a saved day, Save this day, Export as a web page, Print summary, Flooid speed (Fast/Safe), Store & defaults, Check for updates, Start fresh; each with a grey line saying what it does. Opens on Daily Briefing; in range mode its Export button is greyed with a note. Same handlers as before. | XAML parses, names and handlers match; not compiled yet | Menu opens under the Menu button and fits; each tab; every item still works; speed switch; version pill colours |
 
 ## Released - v1.3.5 (14 Oct 2026, from `88810e7`), latest
 
