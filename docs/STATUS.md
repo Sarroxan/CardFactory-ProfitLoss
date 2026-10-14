@@ -21,10 +21,11 @@ Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Target
 and strip-size fix from `next-update` were never merged; the dashboard changes size when
 switching sections; the section-bar titles are blurry.
 
-## On `main`, not yet released - v1.3.5
+## Released - v1.3.5 (14 Oct 2026, from `88810e7`), latest
 
-Test build green (run 38559299552, 14 Oct 2026); merged into `main` at the owner's say-so.
-Release with Actions -> Publish release, version 1.3.5.
+Published by the owner with Actions -> Publish release (run 38560186028); release build
+38560203323 green. Annotated tag by "Card Factory Profit and Loss"; zip (61.5 MB) and
+`.sha256` attached; notes are the seven points typed in. v1.3.0 and v1.2.0 still listed.
 
 | Change | Proven | Check in the app |
 |--------|--------|------------------|
@@ -38,7 +39,7 @@ Release with Actions -> Publish release, version 1.3.5.
 Daily Briefing Sales Actual uses the app's counted sales (gift cards excluded), as the
 Targets section does - owner asked whether to switch to full store sales; not answered yet.
 
-## Released - v1.3.0 (13 Oct 2026, from `a509c48`), latest
+## Released - v1.3.0 (13 Oct 2026, from `a509c48`)
 
 Published by the owner with Actions -> Publish release (run 38325603649), build run
 38325613905 green with zero annotations. Annotated tag by "Card Factory Profit and Loss";
