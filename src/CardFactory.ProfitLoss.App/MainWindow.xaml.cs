@@ -41,6 +41,7 @@ public partial class MainWindow : Window
     private FlooidLoginWindow? _flooidLoginWindow;
     private bool _grabAfterFlooidSignIn;
     private bool _grabReportsOnlyAfterSignIn;   // the button pressed before sign-in was Generate reports
+    private bool _briefingAfterSignIn;          // the button pressed before sign-in was Export to Daily Briefing
     private bool _flooidGrabBusy;
     // Stage 6A.93: signing in triggers a grab, so the signed-in state has to be read as
     // a transition rather than a level. The status event fires on every navigation and
@@ -543,6 +544,7 @@ public partial class MainWindow : Window
     {
         MainMenuPopup.PlacementTarget = MenuButton;
         UpdateCheckForUpdatesDetail();
+        UpdateDailyBriefingCardDetail();
         // Stage 6B.30: read the setting each time the menu opens, so it always shows what is
         // actually in force - including a value written into the file by hand.
         if (!MainMenuPopup.IsOpen) LoadRetrievalSpeedOptions();
@@ -830,37 +832,62 @@ public partial class MainWindow : Window
         }
     }
 
-    // The store's Daily Briefing sheet with the day's figures filled in, for the team to
-    // complete by hand. One day only: the sheet is a daily form.
-    private void PrintDailyBriefing_Click(object sender, RoutedEventArgs e)
+    // Export to Daily Briefing (Menu card, concept M1). One day only: the sheet is a daily form.
+    private void UpdateDailyBriefingCardDetail()
+    {
+        if (DataContext is not MainViewModel viewModel) return;
+        DailyBriefingCard.Tag = viewModel.IsRangeMode
+            ? "One day only · choose Single day in the calendar first"
+            : $"Pulls every report for {(viewModel.SelectedDate ?? DateTime.Today):ddd dd/MM} and fills it in";
+    }
+
+    private async void ExportDailyBriefing_Click(object sender, RoutedEventArgs e)
     {
         MainMenuPopup.IsOpen = false;
-        if (DataContext is not MainViewModel viewModel) return;
+        await ExportDailyBriefingAsync();
+    }
+
+    // Pulls every report the sheet uses - Team, Gift Cards, Branch (hourly), and Staff
+    // Discounts - for the chosen day, then shows the sheet filled in. Not signed in: sign in
+    // first, and the export carries on by itself afterwards, as Refresh does.
+    private async Task ExportDailyBriefingAsync()
+    {
+        if (_flooidGrabBusy || DataContext is not MainViewModel viewModel) return;
         if (viewModel.IsRangeMode)
         {
-            viewModel.SetStatus("The Daily Briefing is for one day · choose Single day in the calendar, then print it");
+            viewModel.SetStatus("The Daily Briefing is for one day · choose Single day in the calendar, then export it");
             return;
         }
+
+        var loginWindow = GetOrCreateFlooidLoginWindow();
+        if (!loginWindow.IsSignedIn)
+        {
+            _grabAfterFlooidSignIn = true;
+            _grabReportsOnlyAfterSignIn = false;
+            _briefingAfterSignIn = true;
+            viewModel.SetFlooidStatus("Sign in to continue", "Working");
+            viewModel.SetStatus("Sign in to Flooid, then the Daily Briefing will be filled in automatically");
+            try { await loginWindow.EnsureOpenAsync(); }
+            catch (Exception ex) { viewModel.SetStatus(ex.Message); }
+            return;
+        }
+
+        // A failed pull leaves the retrieval box up with what went wrong; nothing opens.
+        if (!await GrabFlooidReportsAsync(reportsOnly: false, forBriefing: true)) return;
+
         try
         {
             var data = DailyBriefingSheet.FromViewModel(viewModel);
-            var dialog = new PrintDialog();
-            dialog.PrintTicket.PageOrientation = System.Printing.PageOrientation.Landscape;
-            if (dialog.ShowDialog() != true) return;
-            dialog.PrintTicket.PageOrientation = System.Printing.PageOrientation.Landscape;
-            var document = DailyBriefingSheet.Build(data);
-            dialog.PrintDocument(document.DocumentPaginator, $"Daily Briefing {data.Date:dd/MM/yyyy}");
-            var missing = new List<string>();
-            if (data.Hours.Count == 0) missing.Add("hourly figures (Refresh from Branch)");
-            if (data.Reports is null) missing.Add("voids and refunds (Generate reports)");
-            if (data.Team.Count == 0) missing.Add("team figures (Refresh from Team)");
-            viewModel.SetStatus(missing.Count == 0
-                ? $"Daily Briefing for {data.Date:dd/MM/yyyy} sent to printer"
-                : $"Daily Briefing sent to printer · left blank: {string.Join(", ", missing)}");
+            var preview = new DailyBriefingPreviewWindow(data) { Owner = this };
+            preview.ShowDialog();
+            var missing = DailyBriefingPreviewWindow.Missing(data);
+            viewModel.SetStatus(preview.Outcome is null
+                ? $"Daily Briefing for {data.Date:dd/MM/yyyy} closed without printing"
+                : missing.Count == 0 ? preview.Outcome : $"{preview.Outcome} · left blank: {string.Join(", ", missing)}");
         }
         catch (Exception ex)
         {
-            viewModel.SetStatus("Daily Briefing could not be printed · " + ex.Message);
+            viewModel.SetStatus("The Daily Briefing could not be shown · " + ex.Message);
         }
     }
 
@@ -1182,6 +1209,7 @@ public partial class MainWindow : Window
             // The pull that follows sign-in is the one this button asked for: from Reports,
             // Generate reports; from Team or Branch, the full Refresh.
             _grabReportsOnlyAfterSignIn = _reportsActive;
+            _briefingAfterSignIn = false;
             viewModel.SetFlooidStatus("Sign in to continue", "Working");
             viewModel.SetStatus("Sign in to Flooid, then the reports will be retrieved automatically");
             try { await loginWindow.EnsureOpenAsync(); }
@@ -1194,17 +1222,22 @@ public partial class MainWindow : Window
 
     /// <param name="reportsOnly">True: only what the Reports section shows (Refunds/Voids and
     /// Discounts and Price Overrides). Null: whatever the section on screen needs.</param>
-    private async Task GrabFlooidReportsAsync(bool? reportsOnly = null)
+    /// <param name="forBriefing">Export to Daily Briefing: the full pull plus Staff Discounts,
+    /// whichever section is showing.</param>
+    /// <returns>True when every report asked for came back (the full pull only).</returns>
+    private async Task<bool> GrabFlooidReportsAsync(bool? reportsOnly = null, bool forBriefing = false)
     {
-        if (_flooidGrabBusy || DataContext is not MainViewModel viewModel) return;
+        if (_flooidGrabBusy || DataContext is not MainViewModel viewModel) return false;
         var loginWindow = GetOrCreateFlooidLoginWindow();
-        if (!loginWindow.IsSignedIn) return;
+        if (!loginWindow.IsSignedIn) return false;
 
-        if (reportsOnly ?? _reportsActive)
+        if (!forBriefing && (reportsOnly ?? _reportsActive))
         {
             await GenerateReportsAsync(viewModel, loginWindow);
-            return;
+            return false;
         }
+
+        var succeeded = false;
 
         _flooidGrabBusy = true;
         // Stage 6A.93: remember which section is showing. Both Refresh buttons run this
@@ -1213,6 +1246,8 @@ public partial class MainWindow : Window
         var wasBranchView = _branchPerformanceActive;
         var wasReportsView = _reportsActive;
         var wasGiftCardsView = _branchGiftCardsActive;
+        // Staff discounts come with the full pull from Reports, and always for the Daily Briefing.
+        var includeDiscounts = wasReportsView || forBriefing;
         try
         {
             var endDate = (viewModel.SelectedDate ?? DateTime.Today).Date;
@@ -1225,8 +1260,9 @@ public partial class MainWindow : Window
             viewModel.SetStatus($"Retrieving Flooid reports · {startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}");
 
             // Stage 6B.11: the overlay replaces the two section labels 6A.94 was setting.
-            RetrievalStep4Row.Visibility = wasReportsView ? Visibility.Visible : Visibility.Collapsed;
+            RetrievalStep4Row.Visibility = includeDiscounts ? Visibility.Visible : Visibility.Collapsed;
             ShowRetrievalOverlay();
+            if (forBriefing) RetrievalTitle.Text = "Getting the Daily Briefing ready";
 
             RefundReportParseResult? refunds = null;
             GiftCardReportParseResult? giftCards = null;
@@ -1314,7 +1350,7 @@ public partial class MainWindow : Window
             string? discountsError = null;
             var discountsUpdated = false;
             var period = (startDate, endDate);
-            if (wasReportsView)
+            if (includeDiscounts)
             {
                 try
                 {
@@ -1339,7 +1375,7 @@ public partial class MainWindow : Window
                 viewModel.ApplyStaffDiscounts(null);
                 _staffDiscountPeriod = null;
             }
-            var discountsOk = !wasReportsView || discountsUpdated;
+            var discountsOk = !includeDiscounts || discountsUpdated;
 
             if (teamUpdated || giftUpdated || branchUpdated)
                 viewModel.SetFlooidLastUpdated(DateTime.Now);
@@ -1354,7 +1390,8 @@ public partial class MainWindow : Window
             // any failure it stays up with the detail, because the labels that used to
             // report it are gone and an error with nowhere to appear is worse than a
             // cluttered header.
-            if (teamUpdated && giftUpdated && branchUpdated && discountsOk) HideRetrievalOverlay();
+            succeeded = teamUpdated && giftUpdated && branchUpdated && discountsOk;
+            if (succeeded) HideRetrievalOverlay();
             else ShowRetrievalError(string.Join(Environment.NewLine, errors));
 
             // Stage 6B.21: the header carries the retrieval time now.
@@ -1394,6 +1431,7 @@ public partial class MainWindow : Window
             SetBranchPerformanceView(wasBranchView, wasReportsView);
             SetBranchDetailView(wasGiftCardsView);
         }
+        return succeeded;
     }
 
     // Generate reports (the Reports section's button): only the two reports that section
@@ -1620,7 +1658,15 @@ viewModel.SetFlooidStatus(e.Snapshot.StatusText, state);
             _grabAfterFlooidSignIn = false;
             _lastAutoGrabUtc = DateTime.UtcNow;
             _flooidLoginWindow?.HideAfterSignIn();
-            _ = GrabFlooidReportsAsync(_grabReportsOnlyAfterSignIn);
+            if (_briefingAfterSignIn)
+            {
+                _briefingAfterSignIn = false;
+                _ = ExportDailyBriefingAsync();
+            }
+            else
+            {
+                _ = GrabFlooidReportsAsync(_grabReportsOnlyAfterSignIn);
+            }
             return;
         }
 

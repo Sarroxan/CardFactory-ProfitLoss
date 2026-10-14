@@ -1564,6 +1564,43 @@
                         </StackPanel>
                     </Border>
                     <StackPanel Margin="16,2,16,16">
+                    <!-- Export to Daily Briefing (concept M1): first in the menu. Pulls every report
+                         for the day, then opens the store's sheet filled in, to print or save as a PDF.
+                         The second line is the button's Tag: the day it will pull, set when the menu opens. -->
+                    <Button x:Name="DailyBriefingCard" Margin="0,14,0,0" Cursor="Hand" Click="ExportDailyBriefing_Click"
+                            ToolTip="Pull every report for the day and fill in the Daily Briefing">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Card" Background="#FFFBEA" BorderBrush="{StaticResource CfYellow}" BorderThickness="2"
+                                        CornerRadius="14" Padding="10,9,10,9">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="38" Height="38" CornerRadius="11" Background="{StaticResource CfYellow}">
+                                            <Path Data="M5,3 L15,3 L15,17 L5,17 Z M8,7 L12,7 M8,10 L12,10 M8,13 L10.5,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.8" StrokeLineJoin="Round"
+                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="18" Height="18" Stretch="Uniform" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
+                                            <TextBlock Text="Daily Briefing" FontFamily="{StaticResource CfTitleFont}" FontSize="19"
+                                                       Foreground="{StaticResource CfDeepBlue}" />
+                                            <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="Arial" FontSize="10"
+                                                       Foreground="{StaticResource CfInk}" TextWrapping="Wrap" Margin="0,1,0,0" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="{StaticResource CfDeepBlue}" CornerRadius="9" Padding="11,6" VerticalAlignment="Center">
+                                            <TextBlock Text="Export" Foreground="White" FontFamily="Arial" FontSize="10.5" FontWeight="Bold" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Card" Property="Background" Value="#FFF6C9" /></Trigger>
+                                    <Trigger Property="IsPressed" Value="True"><Setter TargetName="Card" Property="Background" Value="#FFEFA6" /></Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
                     <TextBlock Text="FILE" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" FontWeight="Bold" Margin="2,14,0,6" />
                     <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="LoadFile_Click">
                         <StackPanel Orientation="Horizontal">
@@ -1599,17 +1636,6 @@
                                       StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
                             </Border>
                             <TextBlock Text="Print" FontWeight="Bold" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                    <!-- The store's own Daily Briefing sheet, filled in with the day's figures
-                         (Services/DailyBriefingSheet.cs). Same row style as Print. -->
-                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="PrintDailyBriefing_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="28" Height="28" CornerRadius="8" Background="#FFF6C9" Margin="-4,0,12,0">
-                                <Path Data="M5,3 L15,3 L15,17 L5,17 Z M8,7 L12,7 M8,10 L12,10 M8,13 L10.5,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
-                            </Border>
-                            <TextBlock Text="Print Daily Briefing" FontWeight="Bold" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
                     <TextBlock Text="RETRIEVAL SPEED" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" FontWeight="Bold" Margin="2,14,0,6" />

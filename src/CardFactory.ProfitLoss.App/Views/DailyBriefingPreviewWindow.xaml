@@ -1,0 +1,96 @@
+<Window x:Class="CardFactory.ProfitLoss.App.Views.DailyBriefingPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Daily Briefing"
+        Width="1140"
+        Height="860"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False">
+    <Window.Resources>
+        <!-- Yellow is for what you act on (6B.06), as on Refresh. -->
+        <Style x:Key="PrintButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="B" Background="{StaticResource CfYellow}" BorderBrush="#E0AC00" BorderThickness="1"
+                                CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#FFD53D" /></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#F2BC00" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <!-- Export to Daily Briefing (concept M1): the filled-in sheet, shown before it goes
+         anywhere. Same card and navy band as the other dialogs. -->
+    <Border Margin="12"
+            Background="White"
+            BorderBrush="{StaticResource CfLine}"
+            BorderThickness="1"
+            CornerRadius="20">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="5" Opacity="0.20" Color="#183153" />
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Padding="20,12,14,12" Background="{StaticResource CfDeepBlue}" CornerRadius="19,19,0,0"
+                    MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="TitleText" Text="Daily Briefing" Foreground="White"
+                               FontFamily="{StaticResource CfTitleFont}" FontSize="24" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Content="Save as PDF" Height="32" Padding="14,0"
+                            Style="{StaticResource ModernSecondaryButtonStyle}" Click="SavePdf_Click"
+                            ToolTip="Save with Microsoft Print to PDF" />
+                    <Button Grid.Column="2" Content="Print" Height="32" Padding="22,0" Margin="8,0,0,0"
+                            Style="{StaticResource PrintButtonStyle}"
+                            Click="Print_Click" />
+                    <Button Grid.Column="3" Width="30" Height="30" Margin="12,0,0,0" Content="×" FontSize="18"
+                            Style="{StaticResource NavyBandCloseButtonStyle}" Click="Close_Click" />
+                </Grid>
+            </Border>
+
+            <!-- Shown only when a part of the sheet had no figures to fill in. -->
+            <Border x:Name="MissingBanner" Grid.Row="1" Visibility="Collapsed"
+                    Background="#FFF1DC" Padding="20,7">
+                <TextBlock x:Name="MissingText" Foreground="#9A5B00" FontFamily="Arial" FontSize="11"
+                           FontWeight="Bold" TextWrapping="Wrap" />
+            </Border>
+
+            <!-- A plain viewer: the pages scroll, with none of DocumentViewer's own toolbar. -->
+            <DocumentViewer x:Name="Viewer" Grid.Row="2" Margin="1,0,1,14">
+                <DocumentViewer.Template>
+                    <ControlTemplate TargetType="DocumentViewer">
+                        <Border Background="#EDF1F6">
+                            <ScrollViewer x:Name="PART_ContentHost" CanContentScroll="True"
+                                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                        </Border>
+                    </ControlTemplate>
+                </DocumentViewer.Template>
+            </DocumentViewer>
+        </Grid>
+    </Border>
+</Window>
