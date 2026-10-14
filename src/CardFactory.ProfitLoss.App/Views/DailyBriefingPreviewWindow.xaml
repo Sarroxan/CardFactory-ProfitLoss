@@ -85,8 +85,13 @@
                 <DocumentViewer.Template>
                     <ControlTemplate TargetType="DocumentViewer">
                         <Border Background="#EDF1F6">
+                            <!-- The page is fitted to the width, so only a vertical bar: the app's slim one. -->
                             <ScrollViewer x:Name="PART_ContentHost" CanContentScroll="True"
-                                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer.Resources>
+                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
+                                </ScrollViewer.Resources>
+                            </ScrollViewer>
                         </Border>
                     </ControlTemplate>
                 </DocumentViewer.Template>

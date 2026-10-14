@@ -655,7 +655,7 @@
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <Border Background="{StaticResource CfBlueSoft}" CornerRadius="9,0,0,9" Margin="0,-1,8,-1" Padding="10,0">
                                             <TextBlock Text="{Binding PeriodLabel}" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}"
-                                                       FontFamily="Arial" FontSize="8.5" FontWeight="Bold" />
+                                                       FontFamily="Arial" FontSize="9.5" FontWeight="Bold" />
                                         </Border>
                                         <Button MinWidth="145"
                                                 Height="26"
@@ -674,7 +674,7 @@
                                                    VerticalAlignment="Center"
                                                    Foreground="{StaticResource CfMuted}"
                                                    FontFamily="Arial"
-                                                   FontSize="8"
+                                                   FontSize="9.5"
                                                    FontWeight="Bold"
                                                    Margin="2,0,6,0">
                                             <TextBlock.Style>
@@ -776,7 +776,7 @@
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                             <Path Data="M10,1.8 L12.5,7.2 L18.3,7.8 L13.9,11.7 L15.2,17.5 L10,14.5 L4.8,17.5 L6.1,11.7 L1.7,7.8 L7.5,7.2 Z" Fill="#E0A800" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" />
                                                             <TextBlock Text="{Binding Label}" Margin="6,0,0,0" VerticalAlignment="Center"
-                                                                       Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9" FontWeight="Bold" />
+                                                                       Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" />
                                                             <TextBlock Text="{Binding Names}" Margin="6,0,0,0" VerticalAlignment="Center"
                                                                        Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="11" FontWeight="Bold" />
                                                             <TextBlock Text="{Binding Value}" Margin="6,0,0,0" VerticalAlignment="Center"
@@ -898,10 +898,14 @@
                                                                      room for the warning below, so it sat ~7px above every other box in the
                                                                      row even when the warning was hidden. It now centres like the rest and
                                                                      only lifts when the warning is actually shown. -->
-                                                                <TextBlock Text="Enter transactions to calculate ABV/AUB"
-                                                                           Foreground="#C53D46" FontFamily="Arial" FontSize="5.7" FontWeight="Bold"
-                                                                           TextAlignment="Center" TextWrapping="Wrap" LineHeight="6.2"
-                                                                           Width="100" Margin="0,30,0,0" VerticalAlignment="Bottom" Visibility="Collapsed">
+                                                                <!-- Deep check 6: was the full sentence at 5.7px, too small to read. Now a short
+                                                                     line at 9.5px that fits the 13px under the box; the whole
+                                                                     sentence is in its tooltip. -->
+                                                                <TextBlock Text="Needed for ABV/AUB"
+                                                                           ToolTip="Enter transactions to calculate ABV and AUB"
+                                                                           Foreground="#C53D46" FontFamily="Arial" FontSize="9.5" FontWeight="Bold"
+                                                                           TextAlignment="Center" TextWrapping="NoWrap"
+                                                                           Width="100" Margin="0,0,0,1" VerticalAlignment="Bottom" Visibility="Collapsed">
                                                                     <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
                                                                             <Setter Property="Visibility" Value="Collapsed" />
@@ -1094,6 +1098,10 @@
                                             </Grid>
 
                                             <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                                <!-- Deep check 4: the slim themed scrollbar, as on Team. -->
+                                                <ScrollViewer.Resources>
+                                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
+                                                </ScrollViewer.Resources>
                                                 <ItemsControl ItemsSource="{Binding ReportRows}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
@@ -1163,10 +1171,10 @@
 
                                             <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
                                                 <Border Background="#FFF1DC" CornerRadius="7" Padding="7,2">
-                                                    <TextBlock Text="£20.00+" Foreground="#9A5B00" FontFamily="Arial" FontSize="9" FontWeight="Bold"/>
+                                                    <TextBlock Text="£20.00+" Foreground="#9A5B00" FontFamily="Arial" FontSize="9.5" FontWeight="Bold"/>
                                                 </Border>
                                                 <TextBlock Text="highlighted to look into · voids include transaction and line voids" Margin="6,0,0,0"
-                                                           Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9" VerticalAlignment="Center"/>
+                                                           Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9.5" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
@@ -1234,7 +1242,7 @@
                                                          figures", which the overlay cannot, since the overlay is only
                                                          on screen while a retrieval is running. -->
                                                     <Ellipse Width="6" Height="6" Fill="{StaticResource CfBlue}" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="{Binding FlooidLastUpdatedText}" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="7.8"/>
+                                                    <TextBlock Text="{Binding FlooidLastUpdatedText}" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9.5"/>
                                                 </StackPanel>
                                                 <!-- Stage 6B.01: moved to the target row beside PERIOD. -->
                                             </Grid>
@@ -1404,16 +1412,16 @@
                                                     </Grid.ColumnDefinitions>
                                                     <Border Grid.Column="0" Width="4" Background="{StaticResource CfDeepBlue}" CornerRadius="12,0,0,12" HorizontalAlignment="Left" />
                                                     <TextBlock Grid.Column="0" Text="BRANCH TOTAL" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="22,0,0,0"/>
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="SALES" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalSales, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="TRANSACTIONS" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalTransactions}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="UNITS" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalUnits}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="AUB" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAub, StringFormat={}{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="ABV" FontSize="8.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAbv, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="SALES" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalSales, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="TRANSACTIONS" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalTransactions}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="UNITS" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalUnits}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="AUB" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAub, StringFormat={}{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="ABV" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAbv, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
                                                     <Border Grid.Column="6" Background="{StaticResource CfLine}" Height="23" VerticalAlignment="Center"/>
                                                     <Grid Grid.Column="7">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT QTY" FontSize="8" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardQuantity}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT SALES" FontSize="8" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardSales, StringFormat=£{0:N2}}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT QTY" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardQuantity}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT SALES" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardSales, StringFormat=£{0:N2}}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -1454,7 +1462,7 @@
                                         <TextBlock Grid.Column="1" Text="ABV (£)" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         <TextBlock Grid.Column="2" Text="AUB" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
                                         <Border Width="122" Height="30" Background="White" BorderBrush="#CFDAE8" BorderThickness="1" CornerRadius="10">
                                             <TextBox Height="26" Margin="1,0" VerticalAlignment="Center"
                                                      Text="{Binding SalesTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
@@ -1469,7 +1477,7 @@
                                         <TextBlock Text="{Binding SalesSummaryText}" Tag="{Binding SalesVarianceState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
                                         <Border Width="122" Height="30" Background="White" BorderBrush="#CFDAE8" BorderThickness="1" CornerRadius="10">
                                             <TextBox Height="26" Margin="1,0" VerticalAlignment="Center"
                                                      Text="{Binding AbvTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
@@ -1484,7 +1492,7 @@
                                         <TextBlock Text="{Binding AbvSummaryText}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
                                         <Border Width="122" Height="30" Background="White" BorderBrush="#CFDAE8" BorderThickness="1" CornerRadius="10">
                                             <TextBox Height="26" Margin="1,0" VerticalAlignment="Center"
                                                      Text="{Binding AubTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
@@ -1879,6 +1887,41 @@
                  across the top with the card crushed into 93px, instead of covering the
                  window. Panel.ZIndex was right and made no difference, because the element
                  never had the size to cover anything in the first place. -->
+            <!-- Deep check 1: the status note. Shows what the app just did for a few seconds
+                 (ShowNotice in code); clicks pass through it. -->
+            <Border x:Name="NoticeToast"
+                    Grid.Row="0"
+                    Grid.RowSpan="2"
+                    Panel.ZIndex="950"
+                    Visibility="Collapsed"
+                    Opacity="0"
+                    IsHitTestVisible="False"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,26"
+                    MaxWidth="640"
+                    Background="{StaticResource CfDeepBlue}"
+                    CornerRadius="12"
+                    Padding="11,9,16,9">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="14" ShadowDepth="3" Opacity="0.25" Color="#183153" />
+                </Border.Effect>
+                <StackPanel Orientation="Horizontal">
+                    <Border x:Name="NoticeDot" Width="20" Height="20" CornerRadius="10" Background="#2FB866" VerticalAlignment="Center">
+                        <Grid>
+                            <Path x:Name="NoticeTick" Data="M2,6.5 L4.8,9.2 L10,3.5" Stroke="White" StrokeThickness="2"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                  Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Path x:Name="NoticeBang" Data="M2,1.5 L2,6.5 M2,9.3 L2,9.5" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2.2"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" Visibility="Collapsed"
+                                  Width="4" Height="11" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <TextBlock x:Name="NoticeText" Foreground="White" FontFamily="Arial" FontSize="12" FontWeight="Bold"
+                               Margin="10,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="590" />
+                </StackPanel>
+            </Border>
+
             <Grid x:Name="RetrievalOverlay"
                   Grid.Row="0"
                   Grid.RowSpan="2"

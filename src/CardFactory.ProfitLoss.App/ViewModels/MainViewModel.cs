@@ -501,7 +501,16 @@ public sealed class MainViewModel : ObservableObject
         StatusText = "Saved calculator state loaded";
     }
 
-    public void SetStatus(string text) => StatusText = text;
+    /// <summary>Raised by <see cref="SetStatus"/>; the window shows it as a short note at the bottom.</summary>
+    public event EventHandler<string>? Notice;
+
+    /// <param name="notify">False for routine lines (switching section, starting up) that
+    /// should not pop up a note.</param>
+    public void SetStatus(string text, bool notify = true)
+    {
+        StatusText = text;
+        if (notify) Notice?.Invoke(this, text);
+    }
 
     public void ResetAppSettings()
     {

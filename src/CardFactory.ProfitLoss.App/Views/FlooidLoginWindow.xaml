@@ -97,7 +97,7 @@
                                        Text="Preparing secure sign-in…"
                                        Foreground="#D6E4F5"
                                        FontFamily="Arial"
-                                       FontSize="9" />
+                                       FontSize="9.5" />
                         </StackPanel>
                     </StackPanel>
 
@@ -183,14 +183,14 @@
                                      Style="{StaticResource SignInPasswordStyle}" Margin="0,0,0,11"
                                      KeyDown="LoginPassword_KeyDown" />
 
-                        <CheckBox x:Name="RememberUsernameCheck"
+                        <CheckBox x:Name="RememberUsernameCheck" Style="{StaticResource CfCheckBoxStyle}"
                                   Content="Remember my username"
                                   FontFamily="Arial" FontSize="11"
                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,6" />
 
                         <!-- Stage 6B.19: this is what lets an expired session sign itself
                              back in. Off unless ticked, and unticking deletes the file. -->
-                        <CheckBox x:Name="RememberPasswordCheck"
+                        <CheckBox x:Name="RememberPasswordCheck" Style="{StaticResource CfCheckBoxStyle}"
                                   FontFamily="Arial" FontSize="11"
                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,14">
                             <TextBlock TextWrapping="Wrap">
@@ -246,6 +246,10 @@
                         </Border>
 
                         <ScrollViewer MaxHeight="210" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <!-- Deep check 4: the slim themed scrollbar, as on Team. -->
+                            <ScrollViewer.Resources>
+                                <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
+                            </ScrollViewer.Resources>
                             <ItemsControl x:Name="StoreList">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
@@ -283,7 +287,7 @@
                             </ItemsControl>
                         </ScrollViewer>
 
-                        <CheckBox x:Name="RememberStoreCheck"
+                        <CheckBox x:Name="RememberStoreCheck" Style="{StaticResource CfCheckBoxStyle}"
                                   Content="Remember this store"
                                   IsChecked="True"
                                   FontFamily="Arial" FontSize="11"
@@ -307,7 +311,7 @@
                     <TextBlock Text="Signing in goes to Flooid directly. Your password is only kept if you tick Stay signed in."
                                Foreground="{StaticResource CfMuted}"
                                FontFamily="Arial"
-                               FontSize="8.5"
+                               FontSize="9.5"
                                VerticalAlignment="Center" />
                     <TextBlock x:Name="BackToSimpleSignInLink"
                                Margin="10,0,0,0"
@@ -316,7 +320,7 @@
                         <Hyperlink Click="BackToSimpleSignIn_Click"
                                    Foreground="{StaticResource CfBlue}"
                                    TextDecorations="Underline">
-                            <Run Text="Back to the simple sign in" FontFamily="Arial" FontSize="8.5" />
+                            <Run Text="Back to the simple sign in" FontFamily="Arial" FontSize="9.5" />
                         </Hyperlink>
                     </TextBlock>
                 </StackPanel>
@@ -332,7 +336,7 @@
                     <TextBlock Text="Connected"
                                Foreground="#0B7A35"
                                FontFamily="Arial"
-                               FontSize="8.5"
+                               FontSize="9.5"
                                FontWeight="Bold" />
                 </Border>
             </Grid>

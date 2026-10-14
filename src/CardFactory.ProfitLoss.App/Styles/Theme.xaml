@@ -46,7 +46,7 @@
     <Style x:Key="HtmlFieldLabelStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
         <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="8" />
+        <Setter Property="FontSize" Value="9.5" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
     </Style>
@@ -448,7 +448,7 @@
     <Style x:Key="MenuTileHintStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
         <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="8" />
+        <Setter Property="FontSize" Value="9.5" />
         <Setter Property="Margin" Value="0,2,0,0" />
     </Style>
 
@@ -457,7 +457,7 @@
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
         <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="8" />
+        <Setter Property="FontSize" Value="9.5" />
         <Setter Property="FontWeight" Value="Bold" />
     </Style>
 
@@ -649,7 +649,7 @@
         <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="8.5" />
+        <Setter Property="FontSize" Value="9.5" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
@@ -730,7 +730,7 @@
         <Setter Property="BorderBrush" Value="#E0AC00" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="8.5" />
+        <Setter Property="FontSize" Value="9.5" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
@@ -991,7 +991,7 @@
     <Style x:Key="BranchTableHeaderTextStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
         <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="7.8" />
+        <Setter Property="FontSize" Value="9.5" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
@@ -1012,7 +1012,7 @@
     <Style x:Key="BranchSummaryLabelStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
         <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="6.6" />
+        <Setter Property="FontSize" Value="9.5" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="HorizontalAlignment" Value="Center" />
     </Style>
@@ -1020,9 +1020,76 @@
     <Style x:Key="BranchSummaryValueStyle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
         <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="9" />
+        <Setter Property="FontSize" Value="9.5" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="HorizontalAlignment" Value="Center" />
     </Style>
 
+
+    <!-- Deep check 2: every tooltip in the app, navy like the header and menus, instead
+         of the plain Windows box. Implicit, so it reaches every ToolTip="…" as it is. -->
+    <Style TargetType="ToolTip">
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="HasDropShadow" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Border Background="{StaticResource CfInk}" CornerRadius="8" Padding="10,7" Margin="4,4,8,8" MaxWidth="320">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.3" Color="#183153" />
+                        </Border.Effect>
+                        <ContentPresenter>
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Deep check 3: a rounded tick box in the app's blue, for the sign-in's "Remember…"
+         options. 18px box, 6px corners, CfLine edge; ticked = CfBlue with a white tick. -->
+    <Style x:Key="CfCheckBoxStyle" TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="Box" Width="18" Height="18" CornerRadius="6" Background="White"
+                                BorderBrush="{StaticResource CfLine}" BorderThickness="1.5" VerticalAlignment="Top" Margin="0,-1,0,0">
+                            <Path x:Name="Tick" Data="M2,6.5 L4.8,9.2 L10,3.5" Stroke="White" StrokeThickness="2"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                  Width="10" Height="10" Stretch="Uniform" Visibility="Collapsed"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ContentPresenter Grid.Column="1" Margin="9,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource CfBlue}" /></Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource CfBlue}" /></Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Box" Property="Background" Value="{StaticResource CfBlue}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource CfBlue}" />
+                            <Setter TargetName="Tick" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

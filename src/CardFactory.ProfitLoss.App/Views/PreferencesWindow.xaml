@@ -45,7 +45,7 @@
                         </Border>
                         <StackPanel Margin="10,0,0,0">
                             <TextBlock Text="Preferences" Foreground="White" FontFamily="Arial" FontSize="17" FontWeight="Bold" />
-                            <TextBlock Text="Saved for this portable app" Foreground="#D6E4F5" FontFamily="Arial" FontSize="9" Margin="0,2,0,0" />
+                            <TextBlock Text="Saved for this portable app" Foreground="#D6E4F5" FontFamily="Arial" FontSize="9.5" Margin="0,2,0,0" />
                         </StackPanel>
                     </StackPanel>
                     <Button Grid.Column="1" Width="28" Height="28" Content="×" FontSize="17"
@@ -56,13 +56,13 @@
             <Border Grid.Row="1" Margin="0,18,0,0" Padding="12,10"
                     Background="#FFFDF4" BorderBrush="#F0DE94" BorderThickness="1" CornerRadius="12">
                 <StackPanel>
-                    <TextBlock Text="STORE / LOCATION" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="8" FontWeight="Bold" Margin="2,0,0,5" />
+                    <TextBlock Text="STORE / LOCATION" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" Margin="2,0,0,5" />
                     <TextBox x:Name="LocationTextBox"
                              Height="30"
                              Tag="Enter store or location"
                              Style="{StaticResource HtmlWatermarkTextBoxStyle}" />
-                    <TextBlock Text="Used on saved files and future reports; it no longer takes space in the main header."
-                               Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" TextWrapping="Wrap" Margin="2,6,2,0" />
+                    <TextBlock Text="Shown on saved files and exports."
+                               Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9.5" TextWrapping="Wrap" Margin="2,6,2,0" />
                 </StackPanel>
             </Border>
 
@@ -77,12 +77,12 @@
                         <TextBlock Text="RESET APP SETTINGS"
                                    Foreground="{StaticResource CfBad}"
                                    FontFamily="Arial"
-                                   FontSize="8"
+                                   FontSize="9.5"
                                    FontWeight="Bold" />
                         <TextBlock Text="Restores Store / Location, targets and period settings to their defaults. Team figures and exported or manually saved files are kept."
                                    Foreground="{StaticResource CfMuted}"
                                    FontFamily="Arial"
-                                   FontSize="8.5"
+                                   FontSize="9.5"
                                    TextWrapping="Wrap"
                                    Margin="0,4,0,0" />
                     </StackPanel>

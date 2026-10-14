@@ -58,7 +58,45 @@ public partial class MainWindow : Window
         {
             viewModel.Operators.CollectionChanged += Operators_CollectionChanged;
             viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            viewModel.Notice += (_, text) => ShowNotice(text);
         }
+    }
+
+    // Deep check 1: every SetStatus used to land in a property nothing on screen showed.
+    // Now it shows as a navy note at the bottom for a few seconds - green tick for done,
+    // yellow "!" when something needs attention. Not while the retrieval box is up: that
+    // box is already reporting progress and errors itself.
+    private static readonly string[] NoticeProblemWords =
+        { "fail", "could not", "couldn't", "partial", "partly", "choose", "unavailable", "left blank", "without", "error", "sign in to" };
+    private System.Windows.Threading.DispatcherTimer? _noticeTimer;
+
+    private void ShowNotice(string text)
+    {
+        if (!IsLoaded || string.IsNullOrWhiteSpace(text) || RetrievalOverlay.Visibility == Visibility.Visible) return;
+
+        var problem = NoticeProblemWords.Any(w => text.Contains(w, StringComparison.OrdinalIgnoreCase));
+        NoticeText.Text = text;
+        NoticeDot.Background = problem ? (Brush)FindResource("CfYellow") : new SolidColorBrush(Color.FromRgb(0x2F, 0xB8, 0x66));
+        NoticeTick.Visibility = problem ? Visibility.Collapsed : Visibility.Visible;
+        NoticeBang.Visibility = problem ? Visibility.Visible : Visibility.Collapsed;
+
+        NoticeToast.Visibility = Visibility.Visible;
+        NoticeToast.BeginAnimation(OpacityProperty, new System.Windows.Media.Animation.DoubleAnimation(1, TimeSpan.FromMilliseconds(160)));
+
+        _noticeTimer ??= new System.Windows.Threading.DispatcherTimer();
+        _noticeTimer.Stop();
+        _noticeTimer.Interval = TimeSpan.FromSeconds(problem ? 7 : 4);
+        _noticeTimer.Tick -= NoticeTimer_Tick;
+        _noticeTimer.Tick += NoticeTimer_Tick;
+        _noticeTimer.Start();
+    }
+
+    private void NoticeTimer_Tick(object? sender, EventArgs e)
+    {
+        _noticeTimer?.Stop();
+        var fade = new System.Windows.Media.Animation.DoubleAnimation(0, TimeSpan.FromMilliseconds(300));
+        fade.Completed += (_, _) => { if (NoticeToast.Opacity == 0) NoticeToast.Visibility = Visibility.Collapsed; };
+        NoticeToast.BeginAnimation(OpacityProperty, fade);
     }
 
     // The Top performers strip appears after a Refresh and adds 36px to the Team page.
@@ -111,11 +149,11 @@ public partial class MainWindow : Window
             // Stage 6A.92: the date reset that used to live here (6A.73) is gone with the
             // restore it existed to correct. MainViewModel already starts on today with a
             // seven day range, and nothing overwrites it before the window is shown.
-            viewModel.SetStatus("Ready · figures clear on exit, use Save to keep a copy");
+            viewModel.SetStatus("Ready · figures clear on exit, use Save to keep a copy", notify: false);
         }
         catch
         {
-            viewModel.SetStatus("Ready · figures clear on exit, use Save to keep a copy");
+            viewModel.SetStatus("Ready · figures clear on exit, use Save to keep a copy", notify: false);
         }
     }
 
@@ -614,7 +652,7 @@ public partial class MainWindow : Window
         {
             viewModel.SetStatus(reports ? "Reports · voids, returns and no sales"
                 : branchActive ? "Branch Performance · team figures preserved"
-                : "Team Performance · branch figures preserved");
+                : "Team Performance · branch figures preserved", notify: false);
         }
     }
 
@@ -780,9 +818,13 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"The calculator file could not be saved.\n\n{ex.Message}", "Save File", MessageBoxButton.OK, MessageBoxImage.Warning);
+            ShowProblem("Couldn't save this day", "The file could not be saved.", ex.Message + " Try saving to Documents.");
         }
     }
+
+    // Deep check 5: the app's own message box instead of the grey Windows one.
+    private void ShowProblem(string title, string question, string detail) =>
+        new ThemedConfirmationWindow(title, question, detail, "OK", subtitle: "Nothing was changed", showCancel: false) { Owner = this }.ShowDialog();
 
     private async void LoadFile_Click(object sender, RoutedEventArgs e)
     {
@@ -804,7 +846,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"The calculator file could not be loaded.\n\n{ex.Message}", "Load File", MessageBoxButton.OK, MessageBoxImage.Warning);
+            ShowProblem("Couldn't open that day", "The file could not be opened.", ex.Message);
         }
     }
 

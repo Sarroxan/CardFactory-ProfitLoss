@@ -47,6 +47,10 @@
             <TextBlock Text="WHAT'S NEW" Margin="0,18,0,6" Foreground="{StaticResource CfMuted}"
                        FontFamily="Arial" FontSize="9.5" FontWeight="Bold" />
             <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <!-- Deep check 4: the slim themed scrollbar, as on Team. -->
+                <ScrollViewer.Resources>
+                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
+                </ScrollViewer.Resources>
                 <TextBlock x:Name="NotesText" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial"
                            FontSize="12" LineHeight="19" TextWrapping="Wrap" />
             </ScrollViewer>
