@@ -21,6 +21,23 @@ Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Target
 and strip-size fix from `next-update` were never merged; the dashboard changes size when
 switching sections; the section-bar titles are blurry.
 
+## On `main`, not yet released - v1.3.5
+
+Test build green (run 38559299552, 14 Oct 2026); merged into `main` at the owner's say-so.
+Release with Actions -> Publish release, version 1.3.5.
+
+| Change | Proven | Check in the app |
+|--------|--------|------------------|
+| Print Daily Briefing (Menu): the store's own sheet with the day's figures | Compiles; layout preview from the same box positions | Print to "Microsoft Print to PDF": every figure in its box; a 9:00 day; no Reports; 8+ people |
+| Export and Print include Reports, app colours | Compiles; HTML preview | With and without Reports generated |
+| New app icon (A3); header logo as shapes; logo square in the header blue | Compiles | Look on a till |
+| Smaller download: language packs gone | Build notice: download 61.6 MB (was 69.3), exe 142.3 MB (was 165) | - |
+| Windows Forms removal | **Did not work** - the build notice says it is still inside | Left as is unless the owner asks |
+| Crash safety net; one copy at a time; update check every 3 hours | Compiles | Open the app twice; update from 1.3.0 after release |
+
+Daily Briefing Sales Actual uses the app's counted sales (gift cards excluded), as the
+Targets section does - owner asked whether to switch to full store sales; not answered yet.
+
 ## Released - v1.3.0 (13 Oct 2026, from `a509c48`), latest
 
 Published by the owner with Actions -> Publish release (run 38325603649), build run
