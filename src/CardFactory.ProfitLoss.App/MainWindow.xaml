@@ -1601,6 +1601,17 @@
                             <TextBlock Text="Print" FontWeight="Bold" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
+                    <!-- The store's own Daily Briefing sheet, filled in with the day's figures
+                         (Services/DailyBriefingSheet.cs). Same row style as Print. -->
+                    <Button Style="{StaticResource MenuRowButtonStyle}" Height="36" Click="PrintDailyBriefing_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#FFF6C9" Margin="-4,0,12,0">
+                                <Path Data="M5,3 L15,3 L15,17 L5,17 Z M8,7 L12,7 M8,10 L12,10 M8,13 L10.5,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" Stretch="Uniform" />
+                            </Border>
+                            <TextBlock Text="Print Daily Briefing" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                     <TextBlock Text="RETRIEVAL SPEED" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="8.5" FontWeight="Bold" Margin="2,14,0,6" />
                     <Border Height="40" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="12">
                         <Grid>

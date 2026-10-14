@@ -777,6 +777,11 @@ public sealed class MainViewModel : ObservableObject
     public string ReportStaffDiscountText { get => _reportStaffDiscountText; private set => SetProperty(ref _reportStaffDiscountText, value); }
     public string ReportStaffDiscountDetail { get => _reportStaffDiscountDetail; private set => SetProperty(ref _reportStaffDiscountDetail, value); }
 
+    /// <summary>Staff discount total and item count as numbers (the Daily Briefing prints them);
+    /// null when the Discounts and Price Overrides report has not been retrieved.</summary>
+    public decimal? ReportStaffDiscountValue => _reportStaffDiscounts?.Sum(line => line.DiscountValue);
+    public decimal? ReportStaffDiscountQuantity => _reportStaffDiscounts?.Sum(line => line.Quantity);
+
     public void ApplyActivityReport(IReadOnlyList<OperatorActivityRecord> activity)
     {
         _reportActivity = activity;

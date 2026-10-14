@@ -830,6 +830,40 @@ public partial class MainWindow : Window
         }
     }
 
+    // The store's Daily Briefing sheet with the day's figures filled in, for the team to
+    // complete by hand. One day only: the sheet is a daily form.
+    private void PrintDailyBriefing_Click(object sender, RoutedEventArgs e)
+    {
+        MainMenuPopup.IsOpen = false;
+        if (DataContext is not MainViewModel viewModel) return;
+        if (viewModel.IsRangeMode)
+        {
+            viewModel.SetStatus("The Daily Briefing is for one day · choose Single day in the calendar, then print it");
+            return;
+        }
+        try
+        {
+            var data = DailyBriefingSheet.FromViewModel(viewModel);
+            var dialog = new PrintDialog();
+            dialog.PrintTicket.PageOrientation = System.Printing.PageOrientation.Landscape;
+            if (dialog.ShowDialog() != true) return;
+            dialog.PrintTicket.PageOrientation = System.Printing.PageOrientation.Landscape;
+            var document = DailyBriefingSheet.Build(data);
+            dialog.PrintDocument(document.DocumentPaginator, $"Daily Briefing {data.Date:dd/MM/yyyy}");
+            var missing = new List<string>();
+            if (data.Hours.Count == 0) missing.Add("hourly figures (Refresh from Branch)");
+            if (data.Reports is null) missing.Add("voids and refunds (Generate reports)");
+            if (data.Team.Count == 0) missing.Add("team figures (Refresh from Team)");
+            viewModel.SetStatus(missing.Count == 0
+                ? $"Daily Briefing for {data.Date:dd/MM/yyyy} sent to printer"
+                : $"Daily Briefing sent to printer · left blank: {string.Join(", ", missing)}");
+        }
+        catch (Exception ex)
+        {
+            viewModel.SetStatus("Daily Briefing could not be printed · " + ex.Message);
+        }
+    }
+
     private void PrintReport_Click(object sender, RoutedEventArgs e)
     {
         MainMenuPopup.IsOpen = false;
