@@ -186,11 +186,16 @@
                         <StackPanel Orientation="Horizontal">
                             <Image Width="50" Height="50" Source="/Assets/HeaderSmileyFace.png" VerticalAlignment="Center"
                                    RenderOptions.BitmapScalingMode="HighQuality" />
+                            <!-- Logo E1: company in small spaced capitals over the product name. -->
                             <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="Card Factory P&amp;L" FontFamily="{StaticResource CfTitleFont}" FontSize="30"
-                                           Foreground="{StaticResource CfYellow}" />
+                                <StackPanel Orientation="Horizontal" TextBlock.FontFamily="Arial" TextBlock.FontSize="10.5"
+                                            TextBlock.FontWeight="Bold" TextBlock.Foreground="#D6E4F5">
+                                    <TextBlock Text="C" Margin="0,0,1.8,0" /><TextBlock Text="A" Margin="0,0,1.8,0" /><TextBlock Text="R" Margin="0,0,1.8,0" /><TextBlock Text="D" Margin="0,0,1.8,0" /><TextBlock Text=" " Margin="0,0,3,0" /><TextBlock Text="F" Margin="0,0,1.8,0" /><TextBlock Text="A" Margin="0,0,1.8,0" /><TextBlock Text="C" Margin="0,0,1.8,0" /><TextBlock Text="T" Margin="0,0,1.8,0" /><TextBlock Text="O" Margin="0,0,1.8,0" /><TextBlock Text="R" Margin="0,0,1.8,0" /><TextBlock Text="Y" Margin="0,0,1.8,0" />
+                                </StackPanel>
+                                <TextBlock Text="Profit &amp; Loss" FontFamily="{StaticResource CfBrandFont}" FontSize="28"
+                                           Foreground="{StaticResource CfYellow}" Margin="0,-1,0,0" />
                                 <TextBlock Text="Sign in with your Flooid account" FontFamily="Arial" FontSize="11"
-                                           Foreground="#D6E4F5" Margin="0,2,0,0" />
+                                           Foreground="#D6E4F5" Margin="0,1,0,0" />
                             </StackPanel>
                         </StackPanel>
                     </Border>

@@ -34,6 +34,8 @@
          again by the dashboard's Viewbox, which softened them. Text is drawn sharp at any scale.
          18px matches the old artwork's width to within 2px. -->
     <FontFamily x:Key="CfTitleFont">pack://application:,,,/Assets/Fonts/#Chewy</FontFamily>
+    <!-- Logo E1: the rounded lettering of the logo's product name (Fredoka SemiBold, embedded; OFL). -->
+    <FontFamily x:Key="CfBrandFont">pack://application:,,,/Assets/Fonts/#Fredoka SemiBold</FontFamily>
     <Style x:Key="SectionTitleTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource CfTitleFont}" />
         <Setter Property="FontSize" Value="18" />
