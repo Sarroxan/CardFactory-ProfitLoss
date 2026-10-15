@@ -1,5 +1,6 @@
 """
-Renders Assets/CardFactory.ProfitLoss.ico, the app icon (exe, taskbar, window): logo S2
+Renders Assets/CardFactory.ProfitLoss.ico, the app icon (exe, taskbar, window), and
+Assets/AppIcon.png, the same mark for the title bars: logo S2
 (owner, 15 Oct 2026).
 
 The Card Factory smiley - Assets/HeaderSmileyFace.png, the same image the header and
@@ -40,3 +41,7 @@ if __name__ == '__main__':
     out = os.path.join(ASSETS, 'CardFactory.ProfitLoss.ico')
     images[-1].save(out, format='ICO', sizes=[(s, s) for s in SIZES], append_images=images[:-1])
     print(out, SIZES)
+    # The same mark as a picture for the window title bars (main window, Flooid sign-in).
+    png = os.path.join(ASSETS, 'AppIcon.png')
+    draw(128).save(png, optimize=True)
+    print(png)

@@ -34,13 +34,13 @@
 
   <ItemGroup>
     <None Remove="Assets\CardFactory.ProfitLoss.ico" />
-    <None Remove="Assets\HeaderSmiley.png" />
+    <None Remove="Assets\AppIcon.png" />
     <None Remove="Assets\HeaderSmileyFace.png" />
     <None Remove="Assets\SectionSmiley.png" />
     <None Remove="Assets\DailyBriefing-1.png" />
     <None Remove="Assets\DailyBriefing-2.png" />
     <Resource Include="Assets\CardFactory.ProfitLoss.ico" />
-    <Resource Include="Assets\HeaderSmiley.png" />
+    <Resource Include="Assets\AppIcon.png" />
     <Resource Include="Assets\HeaderSmileyFace.png" />
     <Resource Include="Assets\SectionSmiley.png" />
     <Resource Include="Assets\Fonts\Chewy-Regular.ttf" />

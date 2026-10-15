@@ -82,7 +82,7 @@
 
                     <!-- Stage 6B.66 (icon I1): the app's own smiley, as in the main window, in
                          place of the arrow mark. -->
-                    <Image Width="36" Height="36" Source="/Assets/HeaderSmiley.png" VerticalAlignment="Center" Margin="0,0,10,0"
+                    <Image Width="30" Height="30" Source="/Assets/AppIcon.png" VerticalAlignment="Center" Margin="0,0,10,0"
                            RenderOptions.BitmapScalingMode="HighQuality" />
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">

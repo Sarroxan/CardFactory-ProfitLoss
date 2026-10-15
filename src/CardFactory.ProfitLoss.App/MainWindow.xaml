@@ -200,10 +200,13 @@
                 <Grid Margin="12,0,8,0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Stage 6A.28: restore a clearly visible application icon in the custom title bar. -->
-                        <Image Width="30"
-                               Height="30"
-                               Source="Assets/HeaderSmiley.png"
+                        <!-- Stage 6A.28: restore a clearly visible application icon in the custom title bar.
+                             Deep check 1 (15 Oct): the app icon itself (S2, AppIcon.png), so the title bar,
+                             taskbar and desktop show one mark. -->
+                        <Image Width="24"
+                               Height="24"
+                               Margin="3,0,3,0"
+                               Source="Assets/AppIcon.png"
                                Stretch="Uniform"
                                RenderOptions.BitmapScalingMode="HighQuality" />
                         <TextBlock Text="Card Factory Profit &amp; Loss Calculator"
@@ -223,55 +226,32 @@
                                 Margin="0,0,8,0" VerticalAlignment="Center" FocusVisualStyle="{x:Null}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Chip" Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="1.5" CornerRadius="12" Padding="4,0,11,0">
+                                    <Border x:Name="Chip" Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="1.5" CornerRadius="12" Padding="10,0,11,0">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Viewbox x:Name="FaceHappy" Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center" Visibility="Collapsed">
-                                                <Canvas Width="20" Height="20">
-                                                    <Ellipse Canvas.Left="0.8" Canvas.Top="0.8" Width="18.4" Height="18.4" Fill="#2FB866" Stroke="#0B7A35" StrokeThickness="1.2" />
-                                                    <Ellipse Canvas.Left="5.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
-                                                    <Ellipse Canvas.Left="11.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
-                                                    <Path Data="M5.8,11.6 Q10,16.4 14.2,11.6" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2.1" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-                                                </Canvas>
-                                            </Viewbox>
-                                            <Viewbox x:Name="FacePlain" Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center" Visibility="Collapsed">
-                                                <Canvas Width="20" Height="20">
-                                                    <Ellipse Canvas.Left="0.8" Canvas.Top="0.8" Width="18.4" Height="18.4" Fill="{StaticResource CfYellow}" Stroke="#B88A00" StrokeThickness="1.2" />
-                                                    <Ellipse Canvas.Left="5.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
-                                                    <Ellipse Canvas.Left="11.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
-                                                    <Path Data="M6.4,13 L13.6,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2.1" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-                                                </Canvas>
-                                            </Viewbox>
-                                            <Viewbox x:Name="FaceSad" Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center" Visibility="Collapsed">
-                                                <Canvas Width="20" Height="20">
-                                                    <Ellipse Canvas.Left="0.8" Canvas.Top="0.8" Width="18.4" Height="18.4" Fill="#E5484D" Stroke="#9E2A2E" StrokeThickness="1.2" />
-                                                    <Ellipse Canvas.Left="5.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
-                                                    <Ellipse Canvas.Left="11.5" Canvas.Top="6.3" Width="3" Height="3" Fill="{StaticResource CfDeepBlue}" />
-                                                    <Path Data="M5.8,14.6 Q10,10.2 14.2,14.6" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2.1" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-                                                </Canvas>
-                                            </Viewbox>
+                                            <!-- Deep check 2 (owner, 15 Oct): a plain status dot instead of the three drawn
+                                                 faces, which competed with the real smiley in the header. Grey while
+                                                 checking, green up to date, amber update available, red can't check. -->
+                                            <Ellipse x:Name="VersionDot" Width="8" Height="8" Margin="0,0,7,0" VerticalAlignment="Center" Fill="#A5C0DD" />
                                             <TextBlock x:Name="ChipText" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" VerticalAlignment="Center"
-                                                       Margin="7,0,0,0" FontFamily="Arial" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource CfMuted}" />
+                                                       Margin="0" FontFamily="Arial" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource CfMuted}" />
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="Tag" Value="UpToDate">
-                                            <Setter TargetName="FaceHappy" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="VersionDot" Property="Fill" Value="#2FB866" />
                                             <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-                                            <Setter TargetName="ChipText" Property="Margin" Value="0" />
                                             <Setter Property="Cursor" Value="Hand" />   <!-- click to check again -->
                                         </Trigger>
                                         <Trigger Property="Tag" Value="Available">
-                                            <Setter TargetName="FacePlain" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="VersionDot" Property="Fill" Value="#E0A800" />
                                             <Setter TargetName="Chip" Property="Background" Value="#FFFBEA" />
                                             <Setter TargetName="Chip" Property="BorderBrush" Value="{StaticResource CfYellow}" />
                                             <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-                                            <Setter TargetName="ChipText" Property="Margin" Value="0" />
                                             <Setter Property="Cursor" Value="Hand" />
                                         </Trigger>
                                         <Trigger Property="Tag" Value="CantCheck">
-                                            <Setter TargetName="FaceSad" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="VersionDot" Property="Fill" Value="#E04A55" />
                                             <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-                                            <Setter TargetName="ChipText" Property="Margin" Value="0" />
                                             <Setter Property="Cursor" Value="Hand" />   <!-- click to check again -->
                                         </Trigger>
                                         <MultiTrigger>
@@ -393,8 +373,7 @@
                                      so it is sharp at any scale: the same smiley, letters and bars, each letter where the
                                      old artwork had it (within 0.3px). The Viewbox fits it to the old 330x84 slot.
                                      The smiley's square is see-through here (HeaderSmileyFace.png), so it is
-                                     the header's own blue rather than the brighter #0056BD of HeaderSmiley.png,
-                                     which the title bar and sign-in window still use on white. -->
+                                     the header's own blue. -->
                                 <!-- Logo E1 (owner, 15 Oct): the company's name in small spaced capitals over
                                      the product name, beside the S2 mark - the Card Factory smiley (the same
                                      image as before, unchanged) with a white badge of three bars. "Card
@@ -628,7 +607,7 @@
                                             <Border x:Name="FlooidPill" Background="White" BorderBrush="{StaticResource CfYellow}" BorderThickness="2" CornerRadius="18">
                                                 <Grid Margin="13,0,11,0">
                                                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="20"/></Grid.ColumnDefinitions>
-                                                    <Ellipse x:Name="FlooidTemplateStatusDot" Grid.Column="0" Width="9" Height="9" Fill="#8A99AD" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                    <Ellipse x:Name="FlooidTemplateVersionDot" Grid.Column="0" Width="9" Height="9" Fill="#8A99AD" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                                     <TextBlock x:Name="FlooidConnectText" Grid.Column="1" Text="FLOOID LOGIN" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="10.5" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                                     <Path x:Name="FlooidConnectArrow" Grid.Column="2" Data="M2,8 L16,8 M11,3 L16,8 L11,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Grid>
@@ -641,16 +620,16 @@
                                                      window is still the only way to force a fresh sign-in when Flooid has
                                                      timed the session out. -->
                                                 <Trigger Property="Tag" Value="Good">
-                                                    <Setter TargetName="FlooidTemplateStatusDot" Property="Fill" Value="#35C46F"/>
+                                                    <Setter TargetName="FlooidTemplateVersionDot" Property="Fill" Value="#35C46F"/>
                                                     <Setter TargetName="FlooidConnectText" Property="Text" Value="CONNECTED"/>
                                                     <Setter TargetName="FlooidConnectArrow" Property="Visibility" Value="Collapsed"/>
                                                 </Trigger>
                                                 <Trigger Property="Tag" Value="Working">
-                                                    <Setter TargetName="FlooidTemplateStatusDot" Property="Fill" Value="{StaticResource CfYellow}"/>
-                                                    <Setter TargetName="FlooidTemplateStatusDot" Property="Stroke" Value="{StaticResource CfDeepBlue}"/>
-                                                    <Setter TargetName="FlooidTemplateStatusDot" Property="StrokeThickness" Value="1.5"/>
+                                                    <Setter TargetName="FlooidTemplateVersionDot" Property="Fill" Value="{StaticResource CfYellow}"/>
+                                                    <Setter TargetName="FlooidTemplateVersionDot" Property="Stroke" Value="{StaticResource CfDeepBlue}"/>
+                                                    <Setter TargetName="FlooidTemplateVersionDot" Property="StrokeThickness" Value="1.5"/>
                                                 </Trigger>
-                                                <Trigger Property="Tag" Value="Bad"><Setter TargetName="FlooidTemplateStatusDot" Property="Fill" Value="#FF6B73"/></Trigger>
+                                                <Trigger Property="Tag" Value="Bad"><Setter TargetName="FlooidTemplateVersionDot" Property="Fill" Value="#FF6B73"/></Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
