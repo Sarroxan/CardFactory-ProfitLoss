@@ -26,6 +26,7 @@ switching sections; the section-bar titles are blurry.
 | Change | Proven | Check in the app |
 |--------|--------|------------------|
 | **Flooid sign-in S2** (owner, 15 Oct): laid out like Flooid's own login page - card on a blue background, navy banner (smiley, "Card Factory P&L", "Sign in with your Flooid account", yellow edge), Username / Password above white fields, the two tick boxes, a yellow Login, "Forgot your password?" (opens Flooid's own page, whose link resets it) and "Show the Flooid page". Fields lose their icons. | XAML parses, names and handlers match; not compiled | Card fits the window; typing and Login; Enter in the password box; error box; Forgot / Show the Flooid page then Back to the simple sign in; the Choose a store step under the same banner |
+| **Menu button D1** (owner, 15 Oct): same place; navy pill with "Menu" in the Chewy title lettering; hover adds the yellow ring; while the menu is open it is yellow and reads "Close" with a cross (Tag="Open" from the popup's Opened/Closed). Width 78 (was 68), menu offset moved to match. Pressing Close no longer reopens the menu (300 ms guard). | XAML parses, names and handlers match; not compiled | Rest, hover, open; Close shuts it; clicking elsewhere shuts it and the button goes back to navy; menu lines up under the button |
 
 ## Released - v1.4.0 (15 Oct 2026, from `67b2de4`), latest
 

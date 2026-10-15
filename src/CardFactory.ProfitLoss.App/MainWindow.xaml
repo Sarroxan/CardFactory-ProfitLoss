@@ -287,22 +287,45 @@
                         </Button>
                         <!-- Stage 6B.68 (M3): a labelled "Menu" pill in the Add person style, so it no
                              longer looks like a third window button beside minimise and close. -->
-                        <Button x:Name="MenuButton" ToolTip="Menu" Click="MenuButton_Click" Width="68" Height="24"
+                        <!-- D1 (owner, 15 Oct): a navy pill with "Menu" in the section-title lettering,
+                             so it reads as the app's button rather than another label like the
+                             version chip beside it. Hover adds the yellow ring the section bars wear;
+                             while the menu is open (Tag="Open", set from the popup's Opened/Closed)
+                             it turns yellow and reads "Close" with a cross. Fixed width so the menu,
+                             which lines up with its right edge, never shifts. -->
+                        <Button x:Name="MenuButton" ToolTip="Menu" Click="MenuButton_Click" Width="78" Height="24"
                                 Margin="0,0,8,0" VerticalAlignment="Center" Cursor="Hand" FocusVisualStyle="{x:Null}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="MenuPill" Background="White" BorderBrush="{StaticResource CfDeepBlue}"
-                                            BorderThickness="1.5" CornerRadius="12">
+                                    <Border x:Name="MenuPill" Background="{StaticResource CfDeepBlue}" BorderBrush="{StaticResource CfDeepBlue}"
+                                            BorderThickness="2" CornerRadius="12">
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <Path Data="M3,5 L15,5 M3,9 L15,9 M3,13 L15,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.9"
-                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
-                                            <TextBlock Text="Menu" Margin="6,0,0,0" VerticalAlignment="Center"
-                                                       FontFamily="Arial" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
+                                            <Grid Width="12" Height="12" VerticalAlignment="Center">
+                                                <Path x:Name="MenuLines" Data="M3,5 L15,5 M3,9 L15,9 M3,13 L15,13" Stroke="White" StrokeThickness="1.9"
+                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Stretch="Uniform" />
+                                                <Path x:Name="MenuCross" Data="M4.5,4.5 L13.5,13.5 M13.5,4.5 L4.5,13.5" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.9"
+                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" Stretch="Uniform" Margin="1" Visibility="Collapsed" />
+                                            </Grid>
+                                            <TextBlock x:Name="MenuLabel" Text="Menu" Margin="6,0,0,1" VerticalAlignment="Center"
+                                                       FontFamily="{StaticResource CfTitleFont}" FontSize="14" Foreground="White" />
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="MenuPill" Property="Background" Value="#F5F9FF" /></Trigger>
-                                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="MenuPill" Property="Background" Value="#E4EDF7" /></Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="MenuPill" Property="Background" Value="#0A5BBF" />
+                                            <Setter TargetName="MenuPill" Property="BorderBrush" Value="{StaticResource CfYellow}" />
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="MenuPill" Property="Background" Value="#00468F" />
+                                        </Trigger>
+                                        <Trigger Property="Tag" Value="Open">
+                                            <Setter TargetName="MenuPill" Property="Background" Value="{StaticResource CfYellow}" />
+                                            <Setter TargetName="MenuPill" Property="BorderBrush" Value="{StaticResource CfYellow}" />
+                                            <Setter TargetName="MenuLines" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="MenuCross" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="MenuLabel" Property="Text" Value="Close" />
+                                            <Setter TargetName="MenuLabel" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                        </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Button.Template>
@@ -1540,7 +1563,9 @@
                AllowsTransparency="True"
                PopupAnimation="Fade"
                VerticalOffset="10"
-               HorizontalOffset="-452">
+               HorizontalOffset="-442"
+               Opened="MainMenuPopup_Opened"
+               Closed="MainMenuPopup_Closed">
             <Popup.Resources>
                 <!-- A tab on the left: pale blue when open (Tag="Active"). The icon follows the text colour. -->
                 <Style x:Key="MenuTabStyle" TargetType="Button">

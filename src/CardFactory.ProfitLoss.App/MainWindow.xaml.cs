@@ -578,8 +578,20 @@ public partial class MainWindow : Window
         CheckForUpdatesDetail.Text = text;
     }
 
+    // D1: the Menu button shows "Close" in yellow while the menu is open, however it closes.
+    // Pressing "Close" first closes the popup (it closes on any click outside it), then the
+    // click lands on the button; without this check that click would open it straight again.
+    private DateTime _menuClosedAtUtc = DateTime.MinValue;
+    private void MainMenuPopup_Opened(object? sender, EventArgs e) => MenuButton.Tag = "Open";
+    private void MainMenuPopup_Closed(object? sender, EventArgs e)
+    {
+        MenuButton.Tag = null;
+        _menuClosedAtUtc = DateTime.UtcNow;
+    }
+
     private void MenuButton_Click(object sender, RoutedEventArgs e)
     {
+        if (!MainMenuPopup.IsOpen && DateTime.UtcNow - _menuClosedAtUtc < TimeSpan.FromMilliseconds(300)) return;
         MainMenuPopup.PlacementTarget = MenuButton;
         UpdateCheckForUpdatesDetail();
         UpdateDailyBriefingCardDetail();
