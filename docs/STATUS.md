@@ -21,7 +21,9 @@ Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Target
 and strip-size fix from `next-update` were never merged; the dashboard changes size when
 switching sections; the section-bar titles are blurry.
 
-## Version 1.4.0 - in `main`, not yet released
+## Released - v1.4.0 (15 Oct 2026, from `67b2de4`), latest
+
+Published by the owner with Actions -> Publish release (run 38767312139); release build 38767343419 green. Annotated tag by "Card Factory Profit and Loss"; zip (64.6 MB, checksum matches, exe reports 1.4.0) and `.sha256` attached; six-line notes. v1.3.5, v1.3.0 and v1.2.0 still listed.
 
 Tried on a till by the owner (15 Oct): "Works perfectly". Merged into `main` as 1.4.0 for release.
 
