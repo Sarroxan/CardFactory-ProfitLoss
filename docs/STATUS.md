@@ -21,7 +21,13 @@ Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Target
 and strip-size fix from `next-update` were never merged; the dashboard changes size when
 switching sections; the section-bar titles are blurry.
 
-## Next update - on branch `signin-s2`, not built
+## Next update - version 1.0.0 (owner, 15 Oct: "this is the start, V1"), on branch `signin-s2`
+
+The number goes back to 1.0.0 by the owner's choice. The updater only installs a higher
+number than it has, so tills on 1.2.0-1.4.0 will NOT update to 1.0.0 by themselves: each
+needs the 1.0.0 zip installed once by hand. From then on 1.0.x / 1.x updates arrive as
+usual. The release build marks v1.0.0 as latest (--latest). Older releases (v1.2.0-v1.4.0)
+can be removed by the owner once 1.0.0 is out.
 
 | Change | Proven | Check in the app |
 |--------|--------|------------------|
