@@ -6,36 +6,29 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## Released
+## Next update - on branch `housekeeping`, not built
 
-**v1.2.0** (12 Oct 2026, from `dad5962`) - latest. Zip and `.sha256` attached, notes set.
-Confirmed by the owner in the app: Reports section (voids, returns, no sales per person,
-£20+ highlighted), staff discounts in Reports, top performers strip, header freshness,
-hourly bars, colours, version chip. Figures cross-check on the owner's screenshots: Team
-totals £898.65 / 176 transactions match Branch; ABV and AUB arithmetic correct.
+| Change | Proven | Check |
+|--------|--------|-------|
+| Remove release workflow gets a display name (`name: Remove release`); Actions listed it by its file path | YAML valid | Shows as "Remove release" in Actions once on `main` |
+| Publish release and Remove release run on `ubuntu-24.04` instead of `ubuntu-latest`, which GitHub moves to Ubuntu 26 from 19 Oct 2026 | YAML valid | Next release / removal runs as before |
+| STATUS brought up to date (re-publish recorded, v1.2.0 no longer shown as latest, release rights) | - | - |
 
-v1.1.0 is still listed. Under the README's milestone rule, older releases are removed only
-after the owner approves the list - not yet asked for.
+## Released - v1.0.0 (15 Oct 2026), latest - the owner's fresh start (V1)
 
-Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Targets section
-and strip-size fix from `next-update` were never merged; the dashboard changes size when
-switching sections; the section-bar titles are blurry.
+**Re-published 15 Oct 2026, 19:36, from `03a81de`** with Title Y1 (below), at the owner's request, keeping the number 1.0.0: Remove release (run 38786657088) deleted the first v1.0.0 release and tag, Publish release (run 38786708374) re-tagged with the same notes, release build 38786732768 green. Zip 64.6 MB, checksum matches the `.sha256`, exe reports 1.0.0, marked latest. Main build 38786294710 green. Tills that installed the first 1.0.0 (before 19:36) do not pick up the replacement by themselves (same number): reinstall from the release zip, or it arrives with the next higher version.
 
-## Next update - on branch `title-k3`, not built
-
-| Change | Proven | Check in the app |
+| Change (in the re-publish) | Proven | Check in the app |
 |--------|--------|------------------|
 | **Title Y1** (owner, 15 Oct; replaces K3, whose "Card Factory" in Chewy 21 had its "y" touching the title): the pre-V1 logo's own sizes and spacing - "Card Factory" Fredoka 14, "Profit & Loss" Chewy 42, CALCULATOR Fredoka 12 between two yellow bars - beside the V1 smiley and badge; tops worked out from the font metrics so the "y" clears the title by 5px. Same on the sign-in banner and the Export / Print header (export embeds Chewy and Fredoka). Headline totals back to Arial Bold; empty-state titles in Chewy. New CfLogoSmallFont (Fredoka) for the logo's small lettering. **Remove release** workflow (remove-release.yml) added: deletes one release and its tag so a version can be published again. | XAML parses, names and handlers match | Header logo, sign-in banner, exported page and Print summary header; totals |
 
-## Released - v1.0.0 (15 Oct 2026, from `631caf3`), latest - the owner's fresh start (V1)
-
-Published by the owner with Actions -> Publish release (run 38781787996); release build 38781811685 green. Annotated tag by "Card Factory Profit and Loss"; zip (64.6 MB, checksum matches, exe reports 1.0.0) and `.sha256` attached; notes are the full V1 description. Older releases, tags and branches removed by the owner; Actions history cleared except the two v1.0.0 runs.
+First published 15 Oct 2026 from `631caf3`. Published by the owner with Actions -> Publish release (run 38781787996); release build 38781811685 green. Annotated tag by "Card Factory Profit and Loss"; zip (64.6 MB, checksum matches, exe reports 1.0.0) and `.sha256` attached; notes are the full V1 description. Older releases, tags and branches removed by the owner; The first publish's two runs were deleted from Actions on 15 Oct after the re-publish.
 
 The number goes back to 1.0.0 by the owner's choice. The updater only installs a higher
 number than it has, so tills on 1.2.0-1.4.0 will NOT update to 1.0.0 by themselves: each
 needs the 1.0.0 zip installed once by hand. From then on 1.0.x / 1.x updates arrive as
 usual. The release build marks v1.0.0 as latest (--latest). Older releases (v1.2.0-v1.4.0)
-can be removed by the owner once 1.0.0 is out.
+have been removed.
 
 Test build run 38780406386 (from b7e29c0, version 1.0.0): green, only annotation the size notice (61.6 MB). Tried on a till by the owner (15 Oct): "All good". Merged into `main` for release as 1.0.0.
 
@@ -80,7 +73,7 @@ Published by the owner with Actions -> Publish release (run 38560186028); releas
 Daily Briefing Sales Actual uses the app's counted sales (gift cards excluded), as the
 Targets section does - owner asked whether to switch to full store sales; not answered yet.
 
-## Released - v1.3.0 (13 Oct 2026, from `a509c48`)
+## Released - v1.3.0 (13 Oct 2026, from `a509c48`) - release since removed
 
 Published by the owner with Actions -> Publish release (run 38325603649), build run
 38325613905 green with zero annotations. Annotated tag by "Card Factory Profit and Loss";
@@ -111,11 +104,28 @@ The items below are in v1.3.0 (the right-hand column was the checklist).
 Merge check for 3-5 (item 12): the Reports and Branch panels are byte-identical before and
 after the merge; every control the code names exists; every XAML event handler exists.
 
+## Released - v1.2.0 (12 Oct 2026, from `dad5962`) - release since removed
+
+**v1.2.0**:  Zip and `.sha256` attached, notes set.
+Confirmed by the owner in the app: Reports section (voids, returns, no sales per person,
+£20+ highlighted), staff discounts in Reports, top performers strip, header freshness,
+hourly bars, colours, version chip. Figures cross-check on the owner's screenshots: Team
+totals £898.65 / 176 transactions match Branch; ABV and AUB arithmetic correct.
+
+v1.1.0 is still listed. Under the README's milestone rule, older releases are removed only
+after the owner approves the list - not yet asked for.
+
+Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Targets section
+and strip-size fix from `next-update` were never merged; the dashboard changes size when
+switching sections; the section-bar titles are blurry.
+
 ## Environment notes
 
 - Unit tests cannot run in the cloud sandbox (NuGet is blocked there); CI runs them.
-- The cloud session cannot push tags or create/edit/delete releases. Releases are made by
-  the owner with the Publish release button (or git on their PC).
+- The cloud session cannot push tags, delete branches, or create/edit/delete releases
+  directly (HTTP 403). It runs the Publish release (release.yml) and Remove release
+  (remove-release.yml) workflows itself via workflow_dispatch, which do those on GitHub's
+  side, and can delete Actions runs. Branches are deleted by the owner on the website.
 - The repository is public; the updater relies on that. No passwords, tokens, real staff
   names or store details are in it; test fixtures use made-up names. Don't commit real
   report saves.

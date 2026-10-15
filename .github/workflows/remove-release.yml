@@ -6,6 +6,8 @@
 # that maintains this app cannot delete releases or tags itself; this runs on GitHub's
 # side with the repository's own token. Nothing here runs by itself.
 
+name: Remove release
+
 on:
   workflow_dispatch:
     inputs:
@@ -27,7 +29,7 @@ concurrency:
 
 jobs:
   remove:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check
         env:
