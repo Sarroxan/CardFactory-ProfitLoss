@@ -251,6 +251,14 @@
         </Style.Triggers>
     </Style>
 
+    <!-- Polish 7 (owner, 15 Oct): the headline totals (Team totals, Targets results) in the
+         logo's rounded lettering. Same size and colours as HtmlMetricTextStyle; Fredoka is a
+         little narrower than Arial Bold, so nothing gets tighter. -->
+    <Style x:Key="HtmlTotalMetricTextStyle" TargetType="TextBlock" BasedOn="{StaticResource HtmlMetricTextStyle}">
+        <Setter Property="FontFamily" Value="{StaticResource CfBrandFont}" />
+        <Setter Property="FontWeight" Value="Normal" />
+    </Style>
+
     <Style x:Key="HtmlTotalResultBoxStyle" TargetType="Border">
         <Setter Property="Width" Value="78" />
         <Setter Property="Height" Value="28" />
@@ -590,9 +598,11 @@
     <!-- Stage 6B.67 (B1): Branch's Performance / Gift Cards as halves of a split card, like
          ModeCardSegmentStyle but for Buttons whose Tag="Active" is set in code. Outer
          corners 9 = the card's 10 less its 1px border. -->
+    <!-- Polish 3 (owner, 15 Oct): the tab you are on is yellow with navy text, as in the header,
+         sitting inside the card with a 2px gap; the other is muted. -->
     <Style x:Key="BranchSplitLeftStyle" TargetType="Button">
-        <Setter Property="Background" Value="White" />
-        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
         <Setter Property="FontFamily" Value="Arial" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="Bold" />
@@ -601,14 +611,14 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Half" Background="{TemplateBinding Background}" CornerRadius="9,0,0,9">
+                    <Border x:Name="Half" Background="{TemplateBinding Background}" CornerRadius="7" Margin="2">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Half" Property="Background" Value="#F5F9FF" /></Trigger>
                         <Trigger Property="Tag" Value="Active">
-                            <Setter TargetName="Half" Property="Background" Value="{StaticResource CfBlue}" />
-                            <Setter Property="Foreground" Value="White" />
+                            <Setter TargetName="Half" Property="Background" Value="{StaticResource CfYellow}" />
+                            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -617,8 +627,8 @@
     </Style>
 
     <Style x:Key="BranchSplitRightStyle" TargetType="Button">
-        <Setter Property="Background" Value="White" />
-        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
         <Setter Property="FontFamily" Value="Arial" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="Bold" />
@@ -627,14 +637,14 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Half" Background="{TemplateBinding Background}" CornerRadius="0,9,9,0">
+                    <Border x:Name="Half" Background="{TemplateBinding Background}" CornerRadius="7" Margin="2">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Half" Property="Background" Value="#F5F9FF" /></Trigger>
                         <Trigger Property="Tag" Value="Active">
-                            <Setter TargetName="Half" Property="Background" Value="{StaticResource CfBlue}" />
-                            <Setter Property="Foreground" Value="White" />
+                            <Setter TargetName="Half" Property="Background" Value="{StaticResource CfYellow}" />
+                            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

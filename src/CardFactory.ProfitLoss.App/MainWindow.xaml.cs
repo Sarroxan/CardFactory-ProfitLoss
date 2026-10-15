@@ -1015,10 +1015,21 @@ public partial class MainWindow : Window
         var weekly = string.Equals(vm.HistoricalTargetMode, "Date Range", StringComparison.OrdinalIgnoreCase);
         var start = weekly ? (vm.RangeStartDate ?? end.AddDays(-6)).Date : end;
         var sb = new StringBuilder();
+        // Polish 6 (owner, 15 Oct): the page opens with the app's logo band - smiley with its
+        // bar badge, CARD FACTORY over Profit & Loss, store and dates on the right, a yellow
+        // rule beneath. The smiley and the rounded font travel inside the file, so it looks
+        // the same when emailed.
+        var smiley = ResourceDataUri("Assets/HeaderSmileyFace.png", "image/png");
+        var brandFont = ResourceDataUri("Assets/Fonts/Fredoka-SemiBold.ttf", "font/ttf");
         sb.Append("<!doctype html><html><head><meta charset='utf-8'><title>Card Factory Profit &amp; Loss Report</title>");
+        if (brandFont is not null) sb.Append($"<style>@font-face{{font-family:CfBrand;src:url({brandFont})}}</style>");
+        sb.Append("<style>.brand{background:#004EA1;border-radius:14px 14px 0 0;padding:14px 20px;display:flex;align-items:center;gap:14px}.mark{position:relative;width:56px;height:56px;flex:none}.mark img{width:56px;height:56px}.badge{position:absolute;right:-4px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:#fff;border:2.5px solid #004EA1;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding-bottom:5px;box-sizing:border-box}.badge i{width:3px;border-radius:2px;background:#004EA1;display:block}.badge i.y{background:#FFC907}.co{font:bold 10px Arial,sans-serif;letter-spacing:2.4px;color:#D6E4F5}.pl{font-family:CfBrand,'Trebuchet MS',Arial,sans-serif;font-size:30px;color:#FFC907;line-height:1.05}.where{margin-left:auto;text-align:right;font-size:12px;color:#D6E4F5}.where b{color:#fff;font-size:14px}.rule{height:5px;background:#FFC907;border-radius:0 0 4px 4px}</style>");
         sb.Append("<style>body{font-family:Arial,sans-serif;color:#183153;margin:28px}h1{margin:0;color:#004EA1}h2{background:#004EA1;color:white;padding:9px 14px;border-radius:12px 12px 0 0;margin:24px 0 0}.meta{background:#FFF4A8;padding:10px 14px;border-radius:10px;margin-top:12px}.cards{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.card{border:1px solid #D7E2EF;border-radius:10px;padding:8px 12px;min-width:125px}.label{font-size:10px;color:#60758E}.value{font-weight:bold;font-size:16px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#E3ECF7;color:#004EA1;text-align:left}th,td{padding:7px;border-bottom:1px solid #E4EBF2}tr.best{background:#FFF9D8}.yellow{color:#A87C00}td.flag{background:#FFF1DC;color:#9A5B00;font-weight:bold}.note{color:#667891;font-size:10px;margin-top:6px}.foot{margin-top:20px;color:#667891;font-size:10px}</style></head><body>");
-        sb.Append("<h1>Card Factory Profit &amp; Loss Calculator</h1>");
-        sb.Append($"<div class='meta'><b>{H(vm.StoreLocation)}</b><br>{start:dd/MM/yyyy} - {end:dd/MM/yyyy} · {H(vm.HistoricalTargetMode)}</div>");
+        var dates = start == end ? $"{end:ddd dd/MM/yyyy}" : $"{start:dd/MM/yyyy} - {end:dd/MM/yyyy}";
+        sb.Append("<div class='brand'><div class='mark'>");
+        if (smiley is not null) sb.Append($"<img src='{smiley}' alt=''>");
+        sb.Append("<span class='badge'><i style='height:5px'></i><i style='height:7px'></i><i class='y' style='height:9px'></i></span></div>");
+        sb.Append($"<div><div class='co'>CARD FACTORY</div><div class='pl'>Profit &amp; Loss</div></div><div class='where'>{H(vm.StoreLocation)}<br><b>{H(dates)}</b></div></div><div class='rule'></div>");
         sb.Append("<div class='cards'>");
         sb.Append($"<div class='card'><div class='label'>COUNTED SALES</div><div class='value'>£{vm.TotalSales:N2}</div></div>");
         sb.Append($"<div class='card'><div class='label'>TRANSACTIONS</div><div class='value'>{vm.TotalTransactions:N0}</div></div>");
@@ -1085,12 +1096,13 @@ public partial class MainWindow : Window
     private static FlowDocument BuildPrintableReport(MainViewModel vm)
     {
         var doc = new FlowDocument { FontFamily = new FontFamily("Arial"), FontSize = 10, Foreground = new SolidColorBrush(Color.FromRgb(0x18, 0x31, 0x53)) };
-        doc.Blocks.Add(new Paragraph(new Run("Card Factory Profit & Loss Report")) { FontSize = 20, FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromRgb(0x00, 0x4E, 0xA1)), Margin = new Thickness(0, 0, 0, 8) });
         var end = (vm.SelectedDate ?? DateTime.Today).Date;
         var start = string.Equals(vm.HistoricalTargetMode, "Date Range", StringComparison.OrdinalIgnoreCase)
             ? (vm.RangeStartDate ?? end.AddDays(-6)).Date
             : end;
-        doc.Blocks.Add(new Paragraph(new Run($"{vm.StoreLocation}   {start:dd/MM/yyyy} - {end:dd/MM/yyyy}   {vm.HistoricalTargetMode}")) { FontWeight = FontWeights.Bold, Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xF4, 0xA8)), Padding = new Thickness(8) });
+        // Polish 6: the same logo band as the app and the exported page.
+        doc.Blocks.Add(new BlockUIContainer(BuildPrintBrandBand(vm.StoreLocation,
+            start == end ? $"{end:ddd dd/MM/yyyy}" : $"{start:dd/MM/yyyy} - {end:dd/MM/yyyy}")) { Margin = new Thickness(0, 0, 0, 10) });
         doc.Blocks.Add(new Paragraph(new Run($"Counted Sales £{vm.TotalSales:N2}    Transactions {vm.TotalTransactions:N0}    Counted Units {vm.TotalCountedUnits:N0}    ABV £{vm.ActualAbv:N2}    AUB {vm.ActualAub:N2}")) { FontWeight = FontWeights.Bold });
         doc.Blocks.Add(MakePrintHeading("Team Performance"));
         doc.Blocks.Add(MakePrintTable(new[] { "Name", "Sales", "GC Qty", "GC Sales", "Trans.", "Units", "ABV", "AUB" },
@@ -1122,6 +1134,68 @@ public partial class MainWindow : Window
             doc.Blocks.Add(new Paragraph(new Run($"£{MainViewModel.ReportFlagValue:N2}+ highlighted to look into · voids include transaction and line voids")) { FontSize = 8.5, Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x78, 0x91)), Margin = new Thickness(0, 4, 0, 0) });
         }
         return doc;
+    }
+
+    // Polish 6: a packed resource as a data: URI, so an exported page carries it inside.
+    private static string? ResourceDataUri(string path, string mime)
+    {
+        try
+        {
+            var info = Application.GetResourceStream(new Uri("pack://application:,,,/" + path));
+            if (info is null) return null;
+            using var stream = info.Stream;
+            using var copy = new MemoryStream();
+            stream.CopyTo(copy);
+            return $"data:{mime};base64,{Convert.ToBase64String(copy.ToArray())}";
+        }
+        catch
+        {
+            return null;   // the page still exports, just without the picture or font
+        }
+    }
+
+    // Polish 6: the printout's logo band - navy, smiley with its bar badge, CARD FACTORY over
+    // Profit & Loss, store and dates on the right, and a yellow rule beneath.
+    private static UIElement BuildPrintBrandBand(string? store, string dates)
+    {
+        var navy = new SolidColorBrush(Color.FromRgb(0x00, 0x4E, 0xA1));
+        var yellow = new SolidColorBrush(Color.FromRgb(0xFF, 0xC9, 0x07));
+        var pale = new SolidColorBrush(Color.FromRgb(0xD6, 0xE4, 0xF5));
+
+        var mark = new Canvas { Width = 50, Height = 50, Margin = new Thickness(0, 0, 14, 0) };
+        mark.Children.Add(new Image { Width = 46, Height = 46, Source = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/Assets/HeaderSmileyFace.png")) });
+        var badge = new System.Windows.Shapes.Ellipse { Width = 20, Height = 20, Fill = Brushes.White, Stroke = navy, StrokeThickness = 2 };
+        Canvas.SetLeft(badge, 30); Canvas.SetTop(badge, 30); mark.Children.Add(badge);
+        foreach (var (x, h, fill) in new (double, double, Brush)[] { (35.5, 5.0, navy), (39.0, 7.0, navy), (42.5, 9.0, yellow) })
+        {
+            var bar = new System.Windows.Shapes.Rectangle { Width = 2.5, Height = h, RadiusX = 1, RadiusY = 1, Fill = fill };
+            Canvas.SetLeft(bar, x); Canvas.SetTop(bar, 45 - h); mark.Children.Add(bar);
+        }
+
+        var name = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        name.Children.Add(new TextBlock { Text = "C A R D   F A C T O R Y", FontFamily = new FontFamily("Arial"), FontSize = 8.5, FontWeight = FontWeights.Bold, Foreground = pale });
+        name.Children.Add(new TextBlock
+        {
+            Text = "Profit & Loss", FontSize = 24, Foreground = yellow,
+            FontFamily = new FontFamily(new Uri("pack://application:,,,/"), "./Assets/Fonts/#Fredoka SemiBold")
+        });
+
+        var where = new StackPanel { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
+        where.Children.Add(new TextBlock { Text = store ?? string.Empty, FontSize = 10, Foreground = pale, HorizontalAlignment = HorizontalAlignment.Right });
+        where.Children.Add(new TextBlock { Text = dates, FontSize = 12, FontWeight = FontWeights.Bold, Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Right });
+
+        var row = new Grid();
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        row.Children.Add(mark);
+        Grid.SetColumn(name, 1); row.Children.Add(name);
+        Grid.SetColumn(where, 2); row.Children.Add(where);
+
+        var band = new StackPanel();
+        band.Children.Add(new Border { Background = navy, CornerRadius = new CornerRadius(10, 10, 0, 0), Padding = new Thickness(14, 10, 16, 10), Child = row });
+        band.Children.Add(new Border { Background = yellow, Height = 4, CornerRadius = new CornerRadius(0, 0, 3, 3) });
+        return band;
     }
 
     private static Paragraph MakePrintHeading(string text) => new(new Run(text))
@@ -1646,11 +1720,11 @@ public partial class MainWindow : Window
         // Generate reports shows just its own two steps: the Refunds/Voids report (step 1,
         // relabelled) and Staff Discounts (step 4). Gift Cards and Branch are not pulled.
         RetrievalStep1Text.Text = reportsOnly ? "Voids, returns and no sales" : "Team Performance";
-        if (RetrievalStep2Marker.Parent is UIElement step2Row) step2Row.Visibility = reportsOnly ? Visibility.Collapsed : Visibility.Visible;
-        if (RetrievalStep3Marker.Parent is UIElement step3Row) step3Row.Visibility = reportsOnly ? Visibility.Collapsed : Visibility.Visible;
+        RetrievalStep2Row.Visibility = reportsOnly ? Visibility.Collapsed : Visibility.Visible;
+        RetrievalStep3Row.Visibility = reportsOnly ? Visibility.Collapsed : Visibility.Visible;
         if (reportsOnly) RetrievalStep4Row.Visibility = Visibility.Visible;
-        RetrievalStep4Row.Margin = reportsOnly ? new Thickness(0) : new Thickness(0, 5, 0, 0);   // step 1 already leaves 5px below it
-        RetrievalTitle.Text = reportsOnly ? "Generating reports" : "Retrieving reports";
+        RetrievalTitle.Text = reportsOnly ? "Generating reports" : "Getting reports";
+        RetrievalSubtitle.Text = DataContext is MainViewModel periodViewModel ? periodViewModel.PeriodDisplayText : string.Empty;
         RetrievalSteps.Visibility = Visibility.Visible;
         RetrievalSpinner.Visibility = Visibility.Visible;
         RetrievalErrorText.Visibility = Visibility.Collapsed;
@@ -1659,27 +1733,39 @@ public partial class MainWindow : Window
         RetrievalOverlay.Visibility = Visibility.Visible;
     }
 
-    /// <summary>0 is nothing started, 1 to 3 mark that step running and earlier ones done.</summary>
+    /// <summary>0 is nothing started, 1 to 4 mark that step running and earlier ones done.</summary>
     private void SetRetrievalStep(int running)
     {
+        var rows = new[] { RetrievalStep1Row, RetrievalStep2Row, RetrievalStep3Row, RetrievalStep4Row };
+        var dots = new[] { RetrievalStep1Dot, RetrievalStep2Dot, RetrievalStep3Dot, RetrievalStep4Dot };
         var markers = new[] { RetrievalStep1Marker, RetrievalStep2Marker, RetrievalStep3Marker, RetrievalStep4Marker };
         var texts = new[] { RetrievalStep1Text, RetrievalStep2Text, RetrievalStep3Text, RetrievalStep4Text };
+        var navy = (Brush)FindResource("CfDeepBlue");
 
+        int shown = 0, done = 0;
         for (var i = 0; i < markers.Length; i++)
         {
             var step = i + 1;
-            var done = step < running;
+            var isDone = step < running;
             var active = step == running;
-
-            markers[i].Text = done ? StepDone : active ? StepRunning : StepPending;
-            markers[i].Foreground = done
-                ? new SolidColorBrush(Color.FromRgb(0x1D, 0x8F, 0x4E))
-                : active
-                    ? (Brush)FindResource("CfBlue")
-                    : (Brush)FindResource("CfMuted");
-            texts[i].Foreground = active ? (Brush)FindResource("CfDeepBlue") : (Brush)FindResource("CfMuted");
+            // Polish 5: a circle that fills in - green with a tick, yellow while running, pale waiting.
+            dots[i].Background = isDone ? new SolidColorBrush(Color.FromRgb(0x2F, 0xB8, 0x66))
+                : active ? (Brush)FindResource("CfYellow")
+                : new SolidColorBrush(Color.FromRgb(0xE3, 0xEC, 0xF7));
+            markers[i].Text = isDone ? StepDone : active ? StepRunning : string.Empty;
+            markers[i].Foreground = isDone ? Brushes.White : navy;
+            markers[i].FontSize = active ? 8 : 11;
+            texts[i].Foreground = isDone || active ? navy : (Brush)FindResource("CfMuted");
             texts[i].FontWeight = active ? FontWeights.Bold : FontWeights.Normal;
+
+            if (rows[i].Visibility != Visibility.Visible) continue;
+            shown++;
+            if (isDone) done++;
         }
+
+        // The yellow line along the bottom: the share of the visible steps already done.
+        var full = RetrievalProgressFill.Parent is FrameworkElement track && track.ActualWidth > 0 ? track.ActualWidth : 330;
+        RetrievalProgressFill.Width = shown == 0 ? 0 : full * done / shown;
     }
 
     private void HideRetrievalOverlay() => RetrievalOverlay.Visibility = Visibility.Collapsed;

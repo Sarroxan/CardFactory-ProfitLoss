@@ -971,16 +971,16 @@
                                         <TextBlock Grid.Column="1" Text="Sales +/-" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
                                         <Border Grid.Column="2" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding TotalSales, StringFormat=£{0:N2}}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                            <TextBlock Text="{Binding TotalSales, StringFormat=£{0:N2}}" Style="{StaticResource HtmlTotalMetricTextStyle}" />
                                         </Border>
                                         <Border Grid.Column="3" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding ActualAbv, StringFormat=£{0:N2}}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                            <TextBlock Text="{Binding ActualAbv, StringFormat=£{0:N2}}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlTotalMetricTextStyle}" />
                                         </Border>
                                         <Border Grid.Column="4" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding ActualAub, StringFormat={}{0:N2}}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                            <TextBlock Text="{Binding ActualAub, StringFormat={}{0:N2}}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlTotalMetricTextStyle}" />
                                         </Border>
                                         <Border Grid.Column="5" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding TotalProfitLossText}" Tag="{Binding TotalProfitLossState}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                            <TextBlock Text="{Binding TotalProfitLossText}" Tag="{Binding TotalProfitLossState}" Style="{StaticResource HtmlTotalMetricTextStyle}" />
                                         </Border>
                                     </Grid>
 
@@ -1170,18 +1170,27 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
                                             </ScrollViewer>
-                                            <TextBlock Grid.Row="2" Text="Press Generate reports to load voids, returns, no sales and staff discounts for this date."
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                       Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="12">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
+                                            <!-- Polish 4 (owner, 15 Oct): a friendly empty state instead of a line of grey text. -->
+                                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding HasReportData}" Value="False"><Setter Property="Visibility" Value="Visible"/></DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
+                                                </StackPanel.Style>
+                                                <Image Width="52" Height="52" Source="Assets/HeaderSmileyFace.png" VerticalAlignment="Center" Opacity="0.9"
+                                                       RenderOptions.BitmapScalingMode="HighQuality" />
+                                                <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="No reports yet" FontFamily="{StaticResource CfBrandFont}" FontSize="18" Foreground="{StaticResource CfDeepBlue}" />
+                                                    <TextBlock FontFamily="Arial" FontSize="11" Foreground="{StaticResource CfMuted}" Margin="0,3,0,9">
+                                                        <Run Text="Generate voids, returns, no sales and staff discounts for " /><Run Text="{Binding PeriodDisplayText, Mode=OneWay}" /><Run Text="." />
+                                                    </TextBlock>
+                                                    <Button Content="Generate reports" Tag="Reports" Height="28" FontSize="11" HorizontalAlignment="Left" Padding="14,0"
+                                                            Style="{StaticResource FlooidActionButtonStyle}" Click="GrabFromFlooid_Click" />
+                                                </StackPanel>
+                                            </StackPanel>
 
                                             <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
                                                 <Border Background="#FFF1DC" CornerRadius="7" Padding="7,2">
@@ -1237,7 +1246,7 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <!-- Stage 6B.67 (B1): the split card used by Day / Range and Fast / Safe. -->
-                                                <Border Width="220" Height="30" VerticalAlignment="Center" Background="White"
+                                                <Border Width="220" Height="30" VerticalAlignment="Center" Background="#F4F7FB"
                                                         BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="10">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
@@ -1245,7 +1254,7 @@
                                                         </Grid.ColumnDefinitions>
                                                         <Button x:Name="BranchHourlyTabButton" Grid.Column="0" Content="Performance" Tag="Active"
                                                                 Style="{StaticResource BranchSplitLeftStyle}" Click="BranchHourlyTab_Click"/>
-                                                        <Border Grid.Column="1" Background="{StaticResource CfLine}" />
+                                                        <Border Grid.Column="1" Background="Transparent" />
                                                         <Button x:Name="BranchGiftCardsTabButton" Grid.Column="2" Content="Gift Cards"
                                                                 Style="{StaticResource BranchSplitRightStyle}" Click="BranchGiftCardsTab_Click"/>
                                                     </Grid>
@@ -1353,6 +1362,33 @@
                                                                 </Style>
                                                             </TextBlock.Style>
                                                         </TextBlock>
+                                                        <!-- Polish 4: before the first Refresh (no hours, no error message). -->
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding BranchHours.Count}" Value="0"/>
+                                                                    <Condition Binding="{Binding BranchDataMessage}" Value=""/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </MultiDataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+                                                <Image Width="52" Height="52" Source="Assets/HeaderSmileyFace.png" VerticalAlignment="Center" Opacity="0.9"
+                                                       RenderOptions.BitmapScalingMode="HighQuality" />
+                                                <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="No figures yet" FontFamily="{StaticResource CfBrandFont}" FontSize="18" Foreground="{StaticResource CfDeepBlue}" />
+                                                    <TextBlock FontFamily="Arial" FontSize="11" Foreground="{StaticResource CfMuted}" Margin="0,3,0,9">
+                                                        <Run Text="Refresh to pull Branch Performance for " /><Run Text="{Binding PeriodDisplayText, Mode=OneWay}" /><Run Text="." />
+                                                    </TextBlock>
+                                                    <Button Content="Refresh" Height="28" FontSize="11" HorizontalAlignment="Left" Padding="14,0"
+                                                            Style="{StaticResource FlooidActionButtonStyle}" Click="GrabFromFlooid_Click" />
+                                                </StackPanel>
+                                            </StackPanel>
                                                     </Grid>
                                                 </Border>
                                             </Grid>
@@ -1426,16 +1462,16 @@
                                                     </Grid.ColumnDefinitions>
                                                     <Border Grid.Column="0" Width="4" Background="{StaticResource CfDeepBlue}" CornerRadius="12,0,0,12" HorizontalAlignment="Left" />
                                                     <TextBlock Grid.Column="0" Text="BRANCH TOTAL" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="22,0,0,0"/>
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="SALES" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalSales, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="TRANSACTIONS" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalTransactions}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="UNITS" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalUnits}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="AUB" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAub, StringFormat={}{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="ABV" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAbv, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="SALES" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalSales, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="TRANSACTIONS" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalTransactions}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="UNITS" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalUnits}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="AUB" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAub, StringFormat={}{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="ABV" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAbv, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
                                                     <Border Grid.Column="6" Background="{StaticResource CfLine}" Height="23" VerticalAlignment="Center"/>
                                                     <Grid Grid.Column="7">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT QTY" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardQuantity}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT SALES" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardSales, StringFormat=£{0:N2}}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT QTY" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardQuantity}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT SALES" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardSales, StringFormat=£{0:N2}}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -1488,7 +1524,7 @@
                                                      TextChanged="NumericTextBox_TextChanged"
                                                      LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
                                         </Border>
-                                        <TextBlock Text="{Binding SalesSummaryText}" Tag="{Binding SalesVarianceState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
+                                        <TextBlock Text="{Binding SalesSummaryText}" Tag="{Binding SalesVarianceState}" Style="{StaticResource HtmlTotalMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
@@ -1503,7 +1539,7 @@
                                                      TextChanged="NumericTextBox_TextChanged"
                                                      LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
                                         </Border>
-                                        <TextBlock Text="{Binding AbvSummaryText}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
+                                        <TextBlock Text="{Binding AbvSummaryText}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlTotalMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
@@ -1518,7 +1554,7 @@
                                                      TextChanged="NumericTextBox_TextChanged"
                                                      LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
                                         </Border>
-                                        <TextBlock Text="{Binding AubSummaryText}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
+                                        <TextBlock Text="{Binding AubSummaryText}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlTotalMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
                                     </StackPanel>
                                     </Grid>
                                 </Border>
@@ -1938,65 +1974,96 @@
                 </StackPanel>
             </Border>
 
+            <!-- Polish 5 (owner, 15 Oct): the dialogs' navy band with the app icon, steps as circles
+                 that fill in (grey waiting, yellow running, green done) and a thin yellow progress
+                 line along the bottom. The card's shadow is a separate shape behind it, so the text
+                 is not drawn through an effect (which blurs it). -->
             <Grid x:Name="RetrievalOverlay"
                   Grid.Row="0"
                   Grid.RowSpan="2"
                   Visibility="Collapsed"
                   Background="#590C2850"
                   Panel.ZIndex="900">
-                <Border Background="White"
-                        CornerRadius="14"
-                        Padding="20,16"
-                        MinWidth="230"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
+                <Grid Width="330" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Background="White" CornerRadius="14">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="22" ShadowDepth="3" Opacity="0.22" Color="#0C2850" />
                     </Border.Effect>
+                </Border>
+                <Border Background="White" CornerRadius="14">
                     <StackPanel>
-                        <!-- Stage 6B.70 (R1): navy band reaching over the card's 20,16 padding. -->
-                        <Border Background="{StaticResource CfDeepBlue}" CornerRadius="13,13,0,0" Margin="-20,-16,-20,12" Padding="20,13">
-                        <StackPanel Orientation="Horizontal">
-                            <!-- Stage 6B.12: the rotation is started from code rather than a XAML
-                                 EventTrigger storyboard. Same animation, fewer ways for the XAML
-                                 compiler to object. -->
-                            <Ellipse x:Name="RetrievalSpinner"
-                                     Width="22" Height="22"
-                                     Stroke="White"
-                                     StrokeThickness="3"
-                                     StrokeDashArray="3.1 1.4"
-                                     RenderTransformOrigin="0.5,0.5">
-                                <Ellipse.RenderTransform>
-                                    <RotateTransform x:Name="RetrievalSpinnerRotate" />
-                                </Ellipse.RenderTransform>
-                            </Ellipse>
-                            <TextBlock x:Name="RetrievalTitle"
-                                       Text="Retrieving reports"
-                                       Foreground="White"
-                                       FontFamily="Arial" FontSize="12.5" FontWeight="Bold"
-                                       VerticalAlignment="Center" Margin="10,0,0,0" />
-                        </StackPanel>
+                        <Border Background="{StaticResource CfDeepBlue}" CornerRadius="13,13,0,0" Padding="14,11">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Image Width="26" Height="26" Source="Assets/AppIcon.png" VerticalAlignment="Center"
+                                       RenderOptions.BitmapScalingMode="HighQuality" />
+                                <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="RetrievalTitle" Text="Getting reports" Foreground="White"
+                                               FontFamily="{StaticResource CfTitleFont}" FontSize="18" TextWrapping="Wrap" />
+                                    <TextBlock x:Name="RetrievalSubtitle" Foreground="#D6E4F5" FontFamily="Arial" FontSize="9.5" Margin="0,1,0,0" />
+                                </StackPanel>
+                                <!-- Stage 6B.12: the rotation is started from code. -->
+                                <Ellipse x:Name="RetrievalSpinner" Grid.Column="2"
+                                         Width="20" Height="20"
+                                         Stroke="White"
+                                         StrokeThickness="3"
+                                         StrokeDashArray="3.1 1.4"
+                                         VerticalAlignment="Center"
+                                         RenderTransformOrigin="0.5,0.5">
+                                    <Ellipse.RenderTransform>
+                                        <RotateTransform x:Name="RetrievalSpinnerRotate" />
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                            </Grid>
                         </Border>
 
+                        <StackPanel Margin="14,4,14,10">
                         <StackPanel x:Name="RetrievalSteps">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                <TextBlock x:Name="RetrievalStep1Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
-                                <TextBlock x:Name="RetrievalStep1Text" Text="Team Performance" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                <TextBlock x:Name="RetrievalStep2Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
-                                <TextBlock x:Name="RetrievalStep2Text" Text="Gift Cards" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="RetrievalStep3Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
-                                <TextBlock x:Name="RetrievalStep3Text" Text="Branch Performance" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
-                            </StackPanel>
-                            <!-- Shown only when Refresh runs from the Reports section, the only time
-                                 the Discounts and Price Overrides report is pulled. -->
-                            <StackPanel x:Name="RetrievalStep4Row" Orientation="Horizontal" Margin="0,5,0,0" Visibility="Collapsed">
-                                <TextBlock x:Name="RetrievalStep4Marker" Text="&#9675;" Width="16" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
-                                <TextBlock x:Name="RetrievalStep4Text" Text="Staff Discounts" FontFamily="Arial" FontSize="11.5" Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" Margin="6,0,0,0" />
-                            </StackPanel>
+                            <Border x:Name="RetrievalStep1Row" BorderBrush="#EDF1F6" BorderThickness="0" Padding="0,7">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border x:Name="RetrievalStep1Dot" Width="20" Height="20" CornerRadius="10" Background="#E3ECF7">
+                                        <TextBlock x:Name="RetrievalStep1Marker" Text="" FontFamily="Arial" FontSize="11" FontWeight="Bold"
+                                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock x:Name="RetrievalStep1Text" Text="Team Performance" FontFamily="Arial" FontSize="12" Foreground="{StaticResource CfMuted}"
+                                               VerticalAlignment="Center" Margin="10,0,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="RetrievalStep2Row" BorderBrush="#EDF1F6" BorderThickness="0,1,0,0" Padding="0,7">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border x:Name="RetrievalStep2Dot" Width="20" Height="20" CornerRadius="10" Background="#E3ECF7">
+                                        <TextBlock x:Name="RetrievalStep2Marker" Text="" FontFamily="Arial" FontSize="11" FontWeight="Bold"
+                                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock x:Name="RetrievalStep2Text" Text="Gift Cards" FontFamily="Arial" FontSize="12" Foreground="{StaticResource CfMuted}"
+                                               VerticalAlignment="Center" Margin="10,0,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="RetrievalStep3Row" BorderBrush="#EDF1F6" BorderThickness="0,1,0,0" Padding="0,7">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border x:Name="RetrievalStep3Dot" Width="20" Height="20" CornerRadius="10" Background="#E3ECF7">
+                                        <TextBlock x:Name="RetrievalStep3Marker" Text="" FontFamily="Arial" FontSize="11" FontWeight="Bold"
+                                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock x:Name="RetrievalStep3Text" Text="Branch Performance" FontFamily="Arial" FontSize="12" Foreground="{StaticResource CfMuted}"
+                                               VerticalAlignment="Center" Margin="10,0,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <!-- Staff Discounts: pulled from the Reports section and for the Daily Briefing. -->
+                            <Border x:Name="RetrievalStep4Row" BorderBrush="#EDF1F6" BorderThickness="0,1,0,0" Padding="0,7" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border x:Name="RetrievalStep4Dot" Width="20" Height="20" CornerRadius="10" Background="#E3ECF7">
+                                        <TextBlock x:Name="RetrievalStep4Marker" Text="" FontFamily="Arial" FontSize="11" FontWeight="Bold"
+                                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock x:Name="RetrievalStep4Text" Text="Staff Discounts" FontFamily="Arial" FontSize="12" Foreground="{StaticResource CfMuted}"
+                                               VerticalAlignment="Center" Margin="10,0,0,0" />
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
 
                         <TextBlock x:Name="RetrievalErrorText"
@@ -2005,19 +2072,26 @@
                                    TextWrapping="Wrap"
                                    Foreground="#C53D46"
                                    FontFamily="Arial" FontSize="11"
-                                   Margin="0,10,0,0" />
+                                   Margin="0,8,0,0" />
 
                         <Button x:Name="RetrievalDismissButton"
                                 Visibility="Collapsed"
                                 Content="Close"
                                 Tag="NoGlyph"
                                 Style="{StaticResource FlooidActionButtonStyle}"
-                                Height="24"
+                                Height="26"
                                 HorizontalAlignment="Right"
                                 Margin="0,12,0,0"
                                 Click="RetrievalDismiss_Click" />
+                        </StackPanel>
+
+                        <!-- Progress: the share of steps done, set in SetRetrievalStep. -->
+                        <Border Height="4" Background="#EDF1F6" CornerRadius="0,0,13,13" ClipToBounds="True">
+                            <Border x:Name="RetrievalProgressFill" Width="0" HorizontalAlignment="Left" Background="{StaticResource CfYellow}" />
+                        </Border>
                     </StackPanel>
                 </Border>
+                </Grid>
             </Grid>
         </Grid>
     </Border>
