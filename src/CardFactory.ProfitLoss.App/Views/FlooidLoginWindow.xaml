@@ -186,11 +186,11 @@
                         <StackPanel Orientation="Horizontal">
                             <Image Width="50" Height="50" Source="/Assets/HeaderSmileyFace.png" VerticalAlignment="Center"
                                    RenderOptions.BitmapScalingMode="HighQuality" />
-                            <!-- Title K3: the app's name in Chewy, as in the header. -->
+                            <!-- Title Y1: the app's name as in the header - small "Card Factory", Chewy title. -->
                             <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="Card Factory" FontFamily="{StaticResource CfTitleFont}" FontSize="16" Foreground="White" />
+                                <TextBlock Text="Card Factory" FontFamily="{StaticResource CfLogoSmallFont}" FontSize="12" Foreground="White" />
                                 <TextBlock Text="Profit &amp; Loss" FontFamily="{StaticResource CfTitleFont}" FontSize="28"
-                                           Foreground="White" Margin="0,-3,0,0" />
+                                           Foreground="White" Margin="0,-2,0,0" />
                                 <TextBlock Text="Sign in with your Flooid account" FontFamily="Arial" FontSize="11"
                                            Foreground="#D6E4F5" Margin="0,1,0,0" />
                             </StackPanel>

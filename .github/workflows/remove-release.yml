@@ -1,0 +1,56 @@
+# Remove a release - Actions -> Remove release -> Run workflow.
+#
+# Deletes one release and its tag, so the same version can be published again with
+# Publish release (that workflow refuses a version whose tag or release already exists).
+# Used when the owner asks for a release to be replaced or removed. The cloud session
+# that maintains this app cannot delete releases or tags itself; this runs on GitHub's
+# side with the repository's own token. Nothing here runs by itself.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to remove, e.g. v1.0.0"
+        required: true
+        type: string
+      confirm:
+        description: "Type the tag again to confirm"
+        required: true
+        type: string
+
+permissions:
+  contents: write   # delete the release and its tag
+
+concurrency:
+  group: publish-release
+  cancel-in-progress: false
+
+jobs:
+  remove:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check
+        env:
+          TAG: ${{ inputs.tag }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          if [ "$TAG" != "$CONFIRM" ]; then echo "::error::The two tags don't match."; exit 1; fi
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "::error::'$TAG' is not a vX.Y.Z tag."; exit 1; fi
+
+      - name: Remove the release and its tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release delete "$TAG" --yes --cleanup-tag
+            echo "Removed release $TAG and its tag."
+          elif git ls-remote --exit-code --tags "https://github.com/$GH_REPO.git" "refs/tags/$TAG" >/dev/null 2>&1; then
+            gh api -X DELETE "repos/$GH_REPO/git/refs/tags/$TAG"
+            echo "No release $TAG; removed its tag."
+          else
+            echo "Nothing to remove: no release or tag $TAG."
+          fi

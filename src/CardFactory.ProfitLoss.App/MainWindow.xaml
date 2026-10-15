@@ -375,7 +375,7 @@
                                      The smiley's square is see-through here (HeaderSmileyFace.png), so it is
                                      the header's own blue. -->
                                 <!-- Logo: the S2 mark - the Card Factory smiley (the same image as before,
-                                     unchanged) with a white badge of three bars - and the title in Chewy (K3).
+                                     unchanged) with a white badge of three bars - and the pre-V1 title (Y1).
                                      Same 330x84 slot. -->
                                 <Viewbox Canvas.Left="0" Canvas.Top="4" Width="330" Height="84" Stretch="Uniform">
                                     <Canvas Width="330" Height="84">
@@ -384,22 +384,26 @@
                                         <Rectangle Canvas.Left="56" Canvas.Top="65" Width="4" Height="8" RadiusX="2" RadiusY="2" Fill="{StaticResource CfDeepBlue}" />
                                         <Rectangle Canvas.Left="62" Canvas.Top="61" Width="4" Height="12" RadiusX="2" RadiusY="2" Fill="{StaticResource CfDeepBlue}" />
                                         <Rectangle Canvas.Left="68" Canvas.Top="57" Width="4" Height="16" RadiusX="2" RadiusY="2" Fill="{StaticResource CfYellow}" />
-                                        <!-- Title K3 (owner, 15 Oct): the pre-V1 lettering back - "Card Factory" and
-                                             "Profit & Loss" in white Chewy, CALCULATOR between two yellow bars. -->
-                                        <TextBlock Canvas.Left="92" Canvas.Top="2" Text="Card Factory" FontFamily="{StaticResource CfTitleFont}"
-                                                   FontSize="21" Foreground="White" />
-                                        <TextBlock Canvas.Left="92" Canvas.Top="20" Text="Profit &amp; Loss" FontFamily="{StaticResource CfTitleFont}"
-                                                   FontSize="36" Foreground="White" />
-                                        <Grid Canvas.Left="92" Canvas.Top="63" Width="236" Height="14">
+                                        <!-- Title Y1 (owner, 15 Oct): the pre-V1 logo's own sizes and spacing - "Card Factory"
+                                             in Fredoka 14, "Profit & Loss" in Chewy 42, CALCULATOR (Fredoka 12, 3.5px
+                                             letter spacing) between two yellow bars the title's width, 5px and 7px apart,
+                                             centred in the 84px slot. Tops worked out from the fonts' metrics (Chewy
+                                             ascent 1003/1024, cap 758; Fredoka ascent 999/1000, "y" tail 223) so the
+                                             tail of "Factory" clears the title by 5px. -->
+                                        <TextBlock Canvas.Left="90" Canvas.Top="5" Text="Card Factory" FontFamily="{StaticResource CfLogoSmallFont}"
+                                                   FontSize="14" Foreground="White" />
+                                        <TextBlock Canvas.Left="90" Canvas.Top="17" Text="Profit &amp; Loss" FontFamily="{StaticResource CfTitleFont}"
+                                                   FontSize="42" Foreground="White" />
+                                        <Grid Canvas.Left="90" Canvas.Top="63" Width="214" Height="12">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
                                             <Rectangle Height="4" RadiusX="2" RadiusY="2" Fill="#FFD100" VerticalAlignment="Center" />
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center"
-                                                        TextBlock.FontFamily="Arial" TextBlock.FontSize="11" TextBlock.FontWeight="Bold" TextBlock.Foreground="White">
-                                                <TextBlock Text="C" Margin="0,0,2.5,0" /><TextBlock Text="A" Margin="0,0,2.5,0" /><TextBlock Text="L" Margin="0,0,2.5,0" /><TextBlock Text="C" Margin="0,0,2.5,0" /><TextBlock Text="U" Margin="0,0,2.5,0" /><TextBlock Text="L" Margin="0,0,2.5,0" /><TextBlock Text="A" Margin="0,0,2.5,0" /><TextBlock Text="T" Margin="0,0,2.5,0" /><TextBlock Text="O" Margin="0,0,2.5,0" /><TextBlock Text="R" Margin="0,0,0,0" />
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="7,0" VerticalAlignment="Center"
+                                                        TextBlock.FontFamily="{StaticResource CfLogoSmallFont}" TextBlock.FontSize="12" TextBlock.Foreground="White">
+                                                <TextBlock Text="C" Margin="0,0,3.5,0" /><TextBlock Text="A" Margin="0,0,3.5,0" /><TextBlock Text="L" Margin="0,0,3.5,0" /><TextBlock Text="C" Margin="0,0,3.5,0" /><TextBlock Text="U" Margin="0,0,3.5,0" /><TextBlock Text="L" Margin="0,0,3.5,0" /><TextBlock Text="A" Margin="0,0,3.5,0" /><TextBlock Text="T" Margin="0,0,3.5,0" /><TextBlock Text="O" Margin="0,0,3.5,0" /><TextBlock Text="R" Margin="0,0,0,0" />
                                             </StackPanel>
                                             <Rectangle Grid.Column="2" Height="4" RadiusX="2" RadiusY="2" Fill="#FFD100" VerticalAlignment="Center" />
                                         </Grid>

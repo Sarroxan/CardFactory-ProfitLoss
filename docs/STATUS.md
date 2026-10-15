@@ -25,7 +25,7 @@ switching sections; the section-bar titles are blurry.
 
 | Change | Proven | Check in the app |
 |--------|--------|------------------|
-| **Title K3** (owner, 15 Oct): the logo's lettering goes back to the pre-V1 design - "Card Factory" and "Profit & Loss" in white Chewy, CALCULATOR between two yellow bars - beside the V1 smiley and badge. Same on the sign-in banner and the Export / Print header (the exported page now embeds Chewy instead of Fredoka). The headline totals go back to Arial Bold (HtmlTotalMetricTextStyle and CfBrandFont removed); the empty-state titles use Chewy. Fredoka stays only in the Daily Briefing sheet's figures. | XAML parses, names and handlers match; not compiled | Header logo fits before the tabs; sign-in banner; exported page and Print summary header; totals |
+| **Title Y1** (owner, 15 Oct; replaces K3, whose "Card Factory" in Chewy 21 had its "y" touching the title): the pre-V1 logo's own sizes and spacing - "Card Factory" Fredoka 14, "Profit & Loss" Chewy 42, CALCULATOR Fredoka 12 between two yellow bars - beside the V1 smiley and badge; tops worked out from the font metrics so the "y" clears the title by 5px. Same on the sign-in banner and the Export / Print header (export embeds Chewy and Fredoka). Headline totals back to Arial Bold; empty-state titles in Chewy. New CfLogoSmallFont (Fredoka) for the logo's small lettering. **Remove release** workflow (remove-release.yml) added: deletes one release and its tag so a version can be published again. | XAML parses, names and handlers match | Header logo, sign-in banner, exported page and Print summary header; totals |
 
 ## Released - v1.0.0 (15 Oct 2026, from `631caf3`), latest - the owner's fresh start (V1)
 
