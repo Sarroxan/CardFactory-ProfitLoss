@@ -29,7 +29,7 @@ needs the 1.0.0 zip installed once by hand. From then on 1.0.x / 1.x updates arr
 usual. The release build marks v1.0.0 as latest (--latest). Older releases (v1.2.0-v1.4.0)
 can be removed by the owner once 1.0.0 is out.
 
-Test build run 38780406386 (from b7e29c0, version 1.0.0): green, only annotation the size notice (61.6 MB). Not yet tried on a till.
+Test build run 38780406386 (from b7e29c0, version 1.0.0): green, only annotation the size notice (61.6 MB). Tried on a till by the owner (15 Oct): "All good". Merged into `main` for release as 1.0.0.
 
 | Change | Proven | Check in the app |
 |--------|--------|------------------|
