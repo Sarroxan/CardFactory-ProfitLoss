@@ -1,0 +1,47 @@
+# Remove a branch - Actions -> Remove branch -> Run workflow.
+#
+# Deletes one branch that is already fully merged into main. The cloud session that
+# maintains this app cannot delete branches itself; this runs on GitHub's side with the
+# repository's own token. It refuses main and any branch with commits main does not have,
+# so no work can be lost. Nothing here runs by itself.
+
+name: Remove branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to remove, e.g. title-k3 (must be fully merged into main)"
+        required: true
+        type: string
+      confirm:
+        description: "Type the branch name again to confirm"
+        required: true
+        type: string
+
+permissions:
+  contents: write   # delete the branch
+
+jobs:
+  remove:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Remove the branch if it is merged into main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: ${{ inputs.branch }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          if [ "$BRANCH" != "$CONFIRM" ]; then echo "::error::The two names don't match."; exit 1; fi
+          if [ "$BRANCH" = "main" ]; then echo "::error::main cannot be removed."; exit 1; fi
+          if ! gh api "repos/$GH_REPO/branches/$BRANCH" >/dev/null 2>&1; then
+            echo "Nothing to remove: no branch $BRANCH."; exit 0
+          fi
+          AHEAD=$(gh api "repos/$GH_REPO/compare/main...$BRANCH" --jq .ahead_by)
+          if [ "$AHEAD" != "0" ]; then
+            echo "::error::$BRANCH has $AHEAD commit(s) that are not in main. Not removed."; exit 1
+          fi
+          gh api -X DELETE "repos/$GH_REPO/git/refs/heads/$BRANCH"
+          echo "Removed branch $BRANCH (fully merged into main)."
