@@ -29,6 +29,8 @@ needs the 1.0.0 zip installed once by hand. From then on 1.0.x / 1.x updates arr
 usual. The release build marks v1.0.0 as latest (--latest). Older releases (v1.2.0-v1.4.0)
 can be removed by the owner once 1.0.0 is out.
 
+Test build run 38780406386 (from b7e29c0, version 1.0.0): green, only annotation the size notice (61.6 MB). Not yet tried on a till.
+
 | Change | Proven | Check in the app |
 |--------|--------|------------------|
 | **Flooid sign-in S2** (owner, 15 Oct): laid out like Flooid's own login page - card on a blue background, navy banner (smiley, "Card Factory P&L", "Sign in with your Flooid account", yellow edge), Username / Password above white fields, the two tick boxes, a yellow Login, "Forgot your password?" (opens Flooid's own page, whose link resets it) and "Show the Flooid page". Fields lose their icons. | XAML parses, names and handlers match; not compiled | Card fits the window; typing and Login; Enter in the password box; error box; Forgot / Show the Flooid page then Back to the simple sign in; the Choose a store step under the same banner |
