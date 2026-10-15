@@ -12,7 +12,7 @@ or released without the owner's say-so. A push to `main` starts a build.
 |--------|--------|-------|
 | Remove release workflow gets a display name (`name: Remove release`); Actions listed it by its file path | YAML valid | Shows as "Remove release" in Actions once on `main` |
 | Publish release and Remove release run on `ubuntu-24.04` instead of `ubuntu-latest`, which GitHub moves to Ubuntu 26 from 19 Oct 2026 | YAML valid | Next release / removal runs as before |
-| **Remove branch** workflow (remove-branch.yml; inputs branch and confirm): deletes one branch, only if it is fully merged into main, never main itself. The cloud session's direct branch delete is refused (HTTP 403) | YAML valid | First use: remove `title-k3` once on `main` |
+| **Remove branch** workflow (remove-branch.yml; inputs branch and confirm): deletes one branch, only if it is fully merged into main, never main itself. The cloud session's direct branch delete is refused (HTTP 403) | YAML valid | First use on the next merged branch (`title-k3` was deleted by the owner on the website, 15 Oct) |
 | STATUS brought up to date (re-publish recorded, v1.2.0 no longer shown as latest, release rights) | - | - |
 
 ## Released - v1.0.0 (15 Oct 2026), latest - the owner's fresh start (V1)
