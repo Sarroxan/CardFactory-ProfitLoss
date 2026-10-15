@@ -21,6 +21,12 @@ Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Target
 and strip-size fix from `next-update` were never merged; the dashboard changes size when
 switching sections; the section-bar titles are blurry.
 
+## Next update - on branch `signin-s2`, not built
+
+| Change | Proven | Check in the app |
+|--------|--------|------------------|
+| **Flooid sign-in S2** (owner, 15 Oct): laid out like Flooid's own login page - card on a blue background, navy banner (smiley, "Card Factory P&L", "Sign in with your Flooid account", yellow edge), Username / Password above white fields, the two tick boxes, a yellow Login, "Forgot your password?" (opens Flooid's own page, whose link resets it) and "Show the Flooid page". Fields lose their icons. | XAML parses, names and handlers match; not compiled | Card fits the window; typing and Login; Enter in the password box; error box; Forgot / Show the Flooid page then Back to the simple sign in; the Choose a store step under the same banner |
+
 ## Released - v1.4.0 (15 Oct 2026, from `67b2de4`), latest
 
 Published by the owner with Actions -> Publish release (run 38767312139); release build 38767343419 green. Annotated tag by "Card Factory Profit and Loss"; zip (64.6 MB, checksum matches, exe reports 1.4.0) and `.sha256` attached; six-line notes. v1.3.5, v1.3.0 and v1.2.0 still listed.

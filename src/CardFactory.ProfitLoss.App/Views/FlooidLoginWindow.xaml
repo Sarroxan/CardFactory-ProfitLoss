@@ -142,57 +142,89 @@
                  Shown only when the browser is actually sitting on /authserver/login. Any
                  other page - an expired session landing somewhere else, a Flooid change -
                  and this stays hidden. -->
+            <!-- Sign-in S2 (owner, 15 Oct): laid out like Flooid's own login page - a card on
+                 a blue background, a navy banner, Username / Password above the fields, then
+                 Login - with the app's finish: smiley, yellow edge, yellow Login.
+
+                 Stage 6B.18: our own sign-in card, drawn over Flooid's page rather than
+                 instead of it. The page underneath is still the real one and still holds
+                 the session - this only fills its two fields and clicks its button. If
+                 anything is not as expected the card gets out of the way and the real page
+                 is right there, which is why it overlays rather than replaces.
+
+                 Shown only when the browser is actually sitting on /authserver/login. Any
+                 other page - an expired session landing somewhere else, a Flooid change -
+                 and this stays hidden. -->
             <Grid x:Name="CustomLoginPanel"
                   Grid.Row="1"
                   Margin="12,12,12,8"
-                  Background="#F3F6FA"
                   Visibility="Collapsed">
-                <!-- Stage 6B.66 (design S3): a thin navy strip across the top of the card, and
-                     soft fields with icons (SignInFieldStyle / SignInPasswordStyle). -->
+                <Border CornerRadius="15">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#6F9ACB" Offset="0" />
+                            <GradientStop Color="#4E82BE" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+                <!-- The shadow is a separate shape behind the card: an Effect on the card itself
+                     would render its text as a bitmap and blur it (6B lesson on the section bars). -->
+                <Grid Width="400" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Background="White" CornerRadius="18">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.22" Color="#0C2850" />
+                    </Border.Effect>
+                </Border>
                 <Border Background="White"
                         BorderBrush="#D6E2EF"
                         BorderThickness="1"
-                        CornerRadius="16"
-                        Width="320"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center">
+                        CornerRadius="18">
                     <StackPanel>
-                    <Border Height="5" Background="{StaticResource CfDeepBlue}" CornerRadius="15,15,0,0" />
-                    <Grid Margin="22,16,22,18">
+                    <!-- Banner: the app's name and smiley, not the Card Factory logo. -->
+                    <Border Background="{StaticResource CfDeepBlue}" CornerRadius="17,17,0,0"
+                            BorderBrush="{StaticResource CfYellow}" BorderThickness="0,0,0,3" Padding="22,18,22,16">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Width="50" Height="50" Source="/Assets/HeaderSmileyFace.png" VerticalAlignment="Center"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                            <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Card Factory P&amp;L" FontFamily="{StaticResource CfTitleFont}" FontSize="30"
+                                           Foreground="{StaticResource CfYellow}" />
+                                <TextBlock Text="Sign in with your Flooid account" FontFamily="Arial" FontSize="11"
+                                           Foreground="#D6E4F5" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    <Grid Margin="26,22,26,22">
                     <StackPanel x:Name="SignInForm">
-                        <TextBlock Text="Sign in to Flooid"
-                                   FontFamily="Arial" FontSize="15" FontWeight="Bold"
-                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,12" />
-
                         <Border x:Name="LoginErrorBox"
                                 Background="#FDF2F2" BorderBrush="#F3C9C9" BorderThickness="1"
-                                CornerRadius="8" Padding="9,6" Margin="0,0,0,12"
+                                CornerRadius="8" Padding="9,6" Margin="0,0,0,14"
                                 Visibility="Collapsed">
                             <TextBlock x:Name="LoginErrorText" TextWrapping="Wrap"
                                        FontFamily="Arial" FontSize="11" Foreground="#B03A3A" />
                         </Border>
 
-                        <TextBlock Text="USERNAME" FontFamily="Arial" FontSize="9.5" FontWeight="Bold"
-                                   Foreground="{StaticResource CfMuted}" Margin="0,0,0,4" />
+                        <TextBlock Text="Username" FontFamily="Arial" FontSize="11.5" FontWeight="Bold"
+                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,6" />
                         <TextBox x:Name="LoginUsernameBox" MaxLength="60"
-                                 Style="{StaticResource SignInFieldStyle}" Margin="0,0,0,11" />
+                                 Style="{StaticResource SignInFieldStyle}" Margin="0,0,0,16" />
 
-                        <TextBlock Text="PASSWORD" FontFamily="Arial" FontSize="9.5" FontWeight="Bold"
-                                   Foreground="{StaticResource CfMuted}" Margin="0,0,0,4" />
+                        <TextBlock Text="Password" FontFamily="Arial" FontSize="11.5" FontWeight="Bold"
+                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,6" />
                         <PasswordBox x:Name="LoginPasswordBox" MaxLength="1024"
-                                     Style="{StaticResource SignInPasswordStyle}" Margin="0,0,0,11"
+                                     Style="{StaticResource SignInPasswordStyle}" Margin="0,0,0,16"
                                      KeyDown="LoginPassword_KeyDown" />
 
                         <CheckBox x:Name="RememberUsernameCheck" Style="{StaticResource CfCheckBoxStyle}"
                                   Content="Remember my username"
                                   FontFamily="Arial" FontSize="11"
-                                  Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,6" />
+                                  Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,9" />
 
                         <!-- Stage 6B.19: this is what lets an expired session sign itself
                              back in. Off unless ticked, and unticking deletes the file. -->
                         <CheckBox x:Name="RememberPasswordCheck" Style="{StaticResource CfCheckBoxStyle}"
                                   FontFamily="Arial" FontSize="11"
-                                  Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,14">
+                                  Foreground="{StaticResource CfDeepBlue}" Margin="0,0,0,16">
                             <TextBlock TextWrapping="Wrap">
                                 <Run Text="Stay signed in until the app is closed" />
                                 <Run Text="(password encrypted, this PC only)" Foreground="{StaticResource CfMuted}" FontSize="10" />
@@ -200,9 +232,10 @@
                         </CheckBox>
 
                         <Button x:Name="LoginSubmitButton"
-                                Content="Sign in"
+                                Content="Login"
                                 Tag="NoGlyph"
-                                Height="32"
+                                Height="40"
+                                FontSize="13"
                                 Style="{StaticResource FlooidActionButtonStyle}"
                                 Click="LoginSubmit_Click" />
 
@@ -214,16 +247,22 @@
                                        Foreground="{StaticResource CfMuted}" VerticalAlignment="Center" />
                         </StackPanel>
 
-                        <!-- Stage 6B.20: a toggle, not a dismissal. This used to hide the card
-                             for the rest of the session with no way back, so one stray click
-                             and the simple form was gone until the window was reopened. -->
-                        <TextBlock Margin="0,12,0,0" HorizontalAlignment="Center">
-                            <Hyperlink Click="UseFlooidPage_Click"
-                                       Foreground="{StaticResource CfBlue}"
-                                       TextDecorations="Underline">
-                                <Run Text="Show the Flooid login page" FontFamily="Arial" FontSize="11" />
-                            </Hyperlink>
-                        </TextBlock>
+                        <!-- "Forgot your password?" shows Flooid's own page, whose link does the
+                             reset - the app cannot. Stage 6B.20: "Show the Flooid page" is a
+                             toggle, not a dismissal; "Back to the simple sign in" returns. -->
+                        <Grid Margin="0,12,0,0">
+                            <TextBlock HorizontalAlignment="Left">
+                                <Hyperlink Click="UseFlooidPage_Click" Foreground="{StaticResource CfInk}" TextDecorations="{x:Null}"
+                                           ToolTip="Opens Flooid's own login page, where its reset link is">
+                                    <Run Text="Forgot your password?" FontFamily="Arial" FontSize="11" />
+                                </Hyperlink>
+                            </TextBlock>
+                            <TextBlock HorizontalAlignment="Right">
+                                <Hyperlink Click="UseFlooidPage_Click" Foreground="{StaticResource CfBlue}" TextDecorations="Underline">
+                                    <Run Text="Show the Flooid page" FontFamily="Arial" FontSize="11" />
+                                </Hyperlink>
+                            </TextBlock>
+                        </Grid>
                     </StackPanel>
 
                     <!-- Stage 6B.50 (concept B): Flooid's "Select Store" step, for accounts with
@@ -300,6 +339,7 @@
                     </Grid>
                     </StackPanel>
                 </Border>
+                </Grid>
             </Grid>
 
             <Grid Grid.Row="2" Margin="14,0,14,8">

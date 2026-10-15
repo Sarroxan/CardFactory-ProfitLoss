@@ -823,16 +823,18 @@
     <!-- Stage 6B.66 (sign-in design S3): a person / padlock icon inside each field, and
          the edge the same colour as the fill so the fields read as soft shapes; the blue
          focus edge is unchanged. -->
+    <!-- Sign-in S2 (owner, 15 Oct): white fields with a CfLine-like edge, as on the Flooid
+         page, no icons; blue edge on focus. -->
     <Style x:Key="SignInFieldStyle" TargetType="TextBox">
-        <Setter Property="Height" Value="32" />
+        <Setter Property="Height" Value="36" />
         <Setter Property="Padding" Value="10,0" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="14" />
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
         <Setter Property="CaretBrush" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="Background" Value="#F3F7FD" />
-        <Setter Property="BorderBrush" Value="#F3F7FD" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="BorderBrush" Value="#B9C9DC" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Template">
             <Setter.Value>
@@ -842,10 +844,7 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="8">
                         <Grid>
-                            <Path Data="M10,10 A3.5,3.5 0 1 0 10,3 A3.5,3.5 0 1 0 10,10 M3.5,17.5 C4.5,13.5 15.5,13.5 16.5,17.5" Stroke="#7F92AB" StrokeThickness="1.7" StrokeLineJoin="Round"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
-                            <ScrollViewer x:Name="PART_ContentHost" Margin="32,0,10,0" VerticalAlignment="Center" />
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="12,0,10,0" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -860,15 +859,15 @@
     </Style>
 
     <Style x:Key="SignInPasswordStyle" TargetType="PasswordBox">
-        <Setter Property="Height" Value="32" />
+        <Setter Property="Height" Value="36" />
         <Setter Property="Padding" Value="10,0" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="14" />
         <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
         <Setter Property="CaretBrush" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="Background" Value="#F3F7FD" />
-        <Setter Property="BorderBrush" Value="#F3F7FD" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="BorderBrush" Value="#B9C9DC" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Template">
             <Setter.Value>
@@ -878,10 +877,7 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="8">
                         <Grid>
-                            <Path Data="M5,9 L15,9 L15,17 L5,17 Z M7,9 L7,6.5 A3,3 0 0 1 13,6.5 L13,9" Stroke="#7F92AB" StrokeThickness="1.7" StrokeLineJoin="Round"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
-                            <ScrollViewer x:Name="PART_ContentHost" Margin="32,0,10,0" VerticalAlignment="Center" />
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="12,0,10,0" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
