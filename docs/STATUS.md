@@ -6,7 +6,7 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## Next update - on branch `housekeeping`, not built
+## On `main` since 15 Oct 2026 (merged from `housekeeping`, owner's say-so) - workflows and docs only, no release needed
 
 | Change | Proven | Check |
 |--------|--------|-------|
