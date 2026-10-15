@@ -21,7 +21,15 @@ Known in v1.2.0 (fixed on `v1.3.0-work`, below): the calendar date range, Target
 and strip-size fix from `next-update` were never merged; the dashboard changes size when
 switching sections; the section-bar titles are blurry.
 
-## Next update - version 1.0.0 (owner, 15 Oct: "this is the start, V1"), on branch `signin-s2`
+## Next update - on branch `title-k3`, not built
+
+| Change | Proven | Check in the app |
+|--------|--------|------------------|
+| **Title K3** (owner, 15 Oct): the logo's lettering goes back to the pre-V1 design - "Card Factory" and "Profit & Loss" in white Chewy, CALCULATOR between two yellow bars - beside the V1 smiley and badge. Same on the sign-in banner and the Export / Print header (the exported page now embeds Chewy instead of Fredoka). The headline totals go back to Arial Bold (HtmlTotalMetricTextStyle and CfBrandFont removed); the empty-state titles use Chewy. Fredoka stays only in the Daily Briefing sheet's figures. | XAML parses, names and handlers match; not compiled | Header logo fits before the tabs; sign-in banner; exported page and Print summary header; totals |
+
+## Released - v1.0.0 (15 Oct 2026, from `631caf3`), latest - the owner's fresh start (V1)
+
+Published by the owner with Actions -> Publish release (run 38781787996); release build 38781811685 green. Annotated tag by "Card Factory Profit and Loss"; zip (64.6 MB, checksum matches, exe reports 1.0.0) and `.sha256` attached; notes are the full V1 description. Older releases, tags and branches removed by the owner; Actions history cleared except the two v1.0.0 runs.
 
 The number goes back to 1.0.0 by the owner's choice. The updater only installs a higher
 number than it has, so tills on 1.2.0-1.4.0 will NOT update to 1.0.0 by themselves: each
@@ -39,7 +47,7 @@ Test build run 38780406386 (from b7e29c0, version 1.0.0): green, only annotation
 | **Title-bar icon and version dot** (owner, 15 Oct): the main window's title bar and the Flooid sign-in window show the S2 icon (new Assets/AppIcon.png from tools/render-app-icon.py) instead of the old smiley-on-blue (HeaderSmiley.png, removed). The version chip's three drawn faces are replaced by an 8px dot: grey checking, green up to date, amber update available, red can't check. | XAML parses; no references to HeaderSmiley.png left; not compiled | Title bars; chip in all four states |
 | **Polish 3-7** (owner, 15 Oct): (3) Branch's Performance / Gift Cards switch: the tab you are on is yellow with navy text inside a pale card, the other muted - like the header tabs; (4) empty states: Branch (no hours and no error) and Reports (not generated) show the smiley, "No figures yet" / "No reports yet", the period, and a Refresh / Generate reports button; Team is left as is, because people type figures into it by hand; (5) the Getting reports box: navy band with the app icon, title in Chewy, the period under it, steps as circles (pale / yellow running / green done), thin yellow progress line, shadow moved behind the card so its text is sharp; (6) Export (HTML, smiley and Fredoka embedded as data URIs) and Print summary open with the logo band - smiley + bar badge, CARD FACTORY over Profit & Loss, store and dates, yellow rule; (7) headline totals (Team totals, Targets results, Branch totals bar) in Fredoka (HtmlTotalMetricTextStyle), same sizes; Fredoka is narrower than Arial Bold. | XAML parses, names and handlers match; not compiled | Each state of the Branch switch; empty Branch and Reports before a pull and their buttons; the Getting reports box through a full pull, a Reports pull, the Daily Briefing pull and an error; an exported page opened in a browser and emailed; a Print summary; totals |
 
-## Released - v1.4.0 (15 Oct 2026, from `67b2de4`), latest
+## Released - v1.4.0 (15 Oct 2026, from `67b2de4`) - release since removed
 
 Published by the owner with Actions -> Publish release (run 38767312139); release build 38767343419 green. Annotated tag by "Card Factory Profit and Loss"; zip (64.6 MB, checksum matches, exe reports 1.4.0) and `.sha256` attached; six-line notes. v1.3.5, v1.3.0 and v1.2.0 still listed.
 
@@ -54,7 +62,7 @@ Test build run 38633642006 (from 3467ce8, 14 Oct): green, compiles, only annotat
 | **Refresh as the end of the date card (R1)**: DAY · date · yellow Refresh (Generate reports on Reports), one unit; text 11px (was 8.5). New DateCardActionButtonStyle. | XAML parses; not compiled | Looks joined in Single day and Date range; Reports label and mark; hover |
 | **Deep check fixes** (owner approved all 7): (1) status note - every SetStatus now shows as a navy note at the bottom (green tick, or yellow "!" for problems; 4 s / 7 s; not while the retrieval box is up; section switches and the startup line stay quiet); (2) navy tooltips app-wide; (3) rounded blue tick boxes on the Flooid sign-in; (4) slim themed scrollbar on Reports, update notes, sign-in store list, Daily Briefing preview; (5) save/open failures use the app's message box, not Windows'; (6) nothing under 9.5px (was 5.7-9; the ABV/AUB warning is now "Needed for ABV/AUB" with the full sentence as its tooltip; the "i" marks stay 8px); (7) Store & defaults wording. | XAML parses, names and handlers match; not compiled | Note appears after Save / Print / Export and fades; tooltips; tick boxes; scrollbars; Branch totals bar and gift-card cells still fit at 9.5px in Date range (tightest spot: GIFT SALES over £2,000) |
 
-## Released - v1.3.5 (14 Oct 2026, from `88810e7`), latest
+## Released - v1.3.5 (14 Oct 2026, from `88810e7`) - release since removed
 
 Published by the owner with Actions -> Publish release (run 38560186028); release build
 38560203323 green. Annotated tag by "Card Factory Profit and Loss"; zip (61.5 MB) and

@@ -374,10 +374,9 @@
                                      old artwork had it (within 0.3px). The Viewbox fits it to the old 330x84 slot.
                                      The smiley's square is see-through here (HeaderSmileyFace.png), so it is
                                      the header's own blue. -->
-                                <!-- Logo E1 (owner, 15 Oct): the company's name in small spaced capitals over
-                                     the product name, beside the S2 mark - the Card Factory smiley (the same
-                                     image as before, unchanged) with a white badge of three bars. "Card
-                                     Factory" is plain type, not the Card Factory wordmark. Same 330x84 slot. -->
+                                <!-- Logo: the S2 mark - the Card Factory smiley (the same image as before,
+                                     unchanged) with a white badge of three bars - and the title in Chewy (K3).
+                                     Same 330x84 slot. -->
                                 <Viewbox Canvas.Left="0" Canvas.Top="4" Width="330" Height="84" Stretch="Uniform">
                                     <Canvas Width="330" Height="84">
                                         <Image Canvas.Left="0" Canvas.Top="3" Width="78" Height="78" Source="Assets/HeaderSmileyFace.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
@@ -385,13 +384,25 @@
                                         <Rectangle Canvas.Left="56" Canvas.Top="65" Width="4" Height="8" RadiusX="2" RadiusY="2" Fill="{StaticResource CfDeepBlue}" />
                                         <Rectangle Canvas.Left="62" Canvas.Top="61" Width="4" Height="12" RadiusX="2" RadiusY="2" Fill="{StaticResource CfDeepBlue}" />
                                         <Rectangle Canvas.Left="68" Canvas.Top="57" Width="4" Height="16" RadiusX="2" RadiusY="2" Fill="{StaticResource CfYellow}" />
-                                        <!-- WPF has no letter spacing, so each capital is its own TextBlock. -->
-                                        <StackPanel Canvas.Left="94" Canvas.Top="17" Orientation="Horizontal" TextBlock.FontFamily="Arial" TextBlock.FontSize="12"
-                                                    TextBlock.FontWeight="Bold" TextBlock.Foreground="#D6E4F5">
-                                            <TextBlock Text="C" Margin="0,0,2.2,0" /><TextBlock Text="A" Margin="0,0,2.2,0" /><TextBlock Text="R" Margin="0,0,2.2,0" /><TextBlock Text="D" Margin="0,0,2.2,0" /><TextBlock Text=" " Margin="0,0,3,0" /><TextBlock Text="F" Margin="0,0,2.2,0" /><TextBlock Text="A" Margin="0,0,2.2,0" /><TextBlock Text="C" Margin="0,0,2.2,0" /><TextBlock Text="T" Margin="0,0,2.2,0" /><TextBlock Text="O" Margin="0,0,2.2,0" /><TextBlock Text="R" Margin="0,0,2.2,0" /><TextBlock Text="Y" Margin="0,0,2.2,0" />
-                                        </StackPanel>
-                                        <TextBlock Canvas.Left="92" Canvas.Top="31" Text="Profit &amp; Loss" FontFamily="{StaticResource CfBrandFont}"
-                                                   FontSize="36" Foreground="{StaticResource CfYellow}" />
+                                        <!-- Title K3 (owner, 15 Oct): the pre-V1 lettering back - "Card Factory" and
+                                             "Profit & Loss" in white Chewy, CALCULATOR between two yellow bars. -->
+                                        <TextBlock Canvas.Left="92" Canvas.Top="2" Text="Card Factory" FontFamily="{StaticResource CfTitleFont}"
+                                                   FontSize="21" Foreground="White" />
+                                        <TextBlock Canvas.Left="92" Canvas.Top="20" Text="Profit &amp; Loss" FontFamily="{StaticResource CfTitleFont}"
+                                                   FontSize="36" Foreground="White" />
+                                        <Grid Canvas.Left="92" Canvas.Top="63" Width="236" Height="14">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Rectangle Height="4" RadiusX="2" RadiusY="2" Fill="#FFD100" VerticalAlignment="Center" />
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center"
+                                                        TextBlock.FontFamily="Arial" TextBlock.FontSize="11" TextBlock.FontWeight="Bold" TextBlock.Foreground="White">
+                                                <TextBlock Text="C" Margin="0,0,2.5,0" /><TextBlock Text="A" Margin="0,0,2.5,0" /><TextBlock Text="L" Margin="0,0,2.5,0" /><TextBlock Text="C" Margin="0,0,2.5,0" /><TextBlock Text="U" Margin="0,0,2.5,0" /><TextBlock Text="L" Margin="0,0,2.5,0" /><TextBlock Text="A" Margin="0,0,2.5,0" /><TextBlock Text="T" Margin="0,0,2.5,0" /><TextBlock Text="O" Margin="0,0,2.5,0" /><TextBlock Text="R" Margin="0,0,0,0" />
+                                            </StackPanel>
+                                            <Rectangle Grid.Column="2" Height="4" RadiusX="2" RadiusY="2" Fill="#FFD100" VerticalAlignment="Center" />
+                                        </Grid>
                                     </Canvas>
                                 </Viewbox>
 
@@ -971,16 +982,16 @@
                                         <TextBlock Grid.Column="1" Text="Sales +/-" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
                                         <Border Grid.Column="2" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding TotalSales, StringFormat=£{0:N2}}" Style="{StaticResource HtmlTotalMetricTextStyle}" />
+                                            <TextBlock Text="{Binding TotalSales, StringFormat=£{0:N2}}" Style="{StaticResource HtmlMetricTextStyle}" />
                                         </Border>
                                         <Border Grid.Column="3" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding ActualAbv, StringFormat=£{0:N2}}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlTotalMetricTextStyle}" />
+                                            <TextBlock Text="{Binding ActualAbv, StringFormat=£{0:N2}}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" />
                                         </Border>
                                         <Border Grid.Column="4" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding ActualAub, StringFormat={}{0:N2}}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlTotalMetricTextStyle}" />
+                                            <TextBlock Text="{Binding ActualAub, StringFormat={}{0:N2}}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" />
                                         </Border>
                                         <Border Grid.Column="5" Style="{StaticResource HtmlTotalResultBoxStyle}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding TotalProfitLossText}" Tag="{Binding TotalProfitLossState}" Style="{StaticResource HtmlTotalMetricTextStyle}" />
+                                            <TextBlock Text="{Binding TotalProfitLossText}" Tag="{Binding TotalProfitLossState}" Style="{StaticResource HtmlMetricTextStyle}" />
                                         </Border>
                                     </Grid>
 
@@ -1183,7 +1194,7 @@
                                                 <Image Width="52" Height="52" Source="Assets/HeaderSmileyFace.png" VerticalAlignment="Center" Opacity="0.9"
                                                        RenderOptions.BitmapScalingMode="HighQuality" />
                                                 <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
-                                                    <TextBlock Text="No reports yet" FontFamily="{StaticResource CfBrandFont}" FontSize="18" Foreground="{StaticResource CfDeepBlue}" />
+                                                    <TextBlock Text="No reports yet" FontFamily="{StaticResource CfTitleFont}" FontSize="20" Foreground="{StaticResource CfDeepBlue}" />
                                                     <TextBlock FontFamily="Arial" FontSize="11" Foreground="{StaticResource CfMuted}" Margin="0,3,0,9">
                                                         <Run Text="Generate voids, returns, no sales and staff discounts for " /><Run Text="{Binding PeriodDisplayText, Mode=OneWay}" /><Run Text="." />
                                                     </TextBlock>
@@ -1381,7 +1392,7 @@
                                                 <Image Width="52" Height="52" Source="Assets/HeaderSmileyFace.png" VerticalAlignment="Center" Opacity="0.9"
                                                        RenderOptions.BitmapScalingMode="HighQuality" />
                                                 <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
-                                                    <TextBlock Text="No figures yet" FontFamily="{StaticResource CfBrandFont}" FontSize="18" Foreground="{StaticResource CfDeepBlue}" />
+                                                    <TextBlock Text="No figures yet" FontFamily="{StaticResource CfTitleFont}" FontSize="20" Foreground="{StaticResource CfDeepBlue}" />
                                                     <TextBlock FontFamily="Arial" FontSize="11" Foreground="{StaticResource CfMuted}" Margin="0,3,0,9">
                                                         <Run Text="Refresh to pull Branch Performance for " /><Run Text="{Binding PeriodDisplayText, Mode=OneWay}" /><Run Text="." />
                                                     </TextBlock>
@@ -1462,16 +1473,16 @@
                                                     </Grid.ColumnDefinitions>
                                                     <Border Grid.Column="0" Width="4" Background="{StaticResource CfDeepBlue}" CornerRadius="12,0,0,12" HorizontalAlignment="Left" />
                                                     <TextBlock Grid.Column="0" Text="BRANCH TOTAL" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="22,0,0,0"/>
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="SALES" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalSales, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="TRANSACTIONS" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalTransactions}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="UNITS" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalUnits}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="AUB" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAub, StringFormat={}{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="ABV" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAbv, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="SALES" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalSales, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="TRANSACTIONS" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalTransactions}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="UNITS" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchTotalUnits}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="AUB" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAub, StringFormat={}{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                    <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="ABV" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchActualAbv, StringFormat=£{0:N2}}" FontSize="14" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
                                                     <Border Grid.Column="6" Background="{StaticResource CfLine}" Height="23" VerticalAlignment="Center"/>
                                                     <Grid Grid.Column="7">
                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT QTY" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardQuantity}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT SALES" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardSales, StringFormat=£{0:N2}}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="{StaticResource CfBrandFont}" FontWeight="Normal" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT QTY" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardQuantity}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="GIFT SALES" FontSize="9.5" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock Text="{Binding BranchGiftCardSales, StringFormat=£{0:N2}}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontWeight="Bold" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -1524,7 +1535,7 @@
                                                      TextChanged="NumericTextBox_TextChanged"
                                                      LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
                                         </Border>
-                                        <TextBlock Text="{Binding SalesSummaryText}" Tag="{Binding SalesVarianceState}" Style="{StaticResource HtmlTotalMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
+                                        <TextBlock Text="{Binding SalesSummaryText}" Tag="{Binding SalesVarianceState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
@@ -1539,7 +1550,7 @@
                                                      TextChanged="NumericTextBox_TextChanged"
                                                      LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
                                         </Border>
-                                        <TextBlock Text="{Binding AbvSummaryText}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlTotalMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
+                                        <TextBlock Text="{Binding AbvSummaryText}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
@@ -1554,7 +1565,7 @@
                                                      TextChanged="NumericTextBox_TextChanged"
                                                      LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
                                         </Border>
-                                        <TextBlock Text="{Binding AubSummaryText}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlTotalMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
+                                        <TextBlock Text="{Binding AubSummaryText}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
                                     </StackPanel>
                                     </Grid>
                                 </Border>

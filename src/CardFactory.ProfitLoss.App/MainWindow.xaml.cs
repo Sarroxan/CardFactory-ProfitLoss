@@ -1020,16 +1020,16 @@ public partial class MainWindow : Window
         // rule beneath. The smiley and the rounded font travel inside the file, so it looks
         // the same when emailed.
         var smiley = ResourceDataUri("Assets/HeaderSmileyFace.png", "image/png");
-        var brandFont = ResourceDataUri("Assets/Fonts/Fredoka-SemiBold.ttf", "font/ttf");
+        var brandFont = ResourceDataUri("Assets/Fonts/Chewy-Regular.ttf", "font/ttf");
         sb.Append("<!doctype html><html><head><meta charset='utf-8'><title>Card Factory Profit &amp; Loss Report</title>");
         if (brandFont is not null) sb.Append($"<style>@font-face{{font-family:CfBrand;src:url({brandFont})}}</style>");
-        sb.Append("<style>.brand{background:#004EA1;border-radius:14px 14px 0 0;padding:14px 20px;display:flex;align-items:center;gap:14px}.mark{position:relative;width:56px;height:56px;flex:none}.mark img{width:56px;height:56px}.badge{position:absolute;right:-4px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:#fff;border:2.5px solid #004EA1;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding-bottom:5px;box-sizing:border-box}.badge i{width:3px;border-radius:2px;background:#004EA1;display:block}.badge i.y{background:#FFC907}.co{font:bold 10px Arial,sans-serif;letter-spacing:2.4px;color:#D6E4F5}.pl{font-family:CfBrand,'Trebuchet MS',Arial,sans-serif;font-size:30px;color:#FFC907;line-height:1.05}.where{margin-left:auto;text-align:right;font-size:12px;color:#D6E4F5}.where b{color:#fff;font-size:14px}.rule{height:5px;background:#FFC907;border-radius:0 0 4px 4px}</style>");
+        sb.Append("<style>.brand{background:#004EA1;border-radius:14px 14px 0 0;padding:14px 20px;display:flex;align-items:center;gap:14px}.mark{position:relative;width:56px;height:56px;flex:none}.mark img{width:56px;height:56px}.badge{position:absolute;right:-4px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:#fff;border:2.5px solid #004EA1;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding-bottom:5px;box-sizing:border-box}.badge i{width:3px;border-radius:2px;background:#004EA1;display:block}.badge i.y{background:#FFC907}.co{font-family:CfBrand,'Trebuchet MS',Arial,sans-serif;font-size:17px;color:#fff;line-height:1}.pl{font-family:CfBrand,'Trebuchet MS',Arial,sans-serif;font-size:30px;color:#fff;line-height:1.05}.calc{display:flex;align-items:center;gap:8px;margin-top:3px;font:bold 10px Arial,sans-serif;letter-spacing:2.4px;color:#fff}.calc i{flex:1;height:4px;border-radius:2px;background:#FFD100;display:block}.where{margin-left:auto;text-align:right;font-size:12px;color:#D6E4F5}.where b{color:#fff;font-size:14px}.rule{height:5px;background:#FFC907;border-radius:0 0 4px 4px}</style>");
         sb.Append("<style>body{font-family:Arial,sans-serif;color:#183153;margin:28px}h1{margin:0;color:#004EA1}h2{background:#004EA1;color:white;padding:9px 14px;border-radius:12px 12px 0 0;margin:24px 0 0}.meta{background:#FFF4A8;padding:10px 14px;border-radius:10px;margin-top:12px}.cards{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.card{border:1px solid #D7E2EF;border-radius:10px;padding:8px 12px;min-width:125px}.label{font-size:10px;color:#60758E}.value{font-weight:bold;font-size:16px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#E3ECF7;color:#004EA1;text-align:left}th,td{padding:7px;border-bottom:1px solid #E4EBF2}tr.best{background:#FFF9D8}.yellow{color:#A87C00}td.flag{background:#FFF1DC;color:#9A5B00;font-weight:bold}.note{color:#667891;font-size:10px;margin-top:6px}.foot{margin-top:20px;color:#667891;font-size:10px}</style></head><body>");
         var dates = start == end ? $"{end:ddd dd/MM/yyyy}" : $"{start:dd/MM/yyyy} - {end:dd/MM/yyyy}";
         sb.Append("<div class='brand'><div class='mark'>");
         if (smiley is not null) sb.Append($"<img src='{smiley}' alt=''>");
         sb.Append("<span class='badge'><i style='height:5px'></i><i style='height:7px'></i><i class='y' style='height:9px'></i></span></div>");
-        sb.Append($"<div><div class='co'>CARD FACTORY</div><div class='pl'>Profit &amp; Loss</div></div><div class='where'>{H(vm.StoreLocation)}<br><b>{H(dates)}</b></div></div><div class='rule'></div>");
+        sb.Append($"<div><div class='co'>Card Factory</div><div class='pl'>Profit &amp; Loss</div><div class='calc'><i></i>CALCULATOR<i></i></div></div><div class='where'>{H(vm.StoreLocation)}<br><b>{H(dates)}</b></div></div><div class='rule'></div>");
         sb.Append("<div class='cards'>");
         sb.Append($"<div class='card'><div class='label'>COUNTED SALES</div><div class='value'>£{vm.TotalSales:N2}</div></div>");
         sb.Append($"<div class='card'><div class='label'>TRANSACTIONS</div><div class='value'>{vm.TotalTransactions:N0}</div></div>");
@@ -1173,12 +1173,20 @@ public partial class MainWindow : Window
         }
 
         var name = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-        name.Children.Add(new TextBlock { Text = "C A R D   F A C T O R Y", FontFamily = new FontFamily("Arial"), FontSize = 8.5, FontWeight = FontWeights.Bold, Foreground = pale });
-        name.Children.Add(new TextBlock
-        {
-            Text = "Profit & Loss", FontSize = 24, Foreground = yellow,
-            FontFamily = new FontFamily(new Uri("pack://application:,,,/"), "./Assets/Fonts/#Fredoka SemiBold")
-        });
+        // Title K3: the app's name in Chewy, CALCULATOR between two yellow bars.
+        var chewy = new FontFamily(new Uri("pack://application:,,,/"), "./Assets/Fonts/#Chewy");
+        name.Children.Add(new TextBlock { Text = "Card Factory", FontFamily = chewy, FontSize = 13, Foreground = Brushes.White });
+        name.Children.Add(new TextBlock { Text = "Profit & Loss", FontFamily = chewy, FontSize = 24, Foreground = Brushes.White, Margin = new Thickness(0, -3, 0, 0) });
+        var calc = new Grid { Margin = new Thickness(0, 1, 0, 0), Width = 170, HorizontalAlignment = HorizontalAlignment.Left };   // star columns need a set width inside a StackPanel
+        calc.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        calc.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        calc.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        var barLeft = new Border { Height = 3, CornerRadius = new CornerRadius(1.5), Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xD1, 0x00)), VerticalAlignment = VerticalAlignment.Center };
+        var barRight = new Border { Height = 3, CornerRadius = new CornerRadius(1.5), Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xD1, 0x00)), VerticalAlignment = VerticalAlignment.Center };
+        var calcText = new TextBlock { Text = "C A L C U L A T O R", FontFamily = new FontFamily("Arial"), FontSize = 7.5, FontWeight = FontWeights.Bold, Foreground = Brushes.White, Margin = new Thickness(6, 0, 6, 0) };
+        Grid.SetColumn(calcText, 1); Grid.SetColumn(barRight, 2);
+        calc.Children.Add(barLeft); calc.Children.Add(calcText); calc.Children.Add(barRight);
+        name.Children.Add(calc);
 
         var where = new StackPanel { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
         where.Children.Add(new TextBlock { Text = store ?? string.Empty, FontSize = 10, Foreground = pale, HorizontalAlignment = HorizontalAlignment.Right });

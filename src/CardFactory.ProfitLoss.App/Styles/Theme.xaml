@@ -34,8 +34,6 @@
          again by the dashboard's Viewbox, which softened them. Text is drawn sharp at any scale.
          18px matches the old artwork's width to within 2px. -->
     <FontFamily x:Key="CfTitleFont">pack://application:,,,/Assets/Fonts/#Chewy</FontFamily>
-    <!-- Logo E1: the rounded lettering of the logo's product name (Fredoka SemiBold, embedded; OFL). -->
-    <FontFamily x:Key="CfBrandFont">pack://application:,,,/Assets/Fonts/#Fredoka SemiBold</FontFamily>
     <Style x:Key="SectionTitleTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource CfTitleFont}" />
         <Setter Property="FontSize" Value="18" />
@@ -251,13 +249,6 @@
         </Style.Triggers>
     </Style>
 
-    <!-- Polish 7 (owner, 15 Oct): the headline totals (Team totals, Targets results) in the
-         logo's rounded lettering. Same size and colours as HtmlMetricTextStyle; Fredoka is a
-         little narrower than Arial Bold, so nothing gets tighter. -->
-    <Style x:Key="HtmlTotalMetricTextStyle" TargetType="TextBlock" BasedOn="{StaticResource HtmlMetricTextStyle}">
-        <Setter Property="FontFamily" Value="{StaticResource CfBrandFont}" />
-        <Setter Property="FontWeight" Value="Normal" />
-    </Style>
 
     <Style x:Key="HtmlTotalResultBoxStyle" TargetType="Border">
         <Setter Property="Width" Value="78" />
