@@ -6,11 +6,12 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `back-office-stays-open` (owner, 16 Oct 2026, ~21:10) - not built yet
+## On branch `back-office-stays-open` (owner, 16 Oct 2026, ~21:10-21:30) - not built yet
 
 | Change | Proven | Check |
 |--------|--------|-------|
 | **Open Flooid back office closed the window and refreshed everything.** Every navigation first publishes "Opening Flooid…" (NavigationStarting, state NotInitialised); the main window took that as having left signed in, so the page arriving next looked like a fresh sign in: `HideAfterSignIn()` plus a full report pull (only skipped within a minute of the last automatic pull). Opening the back office navigates to its home page, so it happened on opening, and on any link clicked in it. Now `FlooidSignInTracker` (Flooid project) decides: a page still loading, or the bare `/backoffice/` entry on its way, doesn't change "was signed in"; the login page does, so signing in, and signing in again after the session runs out, still pull the reports by themselves. | Unit tests replay the published sequence (sign in, open back office, a link, session running out). Not compiled yet | Signed in, account menu → Open Flooid back office: the window stays open on the back office, no retrieval starts; click a few menu links a minute later: still open. Sign out and in: reports pulled as before |
+| **Daily Briefing: ABV and AUB rings, best hour in navy** (owner, 16 Oct 2026: concepts A1 + S2). Every hourly ABV box above the day's ABV target, and every AUB box above the AUB target, gets the yellow ring the best sales hour used to have (no target set: no rings; equal to target: no ring). The best sales hour is now filled navy with white figures and keeps a yellow edge, so it stands apart from the rings and stays dark on a black-and-white printer. `DailyBriefingSheet.BeatsTarget`. Nothing else on the sheet changes. | Not compiled yet | Export to Daily Briefing for a day with ABV/AUB targets: rings only on hours above target; best sales hour navy |
 
 V1 release record: main build 38950897056 (rehearsal 0.86 MB in 9 parts); Remove release
 38951210450 (v1.0.1) and 38951244716 (old v1.0.0); Publish 38951293932; release build

@@ -23,6 +23,8 @@ namespace CardFactory.ProfitLoss.App.Services;
 /// app filled are tinted CfBlueSoft so printed and handwritten boxes are told apart; Actual
 /// boxes solid green (on or above target) or red (below) with the difference inside; P&amp;L
 /// boxes solid green or red; the best hour ringed in yellow; £20+ voids and refunds amber.
+/// 16 Oct 2026 (A1 + S2): the best sales hour filled navy with white figures and a yellow
+/// edge; hourly ABV and AUB boxes ringed yellow when they beat the day's target.
 /// </summary>
 public static class DailyBriefingSheet
 {
@@ -157,9 +159,14 @@ public static class DailyBriefingSheet
             var row = d.Hours.FirstOrDefault(h => h.StartHour == hour);
             if (row is null) continue;
             var y = 187.2 + 31.86 * i;
-            Box(c, 83.6, y, 156.2, y + 27.5, Money(row.Sales), 10.5, ring: ReferenceEquals(row, best) && row.Sales > 0m);
-            Box(c, 162.9, y, 235.6, y + 27.5, Money(row.Abv), 10.5);
-            Box(c, 242.3, y, 314.9, y + 27.5, row.Aub.ToString("0.00", uk), 10.5);
+            // Owner, 16 Oct 2026 (A1 + S2): every hour whose ABV or AUB beats the day's target
+            // (above it, not equal) is ringed yellow; the best sales hour is filled navy with
+            // white figures and a yellow edge, so it can't be mistaken for those rings.
+            var isBest = ReferenceEquals(row, best) && row.Sales > 0m;
+            Box(c, 83.6, y, 156.2, y + 27.5, Money(row.Sales), 10.5, ring: isBest,
+                fill: isBest ? Navy : null, ink: isBest ? Brushes.White : null);
+            Box(c, 162.9, y, 235.6, y + 27.5, Money(row.Abv), 10.5, ring: BeatsTarget(row.Abv, d.Abv));
+            Box(c, 242.3, y, 314.9, y + 27.5, row.Aub.ToString("0.00", uk), 10.5, ring: BeatsTarget(row.Aub, d.Aub));
         }
 
         // Voids, Refunds, Staff discounts - only when Reports were generated for this date.
@@ -192,6 +199,10 @@ public static class DailyBriefingSheet
             PlaceText(c, 360.0, 572.0, $"+{d.TeamNotShown} more {(d.TeamNotShown == 1 ? "person" : "people")} not shown - top 8 by sales",
                 Figures, 6.5, Muted);
     }
+
+    /// <summary>An hour's figure above the day's target. No target set: never.</summary>
+    public static bool BeatsTarget(decimal hourly, Measure measure) =>
+        measure.Target is { } target && hourly > target;
 
     // Target box tinted; Actual box green or red with the difference inside (D1), or tinted
     // when there is no target to compare with.
