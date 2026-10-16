@@ -101,6 +101,29 @@ jobs:
           $msg = "Download {0:N1} MB, exe {1:N1} MB. Windows Forms inside: {2}. Language packs: {3}. Files: {4}" -f $zip, $exe, $winForms, $langs, $files
           Write-Output "::notice title=Size::$msg"
 
+      # Small updates (owner, 16 Oct 2026): the piece list of the app file, made by the same code
+      # the updater uses on the till, and the app file itself under a release name. A release
+      # carries both, so a till can download only the pieces that changed (1.0.0 -> 1.0.1 was
+      # 1.2 MB of the 142 MB file). Made on every build, so a problem fails the build, not a till.
+      - name: Piece list for small updates
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [xml]$props = Get-Content Directory.Build.props
+          $version = @($props.Project.PropertyGroup | ForEach-Object { $_.Version } | Where-Object { $_ })[0]
+          # The latest release's exe, to rehearse a till's small update from it (best effort).
+          $previous = ""
+          gh release download --repo "${{ github.repository }}" --pattern CardFactory-ProfitLoss-win-x64.zip --dir previous-release 2>$null
+          if (Test-Path previous-release/CardFactory-ProfitLoss-win-x64.zip) {
+            Expand-Archive previous-release/CardFactory-ProfitLoss-win-x64.zip previous-release/app -Force
+            $previous = "previous-release/app/CardFactory.ProfitLoss.exe"
+          }
+          dotnet run --project tools/MakeUpdateManifest/MakeUpdateManifest.csproj --configuration Release -- publish/CardFactory.ProfitLoss.exe CardFactory-ProfitLoss-win-x64.exe.json $version $previous | Tee-Object -Variable made
+          if ($LASTEXITCODE -ne 0) { throw "The piece list could not be made" }
+          Copy-Item publish/CardFactory.ProfitLoss.exe CardFactory-ProfitLoss-win-x64.exe
+          Write-Output "::notice title=Small updates::$($made | Select-Object -Last 1)"
+
       # Releases hold numbered versions only. Test builds from pushes to main are a
       # workflow artifact instead (Actions tab -> the run -> Artifacts), kept 14 days,
       # so the public Releases page shows just the versions people should install.
@@ -142,6 +165,7 @@ jobs:
           [IO.File]::WriteAllText("release-notes.md", $notes)
 
           gh release create $tag CardFactory-ProfitLoss-win-x64.zip CardFactory-ProfitLoss-win-x64.zip.sha256 `
+            CardFactory-ProfitLoss-win-x64.exe CardFactory-ProfitLoss-win-x64.exe.json `
             --title "Card Factory Profit & Loss $version" --notes-file release-notes.md --latest
           if ($LASTEXITCODE -ne 0) { exit 1 }
 

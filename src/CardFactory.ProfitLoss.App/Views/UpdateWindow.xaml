@@ -55,6 +55,19 @@
                            FontSize="12" LineHeight="19" TextWrapping="Wrap" />
             </ScrollViewer>
 
+            <!-- Small updates (owner, 16 Oct 2026, concept U1): the download size, before anything is
+                 pressed. Green for a small update, amber when the whole app is needed this time. -->
+            <Border x:Name="SizePill" Margin="0,12,0,0" Padding="11,7" CornerRadius="11" BorderThickness="1"
+                    Background="#F2F5F9" BorderBrush="#E3EAF3">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="SizeText" Text="Working out the download size…" VerticalAlignment="Center"
+                               FontFamily="Arial" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource CfMuted}" />
+                    <TextBlock x:Name="SizeAmount" Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0"
+                               FontFamily="{StaticResource CfLogoSmallFont}" FontSize="13" Foreground="{StaticResource CfMuted}" />
+                </Grid>
+            </Border>
+
             <!-- Progress design P2: three steps, the bar on the download. Hidden until Update. -->
             <Border x:Name="ProgressPanel" Visibility="Collapsed" Margin="0,14,0,0" Padding="12,8"
                     Background="#FBFCFD" BorderBrush="#E3EAF3" BorderThickness="1" CornerRadius="12">

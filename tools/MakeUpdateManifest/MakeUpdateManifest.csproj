@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Small updates (16 Oct 2026): run by the build to write the release's piece list. Not part
+       of the app or the solution; it only reuses the piece logic in Core, so the build machine
+       and the till cut the app file the same way. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CardFactory.ProfitLoss.Core\CardFactory.ProfitLoss.Core.csproj" />
+  </ItemGroup>
+</Project>

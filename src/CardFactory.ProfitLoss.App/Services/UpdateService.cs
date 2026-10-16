@@ -1,15 +1,24 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
 using CardFactory.ProfitLoss.App.Infrastructure;
+using CardFactory.ProfitLoss.Core.Updates;
 
 namespace CardFactory.ProfitLoss.App.Services;
 
-public sealed record UpdateInfo(Version Version, string Tag, string Notes, string ZipUrl, string ChecksumUrl);
+/// <param name="ExeUrl">The release's app file on its own, and <paramref name="PiecesUrl"/> its piece
+/// list: present from 1.0.2 on, for small updates. <paramref name="ZipSize"/> is the full download.</param>
+public sealed record UpdateInfo(Version Version, string Tag, string Notes, string ZipUrl, string ChecksumUrl,
+    string? ExeUrl = null, string? PiecesUrl = null, long ZipSize = 0);
+
+/// <summary>A small update worked out for this copy: the pieces to fetch from the new app file.</summary>
+public sealed record UpdatePlan(PieceManifest Manifest, PiecePlan Pieces, long DownloadBytes);
 
 /// <summary>Reached: GitHub answered and the latest release was read. Update: newer than this copy, or null.</summary>
 public sealed record UpdateCheck(bool Reached, UpdateInfo? Update);
@@ -31,6 +40,12 @@ public static class UpdateService
     private const string Repository = "Sarroxan/CardFactory-ProfitLoss";
     private const string ZipName = "CardFactory-ProfitLoss-win-x64.zip";
     private const string ExeName = "CardFactory.ProfitLoss.exe";
+    // Small updates (16 Oct 2026): the release's app file on its own, and its piece list.
+    private const string ExeAssetName = "CardFactory-ProfitLoss-win-x64.exe";
+    private const string PiecesAssetName = ExeAssetName + ".json";
+    // A small update is used only when it is clearly smaller than the full download - e.g. not
+    // after a .NET security update, which changes most of the file.
+    private const double SmallUpdateLimit = 0.6;
 
     private static readonly HttpClient Http = CreateClient();
 
@@ -63,19 +78,22 @@ public static class UpdateService
             var latest = Normalise(parsed);
             if (latest <= CurrentVersion) { Log("check: up to date (" + Display(CurrentVersion) + ", latest " + Display(latest) + ")"); return new UpdateCheck(true, null); }
 
-            string? zip = null, checksum = null;
+            string? zip = null, checksum = null, exe = null, pieces = null;
+            long zipSize = 0;
             foreach (var asset in root.GetProperty("assets").EnumerateArray())
             {
                 var name = asset.GetProperty("name").GetString();
                 var url = asset.GetProperty("browser_download_url").GetString();
-                if (name == ZipName) zip = url;
+                if (name == ZipName) { zip = url; zipSize = asset.TryGetProperty("size", out var size) ? size.GetInt64() : 0; }
                 else if (name == ZipName + ".sha256") checksum = url;
+                else if (name == ExeAssetName) exe = url;
+                else if (name == PiecesAssetName) pieces = url;
             }
             if (zip is null || checksum is null) { Log("check: " + tag + " is missing its zip or checksum"); return new UpdateCheck(false, null); }
 
             var notes = root.TryGetProperty("body", out var body) ? body.GetString() ?? string.Empty : string.Empty;
             Log("check: " + Display(latest) + " available (this is " + Display(CurrentVersion) + ")");
-            return new UpdateCheck(true, new UpdateInfo(latest, tag, notes.Trim(), zip, checksum));
+            return new UpdateCheck(true, new UpdateInfo(latest, tag, notes.Trim(), zip, checksum, exe, pieces, zipSize));
         }
         catch (Exception ex)
         {
@@ -84,14 +102,106 @@ public static class UpdateService
         }
     }
 
-    /// <summary>Downloads, verifies and swaps in the update, then starts it. The caller shuts down.</summary>
-    public static async Task ApplyAsync(UpdateInfo update, IProgress<UpdateProgress> progress)
+    /// <summary>
+    /// Works out a small update for this copy: reads the release's piece list, cuts the running
+    /// app file the same way and finds the pieces it lacks. Null means use the full download -
+    /// an older release without a piece list, a list that can't be read, or a saving too small
+    /// to be worth it. Never throws.
+    /// </summary>
+    public static async Task<UpdatePlan?> PlanAsync(UpdateInfo update)
+    {
+        if (update.ExeUrl is null || update.PiecesUrl is null) return null;
+        try
+        {
+            var current = Environment.ProcessPath;
+            if (current is null || !File.Exists(current)) return null;
+            var manifest = PieceManifest.FromJson(await Http.GetStringAsync(update.PiecesUrl));
+            var plan = await Task.Run(() => PieceUpdate.Plan(File.ReadAllBytes(current), manifest));
+            var limit = update.ZipSize > 0 ? update.ZipSize * SmallUpdateLimit : 40L * 1024 * 1024;
+            Log($"plan: {plan.DownloadBytes / 1048576.0:0.00} MB in {plan.Downloads.Count} ranges for {Display(update.Version)}"
+                + (plan.DownloadBytes < limit ? "" : " - too large, using the full download"));
+            return plan.DownloadBytes < limit ? new UpdatePlan(manifest, plan, plan.DownloadBytes) : null;
+        }
+        catch (Exception ex)
+        {
+            Log("plan failed, using the full download: " + ex.Message);
+            return null;
+        }
+    }
+
+    /// <summary>Downloads, verifies and swaps in the update, then starts it. The caller shuts down.
+    /// With a <paramref name="plan"/> only the changed pieces are downloaded; if anything about
+    /// that goes wrong, it falls back to the full download.</summary>
+    public static async Task ApplyAsync(UpdateInfo update, IProgress<UpdateProgress> progress, UpdatePlan? plan = null)
     {
         var current = Environment.ProcessPath ?? throw new InvalidOperationException("Could not tell where the app is running from.");
         var work = Path.Combine(Path.GetTempPath(), "CardFactory-ProfitLoss-update");
         if (Directory.Exists(work)) Directory.Delete(work, true);
         Directory.CreateDirectory(work);
 
+        var newExe = Path.Combine(work, ExeName);
+        var small = false;
+        if (plan is not null)
+        {
+            try
+            {
+                await BuildFromPiecesAsync(update, plan, current, newExe, progress);
+                small = true;
+                Log($"apply: small update, {plan.DownloadBytes / 1048576.0:0.00} MB downloaded");
+            }
+            catch (Exception ex)
+            {
+                Log("apply: small update failed, using the full download: " + ex.Message);
+                if (File.Exists(newExe)) File.Delete(newExe);
+            }
+        }
+        if (!small) await DownloadFullAsync(update, work, newExe, progress);
+
+        await SwapAndRestartAsync(update, current, newExe, progress);
+    }
+
+    // Fetches each missing range of the new app file (HTTP Range; GitHub answers 206), then
+    // rebuilds the file from those and the running copy's own pieces, checking every piece and
+    // the whole file. A server that ignores Range (200) would send the whole 142 MB file, so
+    // that is treated as a failure and the full download is used instead.
+    private static async Task BuildFromPiecesAsync(UpdateInfo update, UpdatePlan plan, string current, string newExe, IProgress<UpdateProgress> progress)
+    {
+        progress.Report(new UpdateProgress(0, 0, plan.DownloadBytes));
+        var downloaded = new Dictionary<long, byte[]>();
+        long done = 0;
+        foreach (var (offset, length) in plan.Pieces.Downloads)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, update.ExeUrl);
+            request.Headers.Range = new RangeHeaderValue(offset, offset + length - 1);
+            using var response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            if (response.StatusCode != HttpStatusCode.PartialContent)
+                throw new InvalidOperationException("the server did not send part of the file (" + (int)response.StatusCode + ")");
+
+            var data = new byte[length];
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            var filled = 0;
+            while (filled < length)
+            {
+                var read = await stream.ReadAsync(data.AsMemory(filled, (int)Math.Min(81920, length - filled)));
+                if (read == 0) throw new InvalidOperationException("a part of the file ended early");
+                filled += read;
+                progress.Report(new UpdateProgress(0, done + filled, plan.DownloadBytes));
+            }
+            done += length;
+            downloaded[offset] = data;
+        }
+
+        progress.Report(new UpdateProgress(1));
+        var local = await File.ReadAllBytesAsync(current);
+        await Task.Run(() =>
+        {
+            using var output = File.Create(newExe);
+            PieceUpdate.Assemble(local, plan.Manifest, plan.Pieces, downloaded, output);
+        });
+    }
+
+    private static async Task DownloadFullAsync(UpdateInfo update, string work, string newExe, IProgress<UpdateProgress> progress)
+    {
         progress.Report(new UpdateProgress(0));
         var zipPath = Path.Combine(work, ZipName);
         using (var response = await Http.GetAsync(update.ZipUrl, HttpCompletionOption.ResponseHeadersRead))
@@ -126,13 +236,15 @@ public static class UpdateService
             throw new InvalidOperationException("The download did not match its checksum, so nothing was changed. Try again later.");
         }
 
-        var newExe = Path.Combine(work, ExeName);
         using (var archive = ZipFile.OpenRead(zipPath))
         {
             var entry = archive.GetEntry(ExeName) ?? throw new InvalidOperationException("The update did not contain " + ExeName + ".");
             entry.ExtractToFile(newExe, true);
         }
+    }
 
+    private static Task SwapAndRestartAsync(UpdateInfo update, string current, string newExe, IProgress<UpdateProgress> progress)
+    {
         progress.Report(new UpdateProgress(2));
         var old = current + ".old";
         File.Move(current, old, true);
@@ -148,6 +260,7 @@ public static class UpdateService
 
         Log("apply: " + Display(CurrentVersion) + " -> " + Display(update.Version) + " installed; restarting");
         Process.Start(new ProcessStartInfo(current, "--wait-for " + Environment.ProcessId) { UseShellExecute = false });
+        return Task.CompletedTask;
     }
 
     /// <summary>At start-up: if started by an update, wait for the old copy to exit, then remove it.</summary>

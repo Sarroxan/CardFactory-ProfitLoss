@@ -9,6 +9,8 @@ public partial class UpdateWindow : Window
 {
     private readonly UpdateInfo _update;
     private readonly Action<UpdateProgress>? _onProgress;
+    // Small updates: worked out as soon as the box opens, so the size shows before Update.
+    private readonly Task<UpdatePlan?> _plan;
 
     /// <param name="onProgress">Also told of each step, so the version chip can show the
     /// download filling up (V4, owner 16 Oct 2026).</param>
@@ -17,6 +19,8 @@ public partial class UpdateWindow : Window
         InitializeComponent();
         _update = update;
         _onProgress = onProgress;
+        _plan = UpdateService.PlanAsync(update);
+        Loaded += async (_, _) => ShowSize(await _plan);
         VersionText.Text = "Version " + UpdateService.Display(update.Version) + " · you have " + UpdateService.Display(UpdateService.CurrentVersion);
         NotesText.Text = string.IsNullOrWhiteSpace(update.Notes) ? "Improvements and fixes." : update.Notes;
     }
@@ -36,7 +40,9 @@ public partial class UpdateWindow : Window
         Step0Detail.Text = string.Empty;
         try
         {
-            await UpdateService.ApplyAsync(_update, new Progress<UpdateProgress>(ShowProgress));
+            var plan = await _plan;
+            Step0Label.Text = plan is null ? "Downloading" : "Downloading the changes";
+            await UpdateService.ApplyAsync(_update, new Progress<UpdateProgress>(ShowProgress), plan);
             SetStep(2, StepState.Done);
             Installed = true;
             DialogResult = true;
@@ -50,6 +56,27 @@ public partial class UpdateWindow : Window
             UpdateNowButton.IsEnabled = true;
             LaterButton.IsEnabled = true;
             CloseButton.IsEnabled = true;
+        }
+    }
+
+    private void ShowSize(UpdatePlan? plan)
+    {
+        string Mb(long bytes) => (bytes / 1048576.0).ToString(bytes < 10 * 1048576L ? "0.0" : "0") + " MB";
+        if (plan is not null)
+        {
+            SizePill.Background = new SolidColorBrush(Color.FromRgb(0xEA, 0xF7, 0xEF));
+            SizePill.BorderBrush = new SolidColorBrush(Color.FromRgb(0xB9, 0xDF, 0xC8));
+            SizeText.Text = "✓ Small update: only the changes";
+            SizeAmount.Text = Mb(Math.Max(plan.DownloadBytes, 100 * 1024));
+            SizeText.Foreground = SizeAmount.Foreground = new SolidColorBrush(Color.FromRgb(0x0B, 0x7A, 0x35));
+        }
+        else
+        {
+            SizePill.Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xF7, 0xE0));
+            SizePill.BorderBrush = new SolidColorBrush(Color.FromRgb(0xF0, 0xDE, 0x94));
+            SizeText.Text = "! Full download this time";
+            SizeAmount.Text = _update.ZipSize > 0 ? Mb(_update.ZipSize) : string.Empty;
+            SizeText.Foreground = SizeAmount.Foreground = new SolidColorBrush(Color.FromRgb(0x9A, 0x5B, 0x00));
         }
     }
 
