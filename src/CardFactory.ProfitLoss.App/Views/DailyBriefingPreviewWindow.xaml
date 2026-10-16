@@ -12,6 +12,51 @@
         ShowInTaskbar="False">
     <Window.Resources>
         <!-- Yellow is for what you act on (6B.06), as on Refresh. -->
+        <!-- D3 (owner, 16 Oct 2026): the zoom switch and the page arrows. -->
+        <Style x:Key="ZoomSegmentStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="B" Background="Transparent" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#22FFFFFF" /></Trigger>
+                            <Trigger Property="Tag" Value="On">
+                                <Setter TargetName="B" Property="Background" Value="{StaticResource CfYellow}" />
+                                <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PageArrowStyle" TargetType="Button">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="E" Fill="{StaticResource CfDeepBlue}" />
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="E" Property="Fill" Value="#0A5BBF" /></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="E" Property="Fill" Value="#C9D6E6" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="PrintButtonStyle" TargetType="Button">
             <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
             <Setter Property="FontFamily" Value="Arial" />
@@ -59,16 +104,26 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock x:Name="TitleText" Text="Daily Briefing" Foreground="White"
                                FontFamily="{StaticResource CfTitleFont}" FontSize="24" VerticalAlignment="Center" />
-                    <Button Grid.Column="1" Content="Save as PDF" Height="32" Padding="14,0"
+                    <!-- D3: − / Fit page / 100% / +. Opens on Fit page, so it never starts zoomed in. -->
+                    <Border Grid.Column="1" Background="#22FFFFFF" CornerRadius="9" Height="30" Margin="0,0,12,0" Padding="2">
+                        <StackPanel Orientation="Horizontal">
+                            <Button x:Name="ZoomOutButton" Content="−" FontSize="14" Style="{StaticResource ZoomSegmentStyle}" Click="ZoomOut_Click" ToolTip="Smaller" />
+                            <Button x:Name="FitPageButton" Content="Fit page" Tag="On" Style="{StaticResource ZoomSegmentStyle}" Click="FitPage_Click" ToolTip="Show the whole page" />
+                            <Button x:Name="ActualSizeButton" Content="100%" Style="{StaticResource ZoomSegmentStyle}" Click="ActualSize_Click" ToolTip="Full size, to read the figures" />
+                            <Button x:Name="ZoomInButton" Content="+" FontSize="14" Style="{StaticResource ZoomSegmentStyle}" Click="ZoomIn_Click" ToolTip="Bigger" />
+                        </StackPanel>
+                    </Border>
+                    <Button Grid.Column="2" Content="Save as PDF" Height="32" Padding="14,0"
                             Style="{StaticResource ModernSecondaryButtonStyle}" Click="SavePdf_Click"
                             ToolTip="Save with Microsoft Print to PDF" />
-                    <Button Grid.Column="2" Content="Print" Height="32" Padding="22,0" Margin="8,0,0,0"
+                    <Button Grid.Column="3" Content="Print" Height="32" Padding="22,0" Margin="8,0,0,0"
                             Style="{StaticResource PrintButtonStyle}"
                             Click="Print_Click" />
-                    <Button Grid.Column="3" Width="30" Height="30" Margin="12,0,0,0" Content="×" FontSize="18"
+                    <Button Grid.Column="4" Width="30" Height="30" Margin="12,0,0,0" Content="×" FontSize="18"
                             Style="{StaticResource NavyBandCloseButtonStyle}" Click="Close_Click" />
                 </Grid>
             </Border>
@@ -80,22 +135,42 @@
                            FontWeight="Bold" TextWrapping="Wrap" />
             </Border>
 
-            <!-- A plain viewer: the pages scroll, with none of DocumentViewer's own toolbar. -->
-            <DocumentViewer x:Name="Viewer" Grid.Row="2" Margin="1,0,1,14">
-                <DocumentViewer.Template>
-                    <ControlTemplate TargetType="DocumentViewer">
-                        <Border Background="#EDF1F6">
-                            <!-- The page is fitted to the width, so only a vertical bar: the app's slim one. -->
-                            <ScrollViewer x:Name="PART_ContentHost" CanContentScroll="True"
-                                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                                <ScrollViewer.Resources>
-                                    <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
-                                </ScrollViewer.Resources>
-                            </ScrollViewer>
+            <!-- D3 (owner, 16 Oct 2026): one page at a time. Fit page (the default) shrinks the whole
+                 sheet into the window; a zoom step shows it bigger and the bars scroll it. The old
+                 viewer fitted the page to the WIDTH, so on a till screen it was taller than the
+                 window: zoomed in with the bottom cut off. -->
+            <Grid Grid.Row="2" Margin="1,0,1,14" Background="#EDF1F6" ClipToBounds="True">
+                <ScrollViewer x:Name="PageScroller" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
+                              PreviewMouseWheel="PageScroller_PreviewMouseWheel" Focusable="False">
+                    <ScrollViewer.Resources>
+                        <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
+                    </ScrollViewer.Resources>
+                    <!-- The shadow is its own shape behind the page: an Effect on the page itself would
+                         turn its text into a blurred bitmap. -->
+                    <Grid x:Name="PageFrame" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,16,18,52">
+                        <Border Background="White">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.25" Color="#0C2850" />
+                            </Border.Effect>
                         </Border>
-                    </ControlTemplate>
-                </DocumentViewer.Template>
-            </DocumentViewer>
+                        <DocumentPageView x:Name="PageView" Stretch="Uniform" StretchDirection="Both" />
+                    </Grid>
+                </ScrollViewer>
+                <!-- Page 1 of 2, over the bottom of the page area. -->
+                <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,12"
+                        Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1.5" CornerRadius="15" Padding="4,3">
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="PreviousPageButton" Style="{StaticResource PageArrowStyle}" Click="PreviousPage_Click" ToolTip="Previous page">
+                            <Path Data="M7,2 L3,6 L7,10" Stroke="White" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                        </Button>
+                        <TextBlock x:Name="PageText" Text="Page 1 of 2" Margin="10,0" VerticalAlignment="Center"
+                                   FontFamily="Arial" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
+                        <Button x:Name="NextPageButton" Style="{StaticResource PageArrowStyle}" Click="NextPage_Click" ToolTip="Next page">
+                            <Path Data="M3,2 L7,6 L3,10" Stroke="White" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
     </Border>
 </Window>
