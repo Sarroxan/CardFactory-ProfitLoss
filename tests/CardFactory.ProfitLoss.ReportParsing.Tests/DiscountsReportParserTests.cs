@@ -41,6 +41,25 @@ public sealed class DiscountsReportParserTests
         Assert.Equal(2.61m, result.StaffDiscountLines.Sum(line => line.DiscountValue));
     }
 
+    // Saved from the live system on 16/10/2026 for 15/10/2026, a day with no discounts at all
+    // (Discount Type All, Reason All), outlet and operator replaced as above. The table is
+    // still there with its headings and a REPORT TOTAL of 0.00 - not a missing table.
+    private const string NoDiscountsFixture = "DiscountsAndPriceOverrides_NoDiscounts_2026-10-15.html";
+
+    [Fact]
+    public void Parse_DayWithNoDiscounts_ReturnsNoLines()
+    {
+        var result = new DiscountsReportParser().Parse(TestFixtureLoader.Read(NoDiscountsFixture));
+
+        Assert.Empty(result.Lines);
+        Assert.Empty(result.StaffDiscountLines);
+        Assert.Equal(new DateOnly(2026, 10, 15), result.Metadata.FromDate);
+        Assert.Equal(new DateOnly(2026, 10, 15), result.Metadata.ToDate);
+        Assert.Equal("0001 - Sample Store", result.Metadata.Outlet);
+        Assert.Equal("All", result.DiscountTypeSelection);
+        Assert.Equal("All", result.ReasonSelection);
+    }
+
     [Fact]
     public void Parse_OtherReasons_AreNotStaffDiscount()
     {

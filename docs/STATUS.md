@@ -6,7 +6,12 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## Next update - on branch `chip-v2v4`, not built (three changes)
+## Next update - version 1.0.1, on branch `chip-v2v4` (three changes)
+
+Version set to 1.0.1 (owner, 16 Oct 2026), so tills on 1.0.0 update by themselves. Also: a
+parser test for a real day with no discounts (fixture DiscountsAndPriceOverrides_NoDiscounts_2026-10-15.html,
+anonymised like the others).
+
 
 | Change | Proven | Check in the app |
 |--------|--------|------------------|
