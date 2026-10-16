@@ -169,7 +169,8 @@
                 </Border>
                 <!-- The shadow is a separate shape behind the card: an Effect on the card itself
                      would render its text as a bitmap and blur it (6B lesson on the section bars). -->
-                <Grid Width="400" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid x:Name="SignInCard" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center"
+                      SizeChanged="SignInCard_SizeChanged">
                 <Border Background="White" CornerRadius="18">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="24" ShadowDepth="6" Opacity="0.22" Color="#0C2850" />

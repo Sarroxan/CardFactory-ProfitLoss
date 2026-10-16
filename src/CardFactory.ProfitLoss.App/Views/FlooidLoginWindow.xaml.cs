@@ -38,6 +38,14 @@ public partial class FlooidLoginWindow : Window
                 LogSignInStep($"window hidden at {Math.Round(ActualWidth)}x{Math.Round(ActualHeight)}, showing {showing}");
             }
 
+            // Shown again with the sign-in card up: size it and put it back in the middle of the app,
+            // wherever the app has been moved since.
+            if ((bool)e.NewValue && CustomLoginPanel?.Visibility == Visibility.Visible)
+            {
+                SizeToSignInCard();
+                return;
+            }
+
             if ((bool)e.NewValue || !_backOfficeOpen) return;
             _backOfficeOpen = false;
             _backOfficeSized = false;
@@ -614,10 +622,61 @@ public partial class FlooidLoginWindow : Window
         // Stage 6B.40/6B.42: Flooid's own login page - the card hidden and not signed in -
         // at 462x656, the size the user dragged it to (logged by 6B.41). Signed in, it
         // stays 860x650: that is the size every retrieval has run at.
-        if (visible) { Width = 440; Height = 430; }
-        else if (!IsSignedIn) { Width = 462; Height = 656; }
+        // Owner, 16 Oct 2026: the card was cut off at 440x430 (Login and the links below the
+        // bottom edge). The window is now sized from the card itself, with the same blue gap
+        // on all four sides, locked while the card shows, and centred on the app.
+        LockSize(visible);
+        if (visible) { SizeToSignInCard(); return; }
+        if (!IsSignedIn) { Width = 462; Height = 656; }
         else { Width = 860; Height = 650; }
         if (IsLoaded) CentreOnScreen();
+    }
+
+    // The blue around the card: the same on all four sides.
+    private const double SignInCardGap = 18;
+    // Fixed parts of the window around the card: frame border 1+1, title bar 54, the panel's
+    // margin (12 top, 12 left/right, 8 bottom) and the footer row 38.
+    private const double FrameBorder = 1, TitleBarHeight = 54, PanelMarginTop = 12, PanelMarginSide = 12, PanelMarginBottom = 8, FooterHeight = 38;
+
+    private void SizeToSignInCard()
+    {
+        SignInCard.Measure(new Size(SignInCard.Width, double.PositiveInfinity));
+        var cardHeight = Math.Ceiling(SignInCard.DesiredSize.Height);
+        if (cardHeight <= 0) return;
+        Width = (2 * FrameBorder) + (2 * PanelMarginSide) + (2 * SignInCardGap) + SignInCard.Width;
+        Height = (2 * FrameBorder) + TitleBarHeight + PanelMarginTop + (2 * SignInCardGap) + cardHeight + PanelMarginBottom + FooterHeight;
+        if (IsLoaded) CentreOnApp();
+    }
+
+    // An error message, the busy line or the store list makes the card taller: grow with it,
+    // so nothing is ever cut off.
+    private void SignInCard_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (CustomLoginPanel.Visibility == Visibility.Visible && e.HeightChanged) SizeToSignInCard();
+    }
+
+    // No dragging the edges while the card shows; the Flooid page and back office stay resizable.
+    private void LockSize(bool locked)
+    {
+        ResizeMode = locked ? ResizeMode.NoResize : ResizeMode.CanResize;
+        if (System.Windows.Shell.WindowChrome.GetWindowChrome(this) is { } chrome)
+            chrome.ResizeBorderThickness = new Thickness(locked ? 0 : 7);
+    }
+
+    // Centred on the app (owner, 16 Oct 2026), kept on screen. Falls back to the screen when
+    // the app is minimised or maximised (maximised, the two are the same place).
+    private void CentreOnApp()
+    {
+        var area = SystemParameters.WorkArea;
+        if (Owner is not { IsVisible: true, WindowState: WindowState.Normal } app)
+        {
+            CentreOnScreen();
+            return;
+        }
+        var left = app.Left + ((app.ActualWidth - Width) / 2);
+        var top = app.Top + ((app.ActualHeight - Height) / 2);
+        Left = Math.Max(area.Left, Math.Min(left, area.Right - Width));
+        Top = Math.Max(area.Top, Math.Min(top, area.Bottom - Height));
     }
 
     // Stage 6B.42: centred on the screen, as asked, rather than on the main window - in
