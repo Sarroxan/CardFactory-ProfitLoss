@@ -812,13 +812,29 @@ public partial class FlooidLoginWindow : Window
         }
 
         // Success is leaving /authserver/login, which FlooidSessionService already decides
-        // and reports through ConnectionStatusChanged. Failure is still being there. The
-        // saved failure page has not been seen yet, so the wording here is ours rather
-        // than Flooid's; when that page arrives the real message can be read out instead.
+        // and reports through ConnectionStatusChanged. A refusal is Flooid's own error box on
+        // the login page (saved copy, 16 Oct 2026: div#loginError, "Invalid user logon details
+        // provided"). Owner, 16 Oct: a wrong password used to sit on "Signing in…" until the 20
+        // second limit, because nothing looked for that box. It is read every half second now,
+        // so a refusal shows within about a second of Flooid answering.
+        string? refusal = null;
+        var nextErrorCheck = DateTime.UtcNow.AddMilliseconds(500);
         var deadline = DateTime.UtcNow.AddSeconds(20);
         while (DateTime.UtcNow < deadline)
         {
             await Task.Delay(250);
+
+            if (!IsSignedIn && !_storeListShown && DateTime.UtcNow >= nextErrorCheck)
+            {
+                nextErrorCheck = DateTime.UtcNow.AddMilliseconds(500);
+                var flooidSays = await FlooidView.ReadLoginErrorAsync();
+                if (!string.IsNullOrWhiteSpace(flooidSays))
+                {
+                    refusal = flooidSays.Trim().TrimEnd('.');
+                    LogSignInStep("Flooid refused the sign in after " + (int)(DateTime.UtcNow - started).TotalMilliseconds + " ms: " + refusal);
+                    break;
+                }
+            }
 
             // Stage 6B.50: the password was accepted and Flooid is asking for a store. The
             // store list takes it from here; ChooseStoreAsync finishes the sign in.
@@ -846,6 +862,20 @@ public partial class FlooidLoginWindow : Window
                 SetLoginBusy(false);
                 return;
             }
+        }
+
+        if (refusal is not null)
+        {
+            if (automatic)
+            {
+                // The saved sign in was refused: forget it rather than try it again, as below.
+                CredentialStore.Clear();
+                RememberPasswordCheck.IsChecked = false;
+                ShowLoginError($"Flooid says: {refusal}. The saved sign in has been forgotten - please sign in again.");
+                return;
+            }
+            ShowLoginError($"Flooid says: {refusal}. Check your username and password and try again.");
+            return;
         }
 
         LogSignInStep("not signed in after 20s; last page " + (_lastKnownUri?.ToString() ?? "<unknown>"));

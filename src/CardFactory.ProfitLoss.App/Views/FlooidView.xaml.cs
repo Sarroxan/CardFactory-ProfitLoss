@@ -3669,6 +3669,12 @@ public partial class FlooidView : UserControl
               const button = document.getElementById('basicLoginButton');
               if (!user || !pass) return 'NO_FIELDS';
 
+              // A wrong password brings Flooid's error box (div#loginError, saved copy of the
+              // page, 16 Oct 2026). Take an old one away first, so a second try is never read as
+              // refused before Flooid has even answered it - Flooid's own cross does the same.
+              const oldError = document.getElementById('loginError');
+              if (oldError) oldError.remove();
+
               const setValue = (element, value) => {
                 const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
                 setter.call(element, value);
@@ -3726,6 +3732,35 @@ public partial class FlooidView : UserControl
         catch (Exception ex)
         {
             return "ERROR: " + ex.Message;
+        }
+    }
+
+    /// <summary>
+    /// Flooid's own answer to a refused sign in, or an empty string. From the saved page of a
+    /// wrong password (16 Oct 2026): Flooid returns to /authserver/login?loginError=error.invalidUser
+    /// and puts, inside form#login,
+    ///     &lt;div id="loginError" class="text-danger text-danger-container"&gt; Invalid user logon details provided &lt;/div&gt;
+    /// SubmitLoginAsync removes any old box before it clicks, so a box found afterwards is the
+    /// answer to this attempt.
+    /// </summary>
+    public async Task<string> ReadLoginErrorAsync()
+    {
+        const string script = """
+            (() => {
+              const box = document.getElementById('loginError');
+              if (!box) return '';
+              return (box.textContent || '').replace(/\s+/g, ' ').trim() || 'Sign in refused';
+            })()
+            """;
+        try
+        {
+            var core = Browser.CoreWebView2;
+            if (core is null) return string.Empty;
+            return (await ExecuteStringScriptOnAsync(core, script)) ?? string.Empty;
+        }
+        catch
+        {
+            return string.Empty;   // mid-navigation: just ask again on the next pass
         }
     }
 

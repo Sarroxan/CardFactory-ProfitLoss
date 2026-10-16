@@ -141,6 +141,14 @@ Built differently from the other three criteria pages:
 - A day with no discounts (seen 16 Oct 2026): `table#detailReportTable` is still there with
   both header rows, no `tr.report` rows and a REPORT TOTAL of 0.00 0.00 0.00 0.00.
 
+### Sign in refused (saved 16 Oct 2026)
+A wrong username or password posts to `/authserver/login` and comes back to
+`/authserver/login?loginError=error.invalidUser`; the page then rewrites the address to
+`/authserver/login` with `history.replaceState` (`let loginErrorParam = ["error.invalidUser"]`).
+The form is unchanged except for an error box before the fields:
+`<div id="loginError" class="text-danger text-danger-container">` with the text
+"Invalid user logon details provided" and a cross calling `removeErrorAlert('loginError')`.
+
 ## Popup handling
 
 Flooid opens report output *and* the product group picker as popups. Popups
