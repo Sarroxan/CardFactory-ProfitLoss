@@ -6,17 +6,24 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## Replacing v1.0.1 - small updates, from branch `small-updates` (owner's say-so, 16 Oct 2026)
+## V1: version 1.0.0, the only release (owner, 16 Oct 2026, ~19:55)
 
-The owner asked for this to replace 1.0.1 under the same number, so 1.0.1 is the stepping
-stone. Tills that already took the first 1.0.1 (released ~19:09) keep its updater and get
-small updates only after the next full update (1.0.2 or later). The main build compiles and
-tests it before the first 1.0.1 is removed.
+The owner asked for the 1.0.1 build to become V1, numbered 1.0.0, as the only release: the
+1.0.1 and earlier 1.0.0 releases are removed. Everything below (to the first 1.0.0 entry) is
+in it. Tills on any earlier 1.0.0 or 1.0.1 need V1 installed by hand once (the updater only
+installs a higher number); from 1.0.1 onwards every update reaches them by itself, as a
+small update.
 
+Before that, 16 Oct ~19:32: small updates went out as a replacement 1.0.1 (main build
+38947681439 green, notice "from the previous release: 1.12 MB in 8 parts, rebuilt and
+checked"; Remove release 38947998525; Publish 38948035688; release build 38948055559; four
+assets; live check from the sandbox: from the real 1.0.0 exe, 1.24 MB in 8 Range requests,
+rebuilt file identical to the release). `small-updates` removed (run 38948485588).
 
+### Small updates
 | Change | Proven | Check |
 |--------|--------|-------|
-| **Small updates** (owner, 16 Oct 2026: "is there a faster way"; plan B "by itself" chosen). Every update downloaded the whole 61.6 MB zip, but between the real 1.0.0 and 1.0.1 app files only **1.2 MB in 8 stretches** changed (measured on the two released exes with the same piece cutting). Now each release also carries the app file on its own (`CardFactory-ProfitLoss-win-x64.exe`) and its piece list (`…exe.json`: content-defined pieces 8/32/128 KB, gear hash, each with a 128-bit SHA-256 prefix, plus the whole file's SHA-256). The updater (1.0.2 on) reads the list as soon as the update box opens, cuts its own running file the same way, and downloads only the missing pieces with HTTP Range (GitHub answers 206 - checked); it rebuilds the new file, checks every piece and the whole fingerprint, then swaps it in exactly as before. Falls back to the full zip if the release has no list (older releases), the saving is under 40% (e.g. after a .NET security update), the server ignores Range, or anything fails or doesn't match. The update box shows the size first: green "Small update: only the changes · 1.2 MB" or amber "Full download this time · 61.6 MB" (concept U1); step 1 reads "Downloading the changes". The app stays one file in the same place - no folder, nothing to do on the tills. Logic in Core (`Updates/PieceUpdate.cs`) with unit tests; `tools/MakeUpdateManifest` makes the list in the build and, on every build, rehearses a till's small update from the latest release's exe (rebuild + byte-for-byte check) and reports the size as a build notice. | Not compiled; YAML valid; cutting and the 1.2 MB figure measured on the real exes with an identical C prototype | Build notice "Small updates: … from the previous release: X MB …". On a till: a till on 1.0.0 or the first 1.0.1 still takes this as a full download (its updater doesn't know pieces); the release after this should show the green "Small update" pill and finish in seconds |
+| **Small updates** (owner, 16 Oct 2026: "is there a faster way"; plan B "by itself" chosen). Every update downloaded the whole 61.6 MB zip, but between the real 1.0.0 and 1.0.1 app files only **1.2 MB in 8 stretches** changed (measured on the two released exes with the same piece cutting). Now each release also carries the app file on its own (`CardFactory-ProfitLoss-win-x64.exe`) and its piece list (`…exe.json`: content-defined pieces 8/32/128 KB, gear hash, each with a 128-bit SHA-256 prefix, plus the whole file's SHA-256). The updater (1.0.2 on) reads the list as soon as the update box opens, cuts its own running file the same way, and downloads only the missing pieces with HTTP Range (GitHub answers 206 - checked); it rebuilds the new file, checks every piece and the whole fingerprint, then swaps it in exactly as before. Falls back to the full zip if the release has no list (older releases), the saving is under 40% (e.g. after a .NET security update), the server ignores Range, or anything fails or doesn't match. The update box shows the size first: green "Small update: only the changes · 1.2 MB" or amber "Full download this time · 61.6 MB" (concept U1); step 1 reads "Downloading the changes". The app stays one file in the same place - no folder, nothing to do on the tills. Logic in Core (`Updates/PieceUpdate.cs`) with unit tests; `tools/MakeUpdateManifest` makes the list in the build and, on every build, rehearses a till's small update from the latest release's exe (rebuild + byte-for-byte check) and reports the size as a build notice. | Not compiled; YAML valid; cutting and the 1.2 MB figure measured on the real exes with an identical C prototype | Build notice "Small updates: … from the previous release: X MB …". On a till: a till installs V1 by hand once; the next release (1.0.1) should show the green "Small update" pill and finish in seconds |
 
 ## Released - v1.0.1 (16 Oct 2026, owner's say-so), from branch `chip-v2v4` (three changes)
 
