@@ -1,0 +1,140 @@
+<Window x:Class="CardFactory.ProfitLoss.App.Views.LastYearTargetsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Targets from last year"
+        Width="400"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False">
+    <!-- Owner, 16 Oct 2026, concept T2: the switch, the two percentages and the working out.
+         Laid out like Preferences (navy band, pale cards, Cancel / Save). -->
+    <Window.Resources>
+        <!-- Same as MainWindow's ModeCardSegmentStyle (the Fast / Safe switch), which is local there. -->
+        <Style x:Key="SegmentStyle" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Half"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Half" Property="Background" Value="#F5F9FF" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Half" Property="Background" Value="{StaticResource CfBlue}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PercentLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </Window.Resources>
+
+    <Border Margin="12"
+            Padding="22"
+            Background="White"
+            BorderBrush="{StaticResource CfLine}"
+            BorderThickness="1"
+            CornerRadius="18">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="22" ShadowDepth="5" Opacity="0.18" Color="#183153" />
+        </Border.Effect>
+        <StackPanel>
+            <Border Margin="-22,-22,-22,0" Padding="22,16,22,16"
+                    Background="{StaticResource CfDeepBlue}" CornerRadius="17,17,0,0">
+                <Grid MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="34" Height="34" Background="#FFF6C9" CornerRadius="10">
+                            <!-- calendar with an up arrow -->
+                            <Path Data="M2,4 L16,4 L16,16 L2,16 Z M2,7.5 L16,7.5 M5.5,2 L5.5,5.5 M12.5,2 L12.5,5.5 M9,14 L9,9.5 M7,11.5 L9,9.5 L11,11.5"
+                                  Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.3" StrokeLineJoin="Round"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" Fill="Transparent"
+                                  Width="18" Height="18" Stretch="Uniform"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="10,0,0,0">
+                            <TextBlock Text="Targets from last year" Foreground="White" FontFamily="Arial" FontSize="17" FontWeight="Bold" />
+                            <TextBlock Text="Filled in on every Refresh" Foreground="#D6E4F5" FontFamily="Arial" FontSize="9.5" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Grid.Column="1" Width="28" Height="28" Content="×" FontSize="17"
+                            Style="{StaticResource NavyBandCloseButtonStyle}" Click="Cancel_Click" />
+                </Grid>
+            </Border>
+
+            <Grid Margin="0,18,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Fill ABV and AUB targets" Foreground="{StaticResource CfInk}" FontFamily="Arial" FontSize="12" FontWeight="Bold" />
+                    <TextBlock Text="Same day last year (52 weeks back), gift cards taken out. The Sales target is still typed by you."
+                               Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9.5" TextWrapping="Wrap" Margin="0,3,12,0" />
+                </StackPanel>
+                <Border Grid.Column="1" Width="96" Height="28" Background="White" BorderBrush="{StaticResource CfLine}"
+                        BorderThickness="1" CornerRadius="9" VerticalAlignment="Center">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="1"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <RadioButton x:Name="OnOption" Grid.Column="0" Content="On" GroupName="LastYearOnOff"
+                                     Style="{StaticResource SegmentStyle}" Checked="OnOff_Changed">
+                            <RadioButton.Tag><CornerRadius>8,0,0,8</CornerRadius></RadioButton.Tag>
+                        </RadioButton>
+                        <Border Grid.Column="1" Background="{StaticResource CfLine}" />
+                        <RadioButton x:Name="OffOption" Grid.Column="2" Content="Off" GroupName="LastYearOnOff"
+                                     Style="{StaticResource SegmentStyle}" Checked="OnOff_Changed">
+                            <RadioButton.Tag><CornerRadius>0,8,8,0</CornerRadius></RadioButton.Tag>
+                        </RadioButton>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <StackPanel x:Name="PercentPanel" Margin="0,14,0,0">
+                <TextBlock Text="PERCENTAGE ON LAST YEAR" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" Margin="2,0,0,6" />
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="ABV" Style="{StaticResource PercentLabelStyle}" Margin="2,0,6,0" />
+                    <TextBox x:Name="AbvPercentBox" Width="62" Height="30" Tag="+10"
+                             Style="{StaticResource HtmlWatermarkTextBoxStyle}" TextChanged="Percent_TextChanged" />
+                    <TextBlock Text="%" Style="{StaticResource PercentLabelStyle}" Margin="5,0,22,0" />
+                    <TextBlock Text="AUB" Style="{StaticResource PercentLabelStyle}" Margin="0,0,6,0" />
+                    <TextBox x:Name="AubPercentBox" Width="62" Height="30" Tag="+0"
+                             Style="{StaticResource HtmlWatermarkTextBoxStyle}" TextChanged="Percent_TextChanged" />
+                    <TextBlock Text="%" Style="{StaticResource PercentLabelStyle}" Margin="5,0,0,0" />
+                </StackPanel>
+                <TextBlock x:Name="PercentError" Foreground="{StaticResource CfBad}" FontFamily="Arial" FontSize="9.5"
+                           TextWrapping="Wrap" Margin="2,6,0,0" Visibility="Collapsed" />
+
+                <Border Margin="0,12,0,0" Padding="12,9"
+                        Background="#FFFDF4" BorderBrush="#F0DE94" BorderThickness="1" CornerRadius="12">
+                    <TextBlock x:Name="WorkingText" Foreground="{StaticResource CfInk}" FontFamily="Arial" FontSize="11.5"
+                               LineHeight="19" TextWrapping="Wrap" />
+                </Border>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                <Button Content="Cancel" Width="82" Height="34" Style="{StaticResource ModernSecondaryButtonStyle}" Click="Cancel_Click" />
+                <Button x:Name="SaveButton" Content="Save" Width="82" Height="34" Margin="8,0,0,0" Style="{StaticResource ModernPrimaryButtonStyle}" Click="Save_Click" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

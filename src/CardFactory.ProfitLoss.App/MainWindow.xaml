@@ -93,6 +93,9 @@
              the card; its outer corners come from Tag (13 = the card's 14 less its 1px
              border), because ClipToBounds clips to a rectangle, not to rounded corners.
              HistoricalModeToggleStyle is left as it is - Performance / Gift Cards uses it. -->
+        <!-- Targets from last year: shows the yellow LY tab under a target. -->
+        <BooleanToVisibilityConverter x:Key="LastYearChipVisibility" />
+
         <Style x:Key="ModeCardSegmentStyle" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
             <Setter Property="Background" Value="White" />
@@ -1543,7 +1546,8 @@
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                        <Border Width="122" Height="30" Background="White" BorderBrush="#CFDAE8" BorderThickness="1" CornerRadius="10">
+                                        <Grid>
+                                            <Border Width="122" Height="30" Background="White" BorderBrush="#CFDAE8" BorderThickness="1" CornerRadius="10">
                                             <TextBox Height="26" Margin="1,0" VerticalAlignment="Center"
                                                      Text="{Binding AbvTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
                                                      Tag="Enter target"
@@ -1554,11 +1558,20 @@
                                                      TextChanged="NumericTextBox_TextChanged"
                                                      LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
                                         </Border>
+                                            <!-- Targets from last year: the yellow LY tab, shown while this box still holds last year's figure. -->
+                                            <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,-8" Height="13" Padding="7,0"
+                                                    Background="{StaticResource CfYellow}" CornerRadius="7,7,0,0" Cursor="Help"
+                                                    ToolTip="{Binding AbvLastYearTooltip}" ToolTipService.InitialShowDelay="150"
+                                                    Visibility="{Binding AbvFromLastYear, Converter={StaticResource LastYearChipVisibility}}">
+                                                <TextBlock Text="{Binding AbvLastYearChipText}" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9" FontWeight="Bold" VerticalAlignment="Center" />
+                                            </Border>
+                                        </Grid>
                                         <TextBlock Text="{Binding AbvSummaryText}" Tag="{Binding AbvSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock Text="TARGET" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                        <Border Width="122" Height="30" Background="White" BorderBrush="#CFDAE8" BorderThickness="1" CornerRadius="10">
+                                        <Grid>
+                                            <Border Width="122" Height="30" Background="White" BorderBrush="#CFDAE8" BorderThickness="1" CornerRadius="10">
                                             <TextBox Height="26" Margin="1,0" VerticalAlignment="Center"
                                                      Text="{Binding AubTarget, Converter={StaticResource ZeroBlankDecimalConverter}, UpdateSourceTrigger=PropertyChanged}"
                                                      Tag="Enter target"
@@ -1569,6 +1582,14 @@
                                                      TextChanged="NumericTextBox_TextChanged"
                                                      LostKeyboardFocus="NumericTextBox_LostKeyboardFocus" />
                                         </Border>
+                                            <!-- Targets from last year: the yellow LY tab, shown while this box still holds last year's figure. -->
+                                            <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,-8" Height="13" Padding="7,0"
+                                                    Background="{StaticResource CfYellow}" CornerRadius="7,7,0,0" Cursor="Help"
+                                                    ToolTip="{Binding AubLastYearTooltip}" ToolTipService.InitialShowDelay="150"
+                                                    Visibility="{Binding AubFromLastYear, Converter={StaticResource LastYearChipVisibility}}">
+                                                <TextBlock Text="{Binding AubLastYearChipText}" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9" FontWeight="Bold" VerticalAlignment="Center" />
+                                            </Border>
+                                        </Grid>
                                         <TextBlock Text="{Binding AubSummaryText}" Tag="{Binding AubSummaryState}" Style="{StaticResource HtmlMetricTextStyle}" FontSize="13" MinWidth="80" Margin="14,0,0,0" />
                                     </StackPanel>
                                     </Grid>
@@ -1896,6 +1917,21 @@
                                     </Border>
                                 </Grid>
                             </Border>
+                            <!-- Targets from last year (owner, 16 Oct 2026, concept T2): opens its own window. -->
+                            <Border Style="{StaticResource MenuItemRowStyle}">
+                                <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="LastYearTargetsMenu_Click">
+                                    <Grid Width="300">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <Path Data="M2,4 L16,4 L16,16 L2,16 Z M2,7.5 L16,7.5 M5.5,2 L5.5,5.5 M12.5,2 L12.5,5.5 M9,14 L9,9.5 M7,11.5 L9,9.5 L11,11.5" Style="{StaticResource MenuItemIconStyle}" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Targets from last year" Style="{StaticResource MenuItemNameStyle}" />
+                                            <!-- Set in code: "On · ABV +10% · AUB +0%" or "Off · targets typed by hand". -->
+                                            <TextBlock x:Name="LastYearTargetsHint" Style="{StaticResource MenuItemNoteStyle}" />
+                                        </StackPanel>
+                                        <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
+                                    </Grid>
+                                </Button>
+                            </Border>
                             <Border Style="{StaticResource MenuItemRowStyle}">
                                 <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="PreferencesMenu_Click">
                                     <Grid Width="300">
@@ -2076,6 +2112,16 @@
                                                    Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Border>
                                     <TextBlock x:Name="RetrievalStep4Text" Text="Staff Discounts" FontFamily="Arial" FontSize="12" Foreground="{StaticResource CfMuted}"
+                                               VerticalAlignment="Center" Margin="10,0,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="RetrievalStep5Row" BorderBrush="#EDF1F6" BorderThickness="0,1,0,0" Padding="0,7" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border x:Name="RetrievalStep5Dot" Width="20" Height="20" CornerRadius="10" Background="#E3ECF7">
+                                        <TextBlock x:Name="RetrievalStep5Marker" Text="" FontFamily="Arial" FontSize="11" FontWeight="Bold"
+                                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock x:Name="RetrievalStep5Text" Text="Last year's figures (targets)" FontFamily="Arial" FontSize="12" Foreground="{StaticResource CfMuted}"
                                                VerticalAlignment="Center" Margin="10,0,0,0" />
                                 </StackPanel>
                             </Border>

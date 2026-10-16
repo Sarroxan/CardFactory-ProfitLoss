@@ -15,6 +15,8 @@ using CardFactory.ProfitLoss.App.Services;
 using CardFactory.ProfitLoss.App.Infrastructure;
 using CardFactory.ProfitLoss.App.ViewModels;
 using CardFactory.ProfitLoss.App.Views;
+using CardFactory.ProfitLoss.Core.Models;
+using CardFactory.ProfitLoss.Core.Services;
 using CardFactory.ProfitLoss.Flooid.Models;
 using CardFactory.ProfitLoss.ReportParsing.Matching;
 using CardFactory.ProfitLoss.ReportParsing.Models;
@@ -36,6 +38,9 @@ public partial class MainWindow : Window
     private bool _threeRowCompact;
     private bool _branchPerformanceActive;
     private bool _reportsActive;
+    // Targets from last year: last year's Team ABV/AUB per last-year period, so each day or
+    // range is pulled from Flooid once per session, not on every Refresh.
+    private readonly Dictionary<(DateTime From, DateTime To), (int Transactions, decimal Abv, decimal Aub)> _lastYearCache = new();
     private (DateTime From, DateTime To)? _staffDiscountPeriod;   // the day or range the Reports staff discounts are for
     private bool _branchGiftCardsActive;
     private FlooidLoginWindow? _flooidLoginWindow;
@@ -599,7 +604,7 @@ public partial class MainWindow : Window
         if (!MainMenuPopup.IsOpen) ShowMenuTab(MenuTabBriefing);   // opens on Daily Briefing
         // Stage 6B.30: read the setting each time the menu opens, so it always shows what is
         // actually in force - including a value written into the file by hand.
-        if (!MainMenuPopup.IsOpen) LoadRetrievalSpeedOptions();
+        if (!MainMenuPopup.IsOpen) { LoadRetrievalSpeedOptions(); LoadLastYearTargetsHint(); }
         MainMenuPopup.IsOpen = !MainMenuPopup.IsOpen;
     }
 
@@ -763,6 +768,79 @@ public partial class MainWindow : Window
         viewModel.SetStatus("Figures cleared");
     }
 
+
+    private void LoadLastYearTargetsHint()
+    {
+        LastYearTargetSettings.Load();
+        LastYearTargetsHint.Text = LastYearTargetSettings.Summary;
+    }
+
+    /// <summary>Menu → Settings → Targets from last year (owner, 16 Oct 2026, concept T2).</summary>
+    private void LastYearTargetsMenu_Click(object sender, RoutedEventArgs e)
+    {
+        MainMenuPopup.IsOpen = false;
+        if (DataContext is not MainViewModel viewModel) return;
+
+        LastYearTargetSettings.Load();
+        var window = new LastYearTargetsWindow(
+            LastYearTargetSettings.Enabled, LastYearTargetSettings.AbvPercent, LastYearTargetSettings.AubPercent,
+            viewModel.LastYearResult)
+        {
+            Owner = this
+        };
+        if (window.ShowDialog() != true) return;
+
+        if (!LastYearTargetSettings.TrySave(window.Enabled, window.AbvPercent, window.AubPercent))
+        {
+            viewModel.SetStatus("Targets from last year could not be saved");
+            return;
+        }
+
+        // New percentages apply straight away to the figures already pulled, if any.
+        if (window.Enabled && viewModel.LastYearResult is { } held)
+        {
+            var updated = LastYearTargetCalculator.Calculate(held.FromDate, held.ToDate, 1, held.LastYearAbv, held.LastYearAub,
+                window.AbvPercent, window.AubPercent);
+            if (updated is not null) viewModel.ApplyLastYearTargets(updated);
+        }
+        viewModel.SetStatus("Targets from last year · " + LastYearTargetSettings.Summary);
+    }
+
+    /// <summary>
+    /// Targets from last year: last year's Team ABV and AUB for the same weekdays 52 weeks back,
+    /// from the same two reports and the same calculation as today's Team figures (Refunds,
+    /// Voids &amp; No Sales merged with Gift Cards, gift cards taken out). Returns a note when the
+    /// targets could not be filled, or null when they were.
+    /// </summary>
+    private async Task<string?> FillTargetsFromLastYearAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate)
+    {
+        var (lyFrom, lyTo) = LastYearTargetCalculator.LastYearRange(startDate, endDate);
+        try
+        {
+            if (!_lastYearCache.TryGetValue((lyFrom, lyTo), out var held))
+            {
+                var refunds = new RefundsVoidsReportParser().Parse(await loginWindow.FetchRefundsVoidsHtmlAsync(lyFrom, lyTo));
+                var giftCards = new GiftCardReportParser().Parse(await loginWindow.FetchGiftCardHtmlAsync(lyFrom, lyTo));
+                var merged = new OperatorReportMerger().Merge(refunds, giftCards);
+                var team = new TeamPerformanceCalculator().Calculate(merged, new PerformanceTargets(0m, 0m, 0m));
+                held = (team.TotalTransactions, team.ActualAbv, team.ActualAub);
+                _lastYearCache[(lyFrom, lyTo)] = held;
+            }
+
+            var targets = LastYearTargetCalculator.Calculate(lyFrom, lyTo, held.Transactions, held.Abv, held.Aub,
+                LastYearTargetSettings.AbvPercent, LastYearTargetSettings.AubPercent);
+            if (targets is null)
+                return $"no sales on {(lyFrom == lyTo ? lyFrom.ToString("dd/MM/yyyy") : lyFrom.ToString("dd/MM/yyyy") + " - " + lyTo.ToString("dd/MM/yyyy"))} last year, targets left as they were";
+
+            viewModel.ApplyLastYearTargets(targets);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Targets from last year ({lyFrom:dd/MM/yyyy} - {lyTo:dd/MM/yyyy}) failed: {ex}{Environment.NewLine}");
+            return "last year's figures could not be read, targets left as they were · " + ex.Message;
+        }
+    }
 
     private void PreferencesMenu_Click(object sender, RoutedEventArgs e)
     {
@@ -1440,6 +1518,9 @@ public partial class MainWindow : Window
 
             // Stage 6B.11: the overlay replaces the two section labels 6A.94 was setting.
             RetrievalStep4Row.Visibility = includeDiscounts ? Visibility.Visible : Visibility.Collapsed;
+            LastYearTargetSettings.Load();
+            var fillFromLastYear = LastYearTargetSettings.Enabled;
+            RetrievalStep5Row.Visibility = fillFromLastYear ? Visibility.Visible : Visibility.Collapsed;
             ShowRetrievalOverlay();
             if (forBriefing) RetrievalTitle.Text = "Getting the Daily Briefing ready";
 
@@ -1556,6 +1637,16 @@ public partial class MainWindow : Window
             }
             var discountsOk = !includeDiscounts || discountsUpdated;
 
+            // Targets from last year. Last, after everything the screen shows, so it can never
+            // get in the way of today's figures; a problem only leaves the targets as they were.
+            string? lastYearNote = null;
+            if (fillFromLastYear)
+            {
+                viewModel.SetFlooidStatus("Retrieving last year's figures…", "Working");
+                SetRetrievalStep(5);
+                lastYearNote = await FillTargetsFromLastYearAsync(viewModel, loginWindow, startDate, endDate);
+            }
+
             if (teamUpdated || giftUpdated || branchUpdated)
                 viewModel.SetFlooidLastUpdated(DateTime.Now);
 
@@ -1580,9 +1671,10 @@ public partial class MainWindow : Window
             if (teamUpdated && giftUpdated && branchUpdated && discountsOk)
             {
                 viewModel.SetFlooidStatus("Updated", "Good");
-                viewModel.SetStatus(branchActualPeriod is null
+                viewModel.SetStatus((branchActualPeriod is null
                     ? "Team Performance, Branch Performance and Gift Cards updated from Flooid"
-                    : $"Team Performance, Branch Performance and Gift Cards updated from Flooid · report period {branchActualPeriod}");
+                    : $"Team Performance, Branch Performance and Gift Cards updated from Flooid · report period {branchActualPeriod}")
+                    + (lastYearNote is null ? string.Empty : " · Targets: " + lastYearNote));
             }
             else if (teamUpdated || giftUpdated || branchUpdated)
             {
@@ -1734,6 +1826,7 @@ public partial class MainWindow : Window
         RetrievalStep2Row.Visibility = reportsOnly ? Visibility.Collapsed : Visibility.Visible;
         RetrievalStep3Row.Visibility = reportsOnly ? Visibility.Collapsed : Visibility.Visible;
         if (reportsOnly) RetrievalStep4Row.Visibility = Visibility.Visible;
+        if (reportsOnly) RetrievalStep5Row.Visibility = Visibility.Collapsed;
         RetrievalTitle.Text = reportsOnly ? "Generating reports" : "Getting reports";
         RetrievalSubtitle.Text = DataContext is MainViewModel periodViewModel ? periodViewModel.PeriodDisplayText : string.Empty;
         RetrievalSteps.Visibility = Visibility.Visible;
@@ -1744,13 +1837,13 @@ public partial class MainWindow : Window
         RetrievalOverlay.Visibility = Visibility.Visible;
     }
 
-    /// <summary>0 is nothing started, 1 to 4 mark that step running and earlier ones done.</summary>
+    /// <summary>0 is nothing started, 1 to 5 mark that step running and earlier ones done.</summary>
     private void SetRetrievalStep(int running)
     {
-        var rows = new[] { RetrievalStep1Row, RetrievalStep2Row, RetrievalStep3Row, RetrievalStep4Row };
-        var dots = new[] { RetrievalStep1Dot, RetrievalStep2Dot, RetrievalStep3Dot, RetrievalStep4Dot };
-        var markers = new[] { RetrievalStep1Marker, RetrievalStep2Marker, RetrievalStep3Marker, RetrievalStep4Marker };
-        var texts = new[] { RetrievalStep1Text, RetrievalStep2Text, RetrievalStep3Text, RetrievalStep4Text };
+        var rows = new[] { RetrievalStep1Row, RetrievalStep2Row, RetrievalStep3Row, RetrievalStep4Row, RetrievalStep5Row };
+        var dots = new[] { RetrievalStep1Dot, RetrievalStep2Dot, RetrievalStep3Dot, RetrievalStep4Dot, RetrievalStep5Dot };
+        var markers = new[] { RetrievalStep1Marker, RetrievalStep2Marker, RetrievalStep3Marker, RetrievalStep4Marker, RetrievalStep5Marker };
+        var texts = new[] { RetrievalStep1Text, RetrievalStep2Text, RetrievalStep3Text, RetrievalStep4Text, RetrievalStep5Text };
         var navy = (Brush)FindResource("CfDeepBlue");
 
         int shown = 0, done = 0;

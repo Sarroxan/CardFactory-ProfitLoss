@@ -6,7 +6,15 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## Next update - on branch `ly-targets`, not built
+
+| Change | Proven | Check in the app |
+|--------|--------|------------------|
+| **Targets from last year** (owner, 16 Oct 2026, concept T2): on every Refresh (and the Daily Briefing pull) the ABV and AUB targets are filled from last year's figures plus a percentage, default **ABV +10%, AUB +0%**. Last year = the same weekdays 52 weeks back (Fri 16/10/2026 → Fri 17/10/2025; a week → last year's same week; any range shifted 364 days). Last year's ABV/AUB come from the same two reports and calculation as today's Team figures: Refunds, Voids & No Sales + Gift Cards for last year's dates, merged (OperatorReportMerger) and run through TeamPerformanceCalculator, so gift cards are taken out. Last year's figure is rounded to 2 places before the % so the shown sum matches. Pulled once per period per session (cached). Runs after today's reports as step 5 of the Getting reports box; a failure or a closed day leaves the targets as they were and adds a note to the status line (detail in the diagnostic). The Sales target is not touched. Menu → Settings → **Targets from last year** row (note "On · ABV +10% · AUB +0%") opens a window: On/Off, ABV % and AUB % (-50 to +100), and the working out from the last Refresh; Save applies new % to the held figures at once. Settings file CardFactory-PL-lastyear-targets.txt in the app folder. Under the ABV and AUB target boxes a yellow **LY +10%** / **LY +0%** tab shows while the box still holds last year's figure (typing over it removes the tab); hover for the sum. LastYearTargetCalculator (Core) has unit tests. | Not compiled (no .NET in the sandbox); XAML well-formed; Core tests written, run by CI | Owner first: Flooid returns last year's reports (run Refunds or Branch for 17/10/2025 by hand). Then: Refresh fills ABV/AUB with LY tabs; hover sums; a week range; Off; changing % in the window; a closed day last year; Daily Briefing targets |
+
 ## On `main` since 15 Oct 2026 (merged from `housekeeping`, owner's say-so) - workflows and docs only, no release needed
+
+Main build 38794532412 (from 2b9ce28) green, only annotation the size notice. `housekeeping` was then removed with Remove branch (run 38794816995, its first use); `briefing-sales` (an unwanted Sales Actual change, discarded at the owner's request) with run 38795515381.
 
 | Change | Proven | Check |
 |--------|--------|-------|
@@ -68,11 +76,12 @@ Published by the owner with Actions -> Publish release (run 38560186028); releas
 | Export and Print include Reports, app colours | Compiles; HTML preview | With and without Reports generated |
 | New app icon (A3); header logo as shapes; logo square in the header blue | Compiles | Look on a till |
 | Smaller download: language packs gone | Build notice: download 61.6 MB (was 69.3), exe 142.3 MB (was 165) | - |
-| Windows Forms removal | **Did not work** - the build notice says it is still inside | Left as is unless the owner asks |
+| Windows Forms removal | **Did not work** - the build notice says it is still inside | Owner decided 15 Oct: leave it in, don't try again |
 | Crash safety net; one copy at a time; update check every 3 hours | Compiles | Open the app twice; update from 1.3.0 after release |
 
 Daily Briefing Sales Actual uses the app's counted sales (gift cards excluded), as the
-Targets section does - owner asked whether to switch to full store sales; not answered yet.
+Targets section does. Owner, 15 Oct: correct as it is (sales, Sales Actual and ABV checked
+day by day and over a week) - do not change.
 
 ## Released - v1.3.0 (13 Oct 2026, from `a509c48`) - release since removed
 
@@ -131,5 +140,6 @@ switching sections; the section-bar titles are blurry.
 - The repository is public; the updater relies on that. No passwords, tokens, real staff
   names or store details are in it; test fixtures use made-up names. Don't commit real
   report saves.
-- The project instructions mention `docs/TESTING.md`, `harness/harness.js` and
-  `flooid-real-pages/`; none exist in this repository.
+- The project instructions mention `docs/TESTING.md` and `harness/harness.js`; neither
+  exists in this repository. Real saved Flooid pages (all pages the app uses, 16 Oct 2026,
+  anonymised) are in the Claude Project under `flooid-real-pages/`, not in this public repo.

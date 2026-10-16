@@ -205,13 +205,77 @@ public sealed class MainViewModel : ObservableObject
     public decimal AbvTarget
     {
         get => _abvTarget;
-        set { if (SetProperty(ref _abvTarget, Math.Max(0m, value))) CalculateIfReady(); }
+        set
+        {
+            if (!SetProperty(ref _abvTarget, Math.Max(0m, value))) return;
+            OnPropertyChanged(nameof(AbvFromLastYear));
+            CalculateIfReady();
+        }
     }
     public decimal AubTarget
     {
         get => _aubTarget;
-        set { if (SetProperty(ref _aubTarget, Math.Max(0m, value))) CalculateIfReady(); }
+        set
+        {
+            if (!SetProperty(ref _aubTarget, Math.Max(0m, value))) return;
+            OnPropertyChanged(nameof(AubFromLastYear));
+            CalculateIfReady();
+        }
     }
+
+    // Targets from last year (owner, 16 Oct 2026, concept T2). The yellow "LY" tab under a
+    // target shows only while that target still holds the value worked out from last year;
+    // typing over it removes the tab.
+    private LastYearTargets? _lastYearTargets;
+    public LastYearTargets? LastYearResult => _lastYearTargets;
+    public bool AbvFromLastYear => _lastYearTargets is { } t && _abvTarget == t.AbvTarget;
+    public bool AubFromLastYear => _lastYearTargets is { } t && _aubTarget == t.AubTarget;
+    public string AbvLastYearChipText => _lastYearTargets is { } t ? "LY " + SignedPercent(t.AbvPercent) : string.Empty;
+    public string AubLastYearChipText => _lastYearTargets is { } t ? "LY " + SignedPercent(t.AubPercent) : string.Empty;
+    public string AbvLastYearTooltip => _lastYearTargets is { } t
+        ? $"ABV target from last year\n{LastYearPeriodText(t)}: £{t.LastYearAbv:N2}\n(gift cards taken out)\n£{t.LastYearAbv:N2} {SignedPercent(t.AbvPercent, spaced: true)} = £{t.AbvTarget:N2}"
+        : string.Empty;
+    public string AubLastYearTooltip => _lastYearTargets is { } t
+        ? $"AUB target from last year\n{LastYearPeriodText(t)}: {t.LastYearAub:N2}\n(gift cards taken out)\n{t.LastYearAub:N2} {SignedPercent(t.AubPercent, spaced: true)} = {t.AubTarget:N2}"
+        : string.Empty;
+
+    /// <summary>Puts last year's targets in the ABV and AUB boxes. The Sales target is left alone.</summary>
+    public void ApplyLastYearTargets(LastYearTargets targets)
+    {
+        _lastYearTargets = targets;
+        AbvTarget = targets.AbvTarget;
+        AubTarget = targets.AubTarget;
+        RaiseLastYearChanged();
+    }
+
+    /// <summary>Forgets where the targets came from (the boxes keep their values).</summary>
+    public void ClearLastYearTargets()
+    {
+        _lastYearTargets = null;
+        RaiseLastYearChanged();
+    }
+
+    private void RaiseLastYearChanged()
+    {
+        OnPropertyChanged(nameof(LastYearResult));
+        OnPropertyChanged(nameof(AbvFromLastYear));
+        OnPropertyChanged(nameof(AubFromLastYear));
+        OnPropertyChanged(nameof(AbvLastYearChipText));
+        OnPropertyChanged(nameof(AubLastYearChipText));
+        OnPropertyChanged(nameof(AbvLastYearTooltip));
+        OnPropertyChanged(nameof(AubLastYearTooltip));
+    }
+
+    /// <summary>"Fri 17 Oct 2025", or "Mon 13 Oct 2025 - Sun 19 Oct 2025" for a range.</summary>
+    public static string LastYearPeriodText(LastYearTargets t) =>
+        t.FromDate.Date == t.ToDate.Date
+            ? t.FromDate.ToString("ddd d MMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("en-GB"))
+            : t.FromDate.ToString("ddd d MMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("en-GB")) + " - "
+              + t.ToDate.ToString("ddd d MMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("en-GB"));
+
+    private static string SignedPercent(decimal percent, bool spaced = false) =>
+        (percent >= 0 ? "+" : "-") + (spaced ? " " : string.Empty)
+        + Math.Abs(percent).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%";
     public decimal TotalSales { get => _totalSales; private set => SetProperty(ref _totalSales, value); }
     public decimal ActualAbv { get => _actualAbv; private set => SetProperty(ref _actualAbv, value); }
     public decimal ActualAub { get => _actualAub; private set => SetProperty(ref _actualAub, value); }
@@ -444,6 +508,7 @@ public sealed class MainViewModel : ObservableObject
             SalesTarget = state.SalesTarget;
             AbvTarget = state.AbvTarget;
             AubTarget = state.AubTarget;
+            ClearLastYearTargets();
 
             Operators.Clear();
             foreach (var item in state.Operators ?? new List<OperatorStateDocument>())
@@ -524,6 +589,7 @@ public sealed class MainViewModel : ObservableObject
             SalesTarget = 0m;
             AbvTarget = 0m;
             AubTarget = 0m;
+            ClearLastYearTargets();
         }
         finally
         {

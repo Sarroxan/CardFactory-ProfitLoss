@@ -138,7 +138,8 @@ Built differently from the other three criteria pages:
   contains "Staff" (seen: "25% Staff Discount", a Transaction Discount).
 - Pulled only when Refresh is pressed with the Reports section showing; from
   Team or Branch it is skipped (figures for another day are cleared to "—").
-- Not yet seen: the output for a day with no discounts at all.
+- A day with no discounts (seen 16 Oct 2026): `table#detailReportTable` is still there with
+  both header rows, no `tr.report` rows and a REPORT TOTAL of 0.00 0.00 0.00 0.00.
 
 ## Popup handling
 
