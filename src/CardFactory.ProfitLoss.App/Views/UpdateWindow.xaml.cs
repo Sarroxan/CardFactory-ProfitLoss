@@ -8,11 +8,15 @@ namespace CardFactory.ProfitLoss.App.Views;
 public partial class UpdateWindow : Window
 {
     private readonly UpdateInfo _update;
+    private readonly Action<UpdateProgress>? _onProgress;
 
-    public UpdateWindow(UpdateInfo update)
+    /// <param name="onProgress">Also told of each step, so the version chip can show the
+    /// download filling up (V4, owner 16 Oct 2026).</param>
+    public UpdateWindow(UpdateInfo update, Action<UpdateProgress>? onProgress = null)
     {
         InitializeComponent();
         _update = update;
+        _onProgress = onProgress;
         VersionText.Text = "Version " + UpdateService.Display(update.Version) + " · you have " + UpdateService.Display(UpdateService.CurrentVersion);
         NotesText.Text = string.IsNullOrWhiteSpace(update.Notes) ? "Improvements and fixes." : update.Notes;
     }
@@ -53,6 +57,7 @@ public partial class UpdateWindow : Window
 
     private void ShowProgress(UpdateProgress p)
     {
+        _onProgress?.Invoke(p);
         for (var i = 0; i < 3; i++) SetStep(i, i < p.Step ? StepState.Done : i == p.Step ? StepState.Now : StepState.Todo);
         if (p.Step == 0 && p.Total > 0)
         {

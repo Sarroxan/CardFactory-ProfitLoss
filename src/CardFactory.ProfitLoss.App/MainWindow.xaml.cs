@@ -509,7 +509,7 @@ public partial class MainWindow : Window
         if (!background)
         {
             VersionChip.Tag = "Unknown";
-            VersionChip.Content = userAsked ? "Checking… · v" + current : "v" + current;
+            VersionChip.Content = "v" + current;
             VersionChip.ToolTip = "Checking for updates…";
         }
 
@@ -518,7 +518,7 @@ public partial class MainWindow : Window
         {
             if (background) return;   // try again next time; the chip keeps what it last knew
             VersionChip.Tag = "CantCheck";
-            VersionChip.Content = "Can't check · v" + current;
+            VersionChip.Content = "v" + current;
             VersionChip.ToolTip = "Could not reach GitHub to check for updates. Click to try again.";
             if (userAsked && DataContext is MainViewModel failedViewModel)
                 failedViewModel.SetStatus("Could not reach GitHub to check for updates · try again later");
@@ -528,7 +528,7 @@ public partial class MainWindow : Window
         {
             _availableUpdate = null;
             VersionChip.Tag = "UpToDate";
-            VersionChip.Content = "Up to date · v" + current;
+            VersionChip.Content = "v" + current;
             VersionChip.ToolTip = "This is the latest version. Click to check again.";
             if (userAsked && DataContext is MainViewModel latestViewModel)
                 latestViewModel.SetStatus("You have the latest version · v" + current);
@@ -537,7 +537,7 @@ public partial class MainWindow : Window
 
         _availableUpdate = update;
         VersionChip.Tag = "Available";
-        VersionChip.Content = "Update available · v" + UpdateService.Display(update.Version);
+        VersionChip.Content = "v" + UpdateService.Display(update.Version);
         VersionChip.ToolTip = "You have " + current + ". Click to update.";
 
         // Offer it straight away at launch or when asked: update now, or Later and carry on
@@ -549,9 +549,55 @@ public partial class MainWindow : Window
     private void ShowUpdateDialog()
     {
         if (_availableUpdate is null) return;
-        var dialog = new UpdateWindow(_availableUpdate) { Owner = this };
+        var update = _availableUpdate;
+        var dialog = new UpdateWindow(update, ShowUpdateProgressOnChip) { Owner = this };
         dialog.ShowDialog();
-        if (dialog.Installed) Application.Current.Shutdown();
+        if (dialog.Installed)
+        {
+            Application.Current.Shutdown();
+            return;
+        }
+        // Later, or the install failed: back to "ready to install".
+        VersionChip.Tag = "Available";
+        VersionChip.Content = "v" + UpdateService.Display(update.Version);
+        VersionChip.MinWidth = 0;
+        SetChipProgress(0);
+        UpdateMenuVersionPill();
+    }
+
+    // V4 (owner, 16 Oct 2026): while the update box downloads, the chip fills with yellow and
+    // shows the percentage, then "installing…" while the download is checked and swapped in.
+    private void ShowUpdateProgressOnChip(UpdateProgress p)
+    {
+        // Hold the chip at its "ready to install" width while it fills, so it doesn't jump about
+        // as the text changes.
+        if (VersionChip.MinWidth == 0) VersionChip.MinWidth = Math.Max(VersionChip.ActualWidth, 140);
+        if (p.Step == 0)
+        {
+            var share = p.Total > 0 ? Math.Min(1.0, (double)p.Bytes / p.Total) : 0.0;
+            VersionChip.Tag = "Downloading";
+            VersionChip.Content = Math.Round(share * 100) + "%";
+            VersionChip.ToolTip = "Downloading the update";
+            SetChipProgress(share);
+        }
+        else
+        {
+            VersionChip.Tag = "Installing";
+            if (_availableUpdate is { } update) VersionChip.Content = "v" + UpdateService.Display(update.Version);
+            VersionChip.ToolTip = p.Step == 1 ? "Checking the download" : "Installing and restarting";
+            SetChipProgress(1.0);
+        }
+    }
+
+    private void SetChipProgress(double share)
+    {
+        VersionChip.ApplyTemplate();
+        if (VersionChip.Template?.FindName("ProgressFill", VersionChip) is Border fill)
+        {
+            var inner = Math.Max(0, VersionChip.ActualWidth - 3);   // inside the 1.5px outline
+            fill.Width = inner * Math.Clamp(share, 0, 1);
+            fill.CornerRadius = share >= 0.97 ? new CornerRadius(10) : new CornerRadius(10, 0, 0, 10);
+        }
     }
 
     // Concept C: the chip checks again when clicked; with an update waiting it opens the box.
@@ -990,7 +1036,7 @@ public partial class MainWindow : Window
         var (text, back, fore) = (VersionChip.Tag as string) switch
         {
             "UpToDate" => (current + " · up to date", "#EAF7EF", "#0B7A35"),
-            "Available" => (VersionChip.Content?.ToString() ?? "Update available", "#FFF1DC", "#9A5B00"),
+            "Available" => ("Update available · " + (VersionChip.Content?.ToString() ?? string.Empty), "#FFF1DC", "#9A5B00"),
             "CantCheck" => (current + " · can't check", "#EDF1F6", "#667891"),
             _ => (current, "#EDF1F6", "#004EA1")
         };

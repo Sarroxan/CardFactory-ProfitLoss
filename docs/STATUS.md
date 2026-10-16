@@ -6,11 +6,23 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## Replacing v1.0.0 - from branch `ly-targets` (two changes), owner's say-so 16 Oct 2026
+## Next update - on branch `chip-v2v4`, not built
 
-The owner asked for v1.0.0 to be replaced with these two changes (same number, as on 15 Oct)
-before a test build; the main build below compiles and tests them before the old release is
-removed. Owner checked by hand on 16 Oct that Flooid returns last year's reports.
+| Change | Proven | Check in the app |
+|--------|--------|------------------|
+| **Version chip V2 + V4** (owner, 16 Oct 2026, from concepts V1-V4): a round 18px badge carries the state as a symbol and a colour - grey circling arrows checking, green tick up to date, yellow badge with a navy down-arrow update ready, red "!" can't check - then the version in Fredoka (CfLogoSmallFont) and the state in small words ("up to date", "ready to install", "can't check", "checking"). Outline CfLine (softer), so the navy Menu pill stays the main button; ready-to-install keeps the yellow outline on pale yellow. V4: while the update box downloads, the chip (held at its width) fills with yellow from the left and shows the percentage with "downloading", then "installing…"; Later or a failed install puts it back to "ready to install". UpdateWindow passes its progress to the chip (new optional onProgress). Menu band pill text unchanged in meaning. | Not compiled; XAML well-formed | Each state: launch (checking → up to date), unplug network and click (can't check), an update waiting (ready to install, hover); Update now: the chip fills and counts up behind the box, then installing…; Later restores it |
+
+## Released - v1.0.0 replaced again 16 Oct 2026, 17:52, from `c791201` (owner's say-so)
+
+The owner asked for v1.0.0 to be replaced with the two changes below (same number, as on
+15 Oct) before a test build. Owner checked by hand that Flooid returns last year's reports.
+Main build 38934757652 green first (compile + tests, size notice only), then Remove release
+(run 38935065213), Publish release (run 38935124302; V1 notes plus two points), release
+build 38935147252 green. Zip 64,617,430 bytes, sha256 a442a11d...ed49 matches the
+`.sha256`, exe ProductVersion 1.0.0+c791201, marked latest, tagger "Card Factory Profit and
+Loss". `ly-targets` removed with Remove branch (run 38935511979). **Tried on a till by the
+owner (16 Oct): "Works perfectly".** Tills on an earlier 1.0.0 need this zip installed by
+hand (same number).
 
 
 | Change | Proven | Check in the app |

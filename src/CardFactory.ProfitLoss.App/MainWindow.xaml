@@ -221,40 +221,80 @@
                                    Margin="7,0,0,0" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Version chip, design H2: the Menu button's outline pill with a face.
-                             Unknown (checking): just "v1.1.0", muted, no face. UpToDate: green smile.
-                             Available: plain yellow face, yellow border on pale yellow - the only
-                             clickable state, opens the update box. CantCheck: red sad face. -->
+                        <!-- Version chip, V2 + V4 (owner, 16 Oct 2026): a round badge carries the state as a
+                             symbol as well as a colour - grey arrows checking, green tick up to date, yellow
+                             down-arrow update ready, red "!" can't check - then the version in the logo's
+                             Fredoka lettering and the state in small words. Softer blue outline so the navy
+                             Menu pill stays the main button. While an update downloads (Tag="Downloading") the
+                             pill fills with yellow from the left (ProgressFill, width set in code). Content is
+                             the version ("v1.0.0") or, while downloading, the percentage. -->
                         <Button x:Name="VersionChip" Click="VersionChip_Click" Height="24" Tag="Unknown"
                                 Margin="0,0,8,0" VerticalAlignment="Center" FocusVisualStyle="{x:Null}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border x:Name="Chip" Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="1.5" CornerRadius="12" Padding="10,0,11,0">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <!-- Deep check 2 (owner, 15 Oct): a plain status dot instead of the three drawn
-                                                 faces, which competed with the real smiley in the header. Grey while
-                                                 checking, green up to date, amber update available, red can't check. -->
-                                            <Ellipse x:Name="VersionDot" Width="8" Height="8" Margin="0,0,7,0" VerticalAlignment="Center" Fill="#A5C0DD" />
-                                            <TextBlock x:Name="ChipText" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" VerticalAlignment="Center"
-                                                       Margin="0" FontFamily="Arial" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource CfMuted}" />
-                                        </StackPanel>
+                                    <Border x:Name="Chip" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1.5" CornerRadius="12"
+                                            Padding="0" ClipToBounds="True">
+                                        <Grid>
+                                            <Border x:Name="ProgressFill" HorizontalAlignment="Left" Width="0" Background="{StaticResource CfYellow}" CornerRadius="10,0,0,10" />
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="2,0,10,0">
+                                                <Grid Width="18" Height="18" VerticalAlignment="Center">
+                                                    <Ellipse x:Name="Badge" Fill="#A5C0DD" />
+                                                    <!-- checking: two arrows round a circle -->
+                                                    <Path x:Name="IconChecking" Data="M13.5,6.2 A5,5 0 0 0 4.6,7.4 M4.5,11.8 A5,5 0 0 0 13.4,10.6 M13.6,3.6 L13.6,6.4 L10.8,6.4 M4.4,14.4 L4.4,11.6 L7.2,11.6"
+                                                          Stroke="White" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" />
+                                                    <Path x:Name="IconTick" Data="M5.2,9.3 L7.8,11.9 L12.8,6.3" Visibility="Collapsed"
+                                                          Stroke="White" StrokeThickness="1.9" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" />
+                                                    <Path x:Name="IconDown" Data="M9,4.6 L9,12.6 M5.6,9.4 L9,12.8 L12.4,9.4" Visibility="Collapsed"
+                                                          Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.9" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="18" Height="18" />
+                                                    <Path x:Name="IconAlert" Data="M9,4.8 L9,10.2 M9,13.1 L9,13.2" Visibility="Collapsed"
+                                                          Stroke="White" StrokeThickness="2.1" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="18" Height="18" />
+                                                </Grid>
+                                                <TextBlock x:Name="ChipVersion" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" VerticalAlignment="Center"
+                                                           Margin="6,0,0,1" FontFamily="{StaticResource CfLogoSmallFont}" FontSize="12" Foreground="{StaticResource CfDeepBlue}" />
+                                                <TextBlock x:Name="ChipWord" Text="checking" VerticalAlignment="Center"
+                                                           Margin="6,0,0,0" FontFamily="Arial" FontSize="10" FontWeight="Bold" Foreground="{StaticResource CfMuted}" />
+                                            </StackPanel>
+                                        </Grid>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="Tag" Value="UpToDate">
-                                            <Setter TargetName="VersionDot" Property="Fill" Value="#2FB866" />
-                                            <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                            <Setter TargetName="Badge" Property="Fill" Value="#2FB866" />
+                                            <Setter TargetName="IconChecking" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="IconTick" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="ChipWord" Property="Text" Value="up to date" />
                                             <Setter Property="Cursor" Value="Hand" />   <!-- click to check again -->
                                         </Trigger>
                                         <Trigger Property="Tag" Value="Available">
-                                            <Setter TargetName="VersionDot" Property="Fill" Value="#E0A800" />
+                                            <Setter TargetName="Badge" Property="Fill" Value="{StaticResource CfYellow}" />
+                                            <Setter TargetName="IconChecking" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="IconDown" Property="Visibility" Value="Visible" />
                                             <Setter TargetName="Chip" Property="Background" Value="#FFFBEA" />
                                             <Setter TargetName="Chip" Property="BorderBrush" Value="{StaticResource CfYellow}" />
-                                            <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                            <Setter TargetName="ChipWord" Property="Text" Value="ready to install" />
+                                            <Setter TargetName="ChipWord" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
                                             <Setter Property="Cursor" Value="Hand" />
                                         </Trigger>
+                                        <Trigger Property="Tag" Value="Downloading">
+                                            <Setter TargetName="Badge" Property="Fill" Value="White" />
+                                            <Setter TargetName="IconChecking" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="IconDown" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="Chip" Property="BorderBrush" Value="{StaticResource CfDeepBlue}" />
+                                            <Setter TargetName="ChipWord" Property="Text" Value="downloading" />
+                                            <Setter TargetName="ChipWord" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                        </Trigger>
+                                        <Trigger Property="Tag" Value="Installing">
+                                            <Setter TargetName="Badge" Property="Fill" Value="White" />
+                                            <Setter TargetName="IconChecking" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="IconDown" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="Chip" Property="BorderBrush" Value="{StaticResource CfDeepBlue}" />
+                                            <Setter TargetName="ChipWord" Property="Text" Value="installing…" />
+                                            <Setter TargetName="ChipWord" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                        </Trigger>
                                         <Trigger Property="Tag" Value="CantCheck">
-                                            <Setter TargetName="VersionDot" Property="Fill" Value="#E04A55" />
-                                            <Setter TargetName="ChipText" Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+                                            <Setter TargetName="Badge" Property="Fill" Value="#E04A55" />
+                                            <Setter TargetName="IconChecking" Property="Visibility" Value="Collapsed" />
+                                            <Setter TargetName="IconAlert" Property="Visibility" Value="Visible" />
+                                            <Setter TargetName="ChipWord" Property="Text" Value="can't check" />
                                             <Setter Property="Cursor" Value="Hand" />   <!-- click to check again -->
                                         </Trigger>
                                         <MultiTrigger>
