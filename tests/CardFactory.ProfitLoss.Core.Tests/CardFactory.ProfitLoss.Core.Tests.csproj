@@ -12,5 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\CardFactory.ProfitLoss.Core\CardFactory.ProfitLoss.Core.csproj" />
+    <ProjectReference Include="..\..\src\CardFactory.ProfitLoss.Flooid\CardFactory.ProfitLoss.Flooid.csproj" />
   </ItemGroup>
 </Project>

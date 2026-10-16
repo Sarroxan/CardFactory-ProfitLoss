@@ -52,7 +52,7 @@ public partial class MainWindow : Window
     // a transition rather than a level. The status event fires on every navigation and
     // the grab itself drives the same browser, so without a latch one sign-in would
     // start a grab, whose navigation would report signed-in again, and so on.
-    private bool _flooidWasSignedIn;
+    private readonly CardFactory.ProfitLoss.Flooid.Services.FlooidSignInTracker _flooidSignIn = new();
     private DateTime _lastAutoGrabUtc = DateTime.MinValue;
 
     public MainWindow()
@@ -1974,9 +1974,10 @@ public partial class MainWindow : Window
         FlooidConnectButton.Tag = state;
 viewModel.SetFlooidStatus(e.Snapshot.StatusText, state);
 
+        // Owner, 16 Oct 2026: a page change while signed in (opening the back office, a link
+        // clicked in it) is not a sign in; it used to hide the window and refresh everything.
         var signedIn = e.Snapshot.State == FlooidConnectionState.SignedIn;
-        var justSignedIn = signedIn && !_flooidWasSignedIn;
-        _flooidWasSignedIn = signedIn;
+        var justSignedIn = _flooidSignIn.Update(e.Snapshot);
 
         // Stage 6B.21: name the store as soon as we are in, rather than waiting for a
         // report's Outlet field. Fire and forget - a store that cannot be read leaves the

@@ -6,6 +6,19 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `back-office-stays-open` (owner, 16 Oct 2026, ~21:10) - not built yet
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Open Flooid back office closed the window and refreshed everything.** Every navigation first publishes "Opening Flooid…" (NavigationStarting, state NotInitialised); the main window took that as having left signed in, so the page arriving next looked like a fresh sign in: `HideAfterSignIn()` plus a full report pull (only skipped within a minute of the last automatic pull). Opening the back office navigates to its home page, so it happened on opening, and on any link clicked in it. Now `FlooidSignInTracker` (Flooid project) decides: a page still loading, or the bare `/backoffice/` entry on its way, doesn't change "was signed in"; the login page does, so signing in, and signing in again after the session runs out, still pull the reports by themselves. | Unit tests replay the published sequence (sign in, open back office, a link, session running out). Not compiled yet | Signed in, account menu → Open Flooid back office: the window stays open on the back office, no retrieval starts; click a few menu links a minute later: still open. Sign out and in: reports pulled as before |
+
+V1 release record: main build 38950897056 (rehearsal 0.86 MB in 9 parts); Remove release
+38951210450 (v1.0.1) and 38951244716 (old v1.0.0); Publish 38951293932; release build
+38951311672. Checked: only release, tag by Card Factory Profit and Loss → 9d0d0d6, four
+assets, zip checksum matches, piece list = the exe in the zip, exe 1.0.0+9d0d0d6, notes as
+sent, latest; live small update from the first 1.0.0 exe 1.24 MB in 8 parts, identical.
+`v1-standalone` removed (run 38951885726).
+
 ## V1: version 1.0.0, the only release (owner, 16 Oct 2026, ~19:55)
 
 The owner asked for the 1.0.1 build to become V1, numbered 1.0.0, as the only release: the
