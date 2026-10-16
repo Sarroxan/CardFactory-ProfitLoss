@@ -6,7 +6,12 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## Next update - on branch `ly-targets`, not built (two changes)
+## Replacing v1.0.0 - from branch `ly-targets` (two changes), owner's say-so 16 Oct 2026
+
+The owner asked for v1.0.0 to be replaced with these two changes (same number, as on 15 Oct)
+before a test build; the main build below compiles and tests them before the old release is
+removed. Owner checked by hand on 16 Oct that Flooid returns last year's reports.
+
 
 | Change | Proven | Check in the app |
 |--------|--------|------------------|
