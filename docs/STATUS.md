@@ -6,7 +6,9 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `back-office-stays-open` (owner, 16-19 Oct 2026) - test build 39026568806 had the first two; cache not built yet
+## Released - v1.0.1 (19 Oct 2026, owner's say-so), from branch `back-office-stays-open` - the first small update
+
+Test build 39266721174 (version 1.0.1) green: tests passed; small update from V1 1.22 MB in 10 parts.
 
 | Change | Proven | Check |
 |--------|--------|-------|
