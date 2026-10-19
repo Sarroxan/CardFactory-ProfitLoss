@@ -614,6 +614,7 @@ public partial class FlooidLoginWindow : Window
         // hand the moment a link is clicked.
         if (!visible && _backOfficeOpen)
         {
+            LockSize(false);   // signed in from the card on the way to the back office: resizable again
             if (!_backOfficeSized) SizeForBackOffice();
             return;
         }
@@ -924,9 +925,14 @@ public partial class FlooidLoginWindow : Window
         UpdateCustomLoginPanel(_lastKnownUri);
     }
 
+    /// <summary>"Open Flooid back office" was asked for and the window is still up.</summary>
+    public bool BackOfficeRequested => _backOfficeOpen && IsVisible;
+
     public void HideAfterSignIn()
     {
-        if (_closing || !IsSignedIn) return;
+        // Owner, 19 Oct 2026: signing in again because the session ran out while opening the
+        // back office - stay on the back office rather than closing.
+        if (_closing || !IsSignedIn || BackOfficeRequested) return;
         _autoCloseTimer.Stop();
         Hide();
     }

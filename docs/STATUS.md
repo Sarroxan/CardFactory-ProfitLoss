@@ -6,6 +6,12 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `back-office-after-timeout` (owner, 19 Oct 2026) - not built yet
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Back office after the session has run out** ("when trying to open Flooid back office and it times out it regenerates the whole report"). Opening the back office with an expired session lands on the sign-in; signing in (or Stay signed in doing it) counted as a fresh sign in: the window was hidden, every report pulled again, and since 1.0.1 the held reports were cleared first, so all of them were pulled from Flooid. Now, while the back office is asked for (`FlooidLoginWindow.BackOfficeRequested`), a sign in neither hides the window nor pulls reports, and the window is resizable again after the card. Held reports are kept across a sign in; they are forgotten on Sign out, Change store, or when a different store is read after sign in (`ForgetPulledReports`). | Code reading only: sign-in flow can't run offline. Not compiled yet | Leave the app until the Flooid session runs out, then Open Flooid back office: sign in (or let it sign in itself) → the back office shows and stays; no retrieval box. Then Daily Briefing for a past day: no Team/Gift/Branch pulls |
+
 ## Released - v1.0.1 (19 Oct 2026, owner's say-so), from branch `back-office-stays-open` - the first small update
 
 Test build 39266721174 (version 1.0.1) green: tests passed; small update from V1 1.22 MB in 10 parts.

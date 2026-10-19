@@ -881,6 +881,14 @@ public partial class MainWindow : Window
         return html;
     }
 
+    /// <summary>Owner, 19 Oct 2026: kept across a sign in after the session runs out (same
+    /// store), forgotten on Sign out, Change store, or when another store signs in.</summary>
+    private void ForgetPulledReports()
+    {
+        _reportCache.Clear();
+        _lastYearCache.Clear();
+    }
+
     private void NoteOldest(DateTime pulledAt)
     {
         if (_oldestPullUsed is null || pulledAt < _oldestPullUsed) _oldestPullUsed = pulledAt;
@@ -1425,6 +1433,7 @@ public partial class MainWindow : Window
         FlooidAccountMenu.IsOpen = false;
         try
         {
+            ForgetPulledReports();
             var result = await GetOrCreateFlooidLoginWindow().ChangeStoreAsync();
             if (DataContext is MainViewModel viewModel)
             {
@@ -1444,6 +1453,7 @@ public partial class MainWindow : Window
     private async void AccountSignOut_Click(object sender, RoutedEventArgs e)
     {
         FlooidAccountMenu.IsOpen = false;
+        ForgetPulledReports();
         var result = await GetOrCreateFlooidLoginWindow().SignOutAsync();
         if (DataContext is MainViewModel viewModel)
         {
@@ -1981,6 +1991,10 @@ public partial class MainWindow : Window
                 var store = await _flooidLoginWindow.TryReadStoreAsync();
                 if (!string.IsNullOrWhiteSpace(store))
                 {
+                    // Another store than the reports were pulled for: forget them.
+                    if (!string.IsNullOrWhiteSpace(viewModel.StoreLocation)
+                        && !string.Equals(viewModel.StoreLocation.Trim(), store.Trim(), StringComparison.OrdinalIgnoreCase))
+                        ForgetPulledReports();
                     viewModel.StoreLocation = store;
                     return;
                 }
@@ -2019,12 +2033,6 @@ viewModel.SetFlooidStatus(e.Snapshot.StatusText, state);
         // header as it was, and must never hold up signing in.
         if (justSignedIn) _ = ReadStoreFromFlooidAsync();
 
-        // A new sign in may be another account or store: nothing pulled before carries over.
-        if (justSignedIn)
-        {
-            _reportCache.Clear();
-            _lastYearCache.Clear();
-        }
 
         if (signedIn && _grabAfterFlooidSignIn)
         {
@@ -2048,6 +2056,14 @@ viewModel.SetFlooidStatus(e.Snapshot.StatusText, state);
         // transition into signed-in, never while a grab is running, and not within a minute
         // of the last automatic one. Without the last two a grab's own navigation could
         // start another grab.
+        // Owner, 19 Oct 2026: when the session has run out while opening the back office,
+        // signing back in is for the back office - it stays open, and nothing is pulled again.
+        if (justSignedIn && _flooidLoginWindow?.BackOfficeRequested == true)
+        {
+            viewModel.SetStatus("Signed in to Flooid · back office open", notify: false);
+            return;
+        }
+
         if (justSignedIn
             && !_flooidGrabBusy
             && DateTime.UtcNow - _lastAutoGrabUtc > TimeSpan.FromMinutes(1))
