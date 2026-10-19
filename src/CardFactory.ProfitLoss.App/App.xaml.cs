@@ -23,6 +23,12 @@ public partial class App : Application
     // left on the desktop into the app's own folder.
     protected override void OnStartup(StartupEventArgs e)
     {
+        // Owner, 19 Oct 2026: the target boxes update their figure on every keystroke but keep
+        // showing what was typed. Must be set before the first TextBox exists. Only the three
+        // target boxes convert their text, so nothing else is affected.
+        try { FrameworkCompatibilityPreferences.KeepTextBoxDisplaySynchronizedWithTextProperty = false; }
+        catch (InvalidOperationException) { /* already sealed: keep the default */ }
+
         Services.UpdateService.FinishPendingUpdate(e.Args);   // after an update: wait for the old copy, remove it
 
         if (!TryBecomeTheOnlyCopy(afterUpdate: Array.IndexOf(e.Args, "--wait-for") >= 0))

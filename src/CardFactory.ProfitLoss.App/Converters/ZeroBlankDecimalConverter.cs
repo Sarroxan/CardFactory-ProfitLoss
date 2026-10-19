@@ -15,40 +15,16 @@ public sealed class ZeroBlankDecimalConverter : IValueConverter
         return Format(number);
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    {
-        var text = value?.ToString() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return 0m;
-        }
-
-        var clean = text.Trim().Replace("£", string.Empty).Replace(",", string.Empty);
-        if (!decimal.TryParse(clean, NumberStyles.Number | NumberStyles.AllowDecimalPoint,
-                CultureInfo.InvariantCulture, out var number))
-        {
-            return Binding.DoNothing;
-        }
-
-        number = Math.Max(0m, number);
-
-        // Stage 6A.69: these boxes bind with UpdateSourceTrigger=PropertyChanged, so every
-        // keystroke went source -> Convert -> straight back into the TextBox. Typing "1010."
-        // parsed to 1010, which Convert formatted as "1010", and WPF replaced the text -
-        // deleting the decimal point the instant it was typed. "1010.80" and "4.62" were
-        // therefore impossible to enter at all.
-        //
-        // While the typed text is not yet in its settled form, leave the source alone.
-        // Convert then never runs, so nothing overwrites what is being typed. The value
-        // commits as soon as the text is a settled number, and NumericTextBox_LostKeyboardFocus
-        // normalises anything left mid-edit ("1010.", "1010.80", "1,010"), which commits it.
-        if (!string.Equals(Format(number), text, StringComparison.Ordinal))
-        {
-            return Binding.DoNothing;
-        }
-
-        return number;
-    }
+    // Owner, 19 Oct 2026: the value commits as soon as the box holds a number in any form
+    // ("1,450", "£1,450.00", "1450."), so the ▲/▼ beside it follows the typing. What is on
+    // screen is left as typed: App turns off KeepTextBoxDisplaySynchronizedWithTextProperty,
+    // which is what used to replace "1010." with "1010" mid-typing (Stage 6A.69) and made the
+    // earlier version hold everything back until the box lost focus.
+    // NumericTextBox_LostKeyboardFocus still tidies the text when you leave the box.
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        CardFactory.ProfitLoss.Core.Services.TargetEntry.TryRead(value?.ToString(), out var number)
+            ? Math.Max(0m, number)
+            : Binding.DoNothing;
 
     private static string Format(decimal number) => number.ToString("0.##", CultureInfo.InvariantCulture);
 }
