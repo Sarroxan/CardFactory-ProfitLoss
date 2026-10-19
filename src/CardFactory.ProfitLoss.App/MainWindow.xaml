@@ -2186,9 +2186,12 @@
                                 Click="RetrievalDismiss_Click" />
                         </StackPanel>
 
-                        <!-- Progress: the share of steps done, set in SetRetrievalStep. -->
-                        <Border Height="4" Background="#EDF1F6" CornerRadius="0,0,13,13" ClipToBounds="True">
-                            <Border x:Name="RetrievalProgressFill" Width="0" HorizontalAlignment="Left" Background="{StaticResource CfYellow}" />
+                        <!-- Progress: the share of steps done, set in SetRetrievalStep. Owner, 19 Oct 2026
+                             (concept P1): a rounded bar inside the box, lined up with the steps'
+                             edges. It was a square 4px strip along the rounded bottom edge, so its
+                             ends ran past the corners. -->
+                        <Border Height="6" Margin="14,0,14,14" Background="#EDF1F6" CornerRadius="3" ClipToBounds="True">
+                            <Border x:Name="RetrievalProgressFill" Width="0" HorizontalAlignment="Left" Background="{StaticResource CfYellow}" CornerRadius="3" />
                         </Border>
                     </StackPanel>
                 </Border>
