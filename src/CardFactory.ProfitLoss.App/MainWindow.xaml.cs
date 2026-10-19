@@ -42,6 +42,11 @@ public partial class MainWindow : Window
     // range is pulled from Flooid once per session, not on every Refresh.
     private readonly Dictionary<(DateTime From, DateTime To), (int Transactions, decimal Abv, decimal Aub)> _lastYearCache = new();
     private (DateTime From, DateTime To)? _staffDiscountPeriod;   // the day or range the Reports staff discounts are for
+    // Reports pulled this run (owner, 19 Oct 2026, option 1): Daily Briefing and Reports use
+    // what is already here; Refresh pulls fresh. Rules in Core/Services/ReportCache.
+    private readonly ReportCache _reportCache = new();
+    private bool _pullFresh;                 // set for the length of a Refresh
+    private DateTime? _oldestPullUsed;       // the oldest copy a pull used, for "updated … ago"
     private bool _branchGiftCardsActive;
     private FlooidLoginWindow? _flooidLoginWindow;
     private bool _grabAfterFlooidSignIn;
@@ -858,6 +863,29 @@ public partial class MainWindow : Window
     /// Voids &amp; No Sales merged with Gift Cards, gift cards taken out). Returns a note when the
     /// targets could not be filled, or null when they were.
     /// </summary>
+    /// <summary>One report: the copy already held when it is still good (and this is not a
+    /// Refresh), otherwise pulled from Flooid and kept.</summary>
+    private async Task<string> PullAsync(string report, DateTime from, DateTime to, Func<Task<string>> fetch)
+    {
+        var now = DateTime.Now;
+        if (!_pullFresh && _reportCache.TryGet(report, from, to, now, out var held, out var pulledAt))
+        {
+            AppFiles.AppendDiagnostic($"[{now:HH:mm:ss}] {report} {from:dd/MM/yyyy} - {to:dd/MM/yyyy}: used the copy pulled at {pulledAt:HH:mm:ss}{Environment.NewLine}");
+            NoteOldest(pulledAt);
+            return held;
+        }
+
+        var html = await fetch();
+        _reportCache.Store(report, from, to, html, now);
+        NoteOldest(now);
+        return html;
+    }
+
+    private void NoteOldest(DateTime pulledAt)
+    {
+        if (_oldestPullUsed is null || pulledAt < _oldestPullUsed) _oldestPullUsed = pulledAt;
+    }
+
     private async Task<string?> FillTargetsFromLastYearAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate)
     {
         var (lyFrom, lyTo) = LastYearTargetCalculator.LastYearRange(startDate, endDate);
@@ -1520,7 +1548,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        await GrabFlooidReportsAsync();
+        // Refresh always pulls fresh; Generate reports (the same button on Reports) uses
+        // what was pulled a moment ago, by the rules in ReportCache.
+        await GrabFlooidReportsAsync(fresh: !_reportsActive);
     }
 
     /// <param name="reportsOnly">True: only what the Reports section shows (Refunds/Voids and
@@ -1528,11 +1558,14 @@ public partial class MainWindow : Window
     /// <param name="forBriefing">Export to Daily Briefing: the full pull plus Staff Discounts,
     /// whichever section is showing.</param>
     /// <returns>True when every report asked for came back (the full pull only).</returns>
-    private async Task<bool> GrabFlooidReportsAsync(bool? reportsOnly = null, bool forBriefing = false)
+    /// <param name="fresh">Refresh: pull every report from Flooid even if a recent copy is held.</param>
+    private async Task<bool> GrabFlooidReportsAsync(bool? reportsOnly = null, bool forBriefing = false, bool fresh = false)
     {
         if (_flooidGrabBusy || DataContext is not MainViewModel viewModel) return false;
         var loginWindow = GetOrCreateFlooidLoginWindow();
         if (!loginWindow.IsSignedIn) return false;
+        _pullFresh = fresh;
+        _oldestPullUsed = null;
 
         if (!forBriefing && (reportsOnly ?? _reportsActive))
         {
@@ -1584,7 +1617,7 @@ public partial class MainWindow : Window
             {
                 viewModel.SetFlooidStatus("Retrieving Team Performance…", "Working");
                 SetRetrievalStep(1);
-                var refundsHtml = await loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate);
+                var refundsHtml = await PullAsync("Refunds", startDate, endDate, () => loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate));
                 refunds = new RefundsVoidsReportParser().Parse(refundsHtml);
                 viewModel.ApplyActivityReport(refunds.Activity);   // Reports section: same report, no extra step
             }
@@ -1597,7 +1630,7 @@ public partial class MainWindow : Window
             {
                 viewModel.SetFlooidStatus("Retrieving Gift Cards…", "Working");
                 SetRetrievalStep(2);
-                var giftHtml = await loginWindow.FetchGiftCardHtmlAsync(startDate, endDate);
+                var giftHtml = await PullAsync("GiftCards", startDate, endDate, () => loginWindow.FetchGiftCardHtmlAsync(startDate, endDate));
                 giftCards = new GiftCardReportParser().Parse(giftHtml);
             }
             catch (Exception ex)
@@ -1636,7 +1669,7 @@ public partial class MainWindow : Window
                 viewModel.SetFlooidStatus("Retrieving Branch Performance…", "Working");
                 SetRetrievalStep(3);
                 // Stage 6A.75: a single day, for the same reason as the Branch refresh.
-                var branchHtml = await loginWindow.FetchBranchPerformanceHtmlAsync(endDate, endDate);
+                var branchHtml = await PullAsync("Branch", endDate, endDate, () => loginWindow.FetchBranchPerformanceHtmlAsync(endDate, endDate));
                 var branch = new BranchPerformanceReportParser().Parse(branchHtml);
                 viewModel.ApplyBranchPerformance(branch);
                 branchActualPeriod = DescribeFlooidPeriod(branch.FromDate, branch.ToDate, startDate, endDate);
@@ -1662,7 +1695,7 @@ public partial class MainWindow : Window
                 {
                     viewModel.SetFlooidStatus("Retrieving Staff Discounts…", "Working");
                     SetRetrievalStep(4);
-                    var discountsHtml = await loginWindow.FetchDiscountsHtmlAsync(startDate, endDate);
+                    var discountsHtml = await PullAsync("Discounts", startDate, endDate, () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate));
                     var discounts = new DiscountsReportParser().Parse(discountsHtml);
                     viewModel.ApplyStaffDiscounts(discounts.StaffDiscountLines);
                     _staffDiscountPeriod = period;
@@ -1694,7 +1727,7 @@ public partial class MainWindow : Window
             }
 
             if (teamUpdated || giftUpdated || branchUpdated)
-                viewModel.SetFlooidLastUpdated(DateTime.Now);
+                viewModel.SetFlooidLastUpdated(_oldestPullUsed ?? DateTime.Now);
 
             var errors = new List<string>();
             if (!teamUpdated && !string.IsNullOrWhiteSpace(teamError)) errors.Add("Team: " + teamError);
@@ -1712,7 +1745,7 @@ public partial class MainWindow : Window
 
             // Stage 6B.21: the header carries the retrieval time now.
             if (teamUpdated || branchUpdated || giftUpdated)
-                viewModel.LastUpdatedAt = DateTime.Now;   // header shows "updated … ago" (design 1A)
+                viewModel.LastUpdatedAt = _oldestPullUsed ?? DateTime.Now;   // header shows "updated … ago" (design 1A); a reused copy keeps its own time
 
             if (teamUpdated && giftUpdated && branchUpdated && discountsOk)
             {
@@ -1744,6 +1777,7 @@ public partial class MainWindow : Window
         finally
         {
             _flooidGrabBusy = false;
+            _pullFresh = false;
             // Stage 6A.93: back to whichever section was showing when this started.
             SetBranchPerformanceView(wasBranchView, wasReportsView);
             SetBranchDetailView(wasGiftCardsView);
@@ -1781,7 +1815,7 @@ public partial class MainWindow : Window
             {
                 viewModel.SetFlooidStatus("Retrieving voids, returns and no sales…", "Working");
                 SetRetrievalStep(1);
-                var refundsHtml = await loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate);
+                var refundsHtml = await PullAsync("Refunds", startDate, endDate, () => loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate));
                 var refunds = new RefundsVoidsReportParser().Parse(refundsHtml);
                 viewModel.ApplyActivityReport(refunds.Activity);
                 activityUpdated = true;
@@ -1796,7 +1830,7 @@ public partial class MainWindow : Window
             {
                 viewModel.SetFlooidStatus("Retrieving Staff Discounts…", "Working");
                 SetRetrievalStep(4);
-                var discountsHtml = await loginWindow.FetchDiscountsHtmlAsync(startDate, endDate);
+                var discountsHtml = await PullAsync("Discounts", startDate, endDate, () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate));
                 var discounts = new DiscountsReportParser().Parse(discountsHtml);
                 viewModel.ApplyStaffDiscounts(discounts.StaffDiscountLines);
                 _staffDiscountPeriod = (startDate, endDate);
@@ -1836,6 +1870,7 @@ public partial class MainWindow : Window
         finally
         {
             _flooidGrabBusy = false;
+            _pullFresh = false;
             SetBranchPerformanceView(wasBranchView, wasReportsView);
             SetBranchDetailView(wasGiftCardsView);
         }
@@ -1983,6 +2018,13 @@ viewModel.SetFlooidStatus(e.Snapshot.StatusText, state);
         // report's Outlet field. Fire and forget - a store that cannot be read leaves the
         // header as it was, and must never hold up signing in.
         if (justSignedIn) _ = ReadStoreFromFlooidAsync();
+
+        // A new sign in may be another account or store: nothing pulled before carries over.
+        if (justSignedIn)
+        {
+            _reportCache.Clear();
+            _lastYearCache.Clear();
+        }
 
         if (signedIn && _grabAfterFlooidSignIn)
         {
