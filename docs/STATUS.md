@@ -6,6 +6,12 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `briefing-green` (owner, 21 Oct 2026) - not built yet
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Daily Briefing: beaten ABV/AUB hours in solid green** (concept G2). Hourly ABV and AUB boxes above the day's target are filled green (the Actual boxes' green, #2FB866) with white figures, instead of a yellow ring. Best sales hour unchanged (navy, yellow edge). | Not compiled yet | Export a day with ABV/AUB targets: hours above target green with white figures |
+
 ## Released - v1.0.2 (21 Oct 2026, owner's say-so), from branch `back-office-after-timeout`
 
 Test build 39590725109 (version 1.0.2) green, tests passed. Small-update notice from 1.0.1: 78.98 MB in 240 parts (over the 60% limit, so tills take the full zip once) - very likely the .NET 8 runtime moving 8.0.31 -> 8.0.32 (October 2026 security update).
