@@ -1043,29 +1043,26 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ExportReport_Click(object sender, RoutedEventArgs e)
+    // Owner, 21 Oct 2026 (concept P1): "Open as a PDF" replaces "Export as a web page" - the
+    // same report, opened straight away as a PDF in the browser, with no save box.
+    private async void ExportReport_Click(object sender, RoutedEventArgs e)
     {
         MainMenuPopup.IsOpen = false;
         if (DataContext is not MainViewModel viewModel) return;
-        var dialog = new SaveFileDialog
-        {
-            Title = "Export Profit & Loss Report",
-            Filter = "HTML report (*.html)|*.html",
-            DefaultExt = ".html",
-            AddExtension = true,
-            FileName = string.IsNullOrWhiteSpace(viewModel.StoreLocation)
-                ? $"Profit-Loss-{(viewModel.SelectedDate ?? DateTime.Today):yyyy-MM-dd}"
-                : $"Profit-Loss-{MakeSafeFileName(viewModel.StoreLocation)}-{(viewModel.SelectedDate ?? DateTime.Today):yyyy-MM-dd}"
-        };
-        if (dialog.ShowDialog(this) != true) return;
+        var date = viewModel.SelectedDate ?? DateTime.Today;
+        var stem = string.IsNullOrWhiteSpace(viewModel.StoreLocation)
+            ? $"Profit-Loss-{date:yyyy-MM-dd}"
+            : $"Profit-Loss-{MakeSafeFileName(viewModel.StoreLocation)}-{date:yyyy-MM-dd}";
         try
         {
-            File.WriteAllText(dialog.FileName, BuildReportHtml(viewModel), Encoding.UTF8);
-            viewModel.SetStatus("Report exported");
+            viewModel.SetStatus("Opening the report as a PDF…", notify: false);
+            await ReportPdf.OpenAsync(this, BuildReportHtml(viewModel), stem);
+            viewModel.SetStatus("Report opened as a PDF");
         }
         catch (Exception ex)
         {
-            viewModel.SetStatus("Export failed · " + ex.Message);
+            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Open as a PDF failed: {ex}{Environment.NewLine}");
+            viewModel.SetStatus("The PDF could not be opened · " + ex.Message);
         }
     }
 

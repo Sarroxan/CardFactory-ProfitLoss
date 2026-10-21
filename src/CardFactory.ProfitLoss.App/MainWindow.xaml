@@ -1914,10 +1914,11 @@
                                 <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="ExportReport_Click">
                                     <Grid Width="300">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                        <Path Data="M10,3 L10,12 M6,7 L10,3 L14,7 M4,13 L4,17 L16,17 L16,13" Style="{StaticResource MenuItemIconStyle}" />
+                                        <!-- Owner, 21 Oct 2026 (concept P1): was "Export as a web page". -->
+                                        <Path Data="M5,2 L12,2 L16,6 L16,18 L5,18 Z M12,2 L12,6 L16,6 M8,11 L13,11 M8,14 L13,14" Style="{StaticResource MenuItemIconStyle}" />
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Export as a web page" Style="{StaticResource MenuItemNameStyle}" />
-                                            <TextBlock Text="To email or keep; opens in any browser" Style="{StaticResource MenuItemNoteStyle}" />
+                                            <TextBlock Text="Open as a PDF" Style="{StaticResource MenuItemNameStyle}" />
+                                            <TextBlock Text="Opens in your browser to print, save or email" Style="{StaticResource MenuItemNoteStyle}" />
                                         </StackPanel>
                                         <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
                                     </Grid>

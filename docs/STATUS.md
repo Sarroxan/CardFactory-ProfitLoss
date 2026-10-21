@@ -10,6 +10,7 @@ or released without the owner's say-so. A push to `main` starts a build.
 
 | Change | Proven | Check |
 |--------|--------|-------|
+| **Open as a PDF** (owner, 21 Oct 2026, concept P1) replaces "Export as a web page" in Save & Share. Same report (`BuildReportHtml`), written to the temp folder, turned into a PDF by a separate hidden WebView2 (own data folder `%LOCALAPPDATA%\CardFactory\ProfitLoss\WebView2-Pdf`, so the Flooid browser and sign-in are untouched; backgrounds on, no header/footer) and opened with the computer's PDF viewer (normally Edge). No save box. Temp files older than a day are removed. `Services/ReportPdf.cs`. | Not compiled; WebView2's PDF printing can't be tried here | Menu → Save & Share → Open as a PDF: the report opens in the browser as a PDF with the blue header; print/save/email from there |
 | **Daily Briefing: beaten ABV/AUB hours in solid green** (concept G2). Hourly ABV and AUB boxes above the day's target are filled green (the Actual boxes' green, #2FB866) with white figures, instead of a yellow ring. Best sales hour now solid yellow with navy figures and a ★ before the figure (concept B2), instead of navy with a yellow edge. | Not compiled yet | Export a day with ABV/AUB targets: hours above target green with white figures; best sales hour yellow "★ £…" |
 
 ## Released - v1.0.2 (21 Oct 2026, owner's say-so), from branch `back-office-after-timeout`
