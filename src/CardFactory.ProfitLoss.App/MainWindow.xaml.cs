@@ -1043,26 +1043,22 @@ public partial class MainWindow : Window
         }
     }
 
-    // Owner, 21 Oct 2026 (concept P1): "Open as a PDF" replaces "Export as a web page" - the
-    // same report, opened straight away as a PDF in the browser, with no save box.
+    // Owner, 21 Oct 2026: the Performance Sheet - the day (concept P1) or the week (W1) on one
+    // page in the app's look - opened straight away as a PDF in the browser, with no save box.
     private async void ExportReport_Click(object sender, RoutedEventArgs e)
     {
         MainMenuPopup.IsOpen = false;
         if (DataContext is not MainViewModel viewModel) return;
-        var date = viewModel.SelectedDate ?? DateTime.Today;
-        var stem = string.IsNullOrWhiteSpace(viewModel.StoreLocation)
-            ? $"Profit-Loss-{date:yyyy-MM-dd}"
-            : $"Profit-Loss-{MakeSafeFileName(viewModel.StoreLocation)}-{date:yyyy-MM-dd}";
         try
         {
-            viewModel.SetStatus("Opening the report as a PDF…", notify: false);
-            await ReportPdf.OpenAsync(this, BuildReportHtml(viewModel), stem);
-            viewModel.SetStatus("Report opened as a PDF");
+            viewModel.SetStatus("Opening the " + PerformanceSheet.Title(viewModel) + "…", notify: false);
+            await ReportPdf.OpenAsync(this, PerformanceSheet.Build(viewModel), PerformanceSheet.FileStem(viewModel));
+            viewModel.SetStatus(PerformanceSheet.Title(viewModel) + " opened as a PDF");
         }
         catch (Exception ex)
         {
-            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Open as a PDF failed: {ex}{Environment.NewLine}");
-            viewModel.SetStatus("The PDF could not be opened · " + ex.Message);
+            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Performance Sheet failed: {ex}{Environment.NewLine}");
+            viewModel.SetStatus("The Performance Sheet could not be opened · " + ex.Message);
         }
     }
 
@@ -1201,93 +1197,6 @@ public partial class MainWindow : Window
         return paginator;
     }
 
-    private static string BuildReportHtml(MainViewModel vm)
-    {
-        static string H(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);
-        var end = (vm.SelectedDate ?? DateTime.Today).Date;
-        var weekly = string.Equals(vm.HistoricalTargetMode, "Date Range", StringComparison.OrdinalIgnoreCase);
-        var start = weekly ? (vm.RangeStartDate ?? end.AddDays(-6)).Date : end;
-        var sb = new StringBuilder();
-        // Polish 6 (owner, 15 Oct): the page opens with the app's logo band - smiley with its
-        // bar badge, CARD FACTORY over Profit & Loss, store and dates on the right, a yellow
-        // rule beneath. The smiley and the rounded font travel inside the file, so it looks
-        // the same when emailed.
-        var smiley = ResourceDataUri("Assets/HeaderSmileyFace.png", "image/png");
-        var brandFont = ResourceDataUri("Assets/Fonts/Chewy-Regular.ttf", "font/ttf");
-        var smallFont = ResourceDataUri("Assets/Fonts/Fredoka-SemiBold.ttf", "font/ttf");
-        sb.Append("<!doctype html><html><head><meta charset='utf-8'><title>Card Factory Profit &amp; Loss Report</title>");
-        if (brandFont is not null) sb.Append($"<style>@font-face{{font-family:CfBrand;src:url({brandFont})}}</style>");
-        if (smallFont is not null) sb.Append($"<style>@font-face{{font-family:CfSmall;src:url({smallFont})}}</style>");
-        sb.Append("<style>.brand{background:#004EA1;border-radius:14px 14px 0 0;padding:14px 20px;display:flex;align-items:center;gap:14px}.mark{position:relative;width:56px;height:56px;flex:none}.mark img{width:56px;height:56px}.badge{position:absolute;right:-4px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:#fff;border:2.5px solid #004EA1;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding-bottom:5px;box-sizing:border-box}.badge i{width:3px;border-radius:2px;background:#004EA1;display:block}.badge i.y{background:#FFC907}.co{font-family:CfSmall,'Trebuchet MS',Arial,sans-serif;font-size:13px;color:#fff;line-height:1.1}.pl{font-family:CfBrand,'Trebuchet MS',Arial,sans-serif;font-size:30px;color:#fff;line-height:1.05}.calc{display:flex;align-items:center;gap:7px;margin-top:4px;font-family:CfSmall,Arial,sans-serif;font-size:11px;letter-spacing:3px;color:#fff}.calc i{flex:1;height:4px;border-radius:2px;background:#FFD100;display:block}.where{margin-left:auto;text-align:right;font-size:12px;color:#D6E4F5}.where b{color:#fff;font-size:14px}.rule{height:5px;background:#FFC907;border-radius:0 0 4px 4px}</style>");
-        sb.Append("<style>body{font-family:Arial,sans-serif;color:#183153;margin:28px}h1{margin:0;color:#004EA1}h2{background:#004EA1;color:white;padding:9px 14px;border-radius:12px 12px 0 0;margin:24px 0 0}.meta{background:#FFF4A8;padding:10px 14px;border-radius:10px;margin-top:12px}.cards{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.card{border:1px solid #D7E2EF;border-radius:10px;padding:8px 12px;min-width:125px}.label{font-size:10px;color:#60758E}.value{font-weight:bold;font-size:16px}table{width:100%;border-collapse:collapse;font-size:12px}th{background:#E3ECF7;color:#004EA1;text-align:left}th,td{padding:7px;border-bottom:1px solid #E4EBF2}tr.best{background:#FFF9D8}.yellow{color:#A87C00}td.flag{background:#FFF1DC;color:#9A5B00;font-weight:bold}.note{color:#667891;font-size:10px;margin-top:6px}.foot{margin-top:20px;color:#667891;font-size:10px}</style></head><body>");
-        var dates = start == end ? $"{end:ddd dd/MM/yyyy}" : $"{start:dd/MM/yyyy} - {end:dd/MM/yyyy}";
-        sb.Append("<div class='brand'><div class='mark'>");
-        if (smiley is not null) sb.Append($"<img src='{smiley}' alt=''>");
-        sb.Append("<span class='badge'><i style='height:5px'></i><i style='height:7px'></i><i class='y' style='height:9px'></i></span></div>");
-        sb.Append($"<div><div class='co'>Card Factory</div><div class='pl'>Profit &amp; Loss</div><div class='calc'><i></i>CALCULATOR<i></i></div></div><div class='where'>{H(vm.StoreLocation)}<br><b>{H(dates)}</b></div></div><div class='rule'></div>");
-        sb.Append("<div class='cards'>");
-        sb.Append($"<div class='card'><div class='label'>COUNTED SALES</div><div class='value'>£{vm.TotalSales:N2}</div></div>");
-        sb.Append($"<div class='card'><div class='label'>TRANSACTIONS</div><div class='value'>{vm.TotalTransactions:N0}</div></div>");
-        sb.Append($"<div class='card'><div class='label'>COUNTED UNITS</div><div class='value'>{vm.TotalCountedUnits:N0}</div></div>");
-        sb.Append($"<div class='card'><div class='label'>ABV</div><div class='value'>£{vm.ActualAbv:N2}</div></div>");
-        sb.Append($"<div class='card'><div class='label'>AUB</div><div class='value'>{vm.ActualAub:N2}</div></div>");
-        sb.Append("</div>");
-
-        sb.Append("<h2>Team Performance</h2><table><thead><tr><th>Name</th><th>Sales</th><th>Gift Card Qty</th><th>Gift Card Sales</th><th>Transactions</th><th>Units</th><th>ABV</th><th>AUB</th></tr></thead><tbody>");
-        foreach (var row in vm.Operators)
-        {
-            var input = row.ToInput();
-            sb.Append($"<tr><td>{H(row.Name)}</td><td>£{input.Sales:N2}</td><td>{input.GiftCardQuantity}</td><td>£{input.GiftCardValue:N2}</td><td>{input.Transactions}</td><td>{input.Units}</td><td>£{row.Abv:N2}</td><td>{row.Aub:N2}</td></tr>");
-        }
-        sb.Append("</tbody></table>");
-
-        sb.Append("<h2>Branch Performance</h2><div class='cards'>");
-        sb.Append($"<div class='card'><div class='label'>REPORT SALES</div><div class='value'>£{vm.BranchTotalSales:N2}</div></div>");
-        sb.Append($"<div class='card'><div class='label'>TRANSACTIONS</div><div class='value'>{vm.BranchTotalTransactions:N0}</div></div>");
-        sb.Append($"<div class='card'><div class='label'>UNITS</div><div class='value'>{vm.BranchTotalUnits:N0}</div></div>");
-        sb.Append($"<div class='card'><div class='label'>ABV</div><div class='value'>£{vm.BranchActualAbv:N2}</div></div>");
-        sb.Append($"<div class='card'><div class='label'>AUB</div><div class='value'>{vm.BranchActualAub:N2}</div></div>");
-        sb.Append($"<div class='card'><div class='label'>GIFT CARD QTY</div><div class='value'>{vm.BranchGiftCardQuantity:N0}</div></div>");
-        sb.Append($"<div class='card'><div class='label'>GIFT CARD SALES</div><div class='value'>£{vm.BranchGiftCardSales:N2}</div></div></div>");
-        sb.Append("<table><thead><tr><th>Time Band</th><th>Sales</th><th>Transactions</th><th>Units</th><th>ABV</th><th>AUB</th><th>% Sales</th></tr></thead><tbody>");
-        foreach (var row in vm.BranchHours)
-            sb.Append($"<tr class='{(row.IsStrongestHour ? "best" : "")}'><td>{H(row.TimeBand)}</td><td>£{row.Sales:N2}</td><td>{row.Transactions}</td><td>{row.Units}</td><td>£{row.Abv:N2}</td><td>{row.Aub:N2}</td><td>{row.PercentOfSales:N2}%</td></tr>");
-        sb.Append("</tbody></table>");
-
-        sb.Append("<h2>Gift Cards</h2><table><thead><tr><th>Gift Card Qty</th><th>Gift Card Sales</th><th>Card / Item</th><th>Operator</th></tr></thead><tbody>");
-        foreach (var row in vm.BranchGiftCards.Where(r => r.Quantity > 0 || r.Sales > 0 || !string.IsNullOrWhiteSpace(r.Item)))
-            sb.Append($"<tr><td>{row.Quantity}</td><td>£{row.Sales:N2}</td><td>{H(row.Item)}</td><td>{H(row.OperatorName)}</td></tr>");
-        sb.Append("</tbody></table>");
-
-        // Reports: voids, returns, no sales and staff discounts, as the Reports section shows
-        // them, with £20+ highlighted. Only for the date shown - the section is cleared when
-        // the date changes - so an export never carries another day's figures.
-        sb.Append("<h2>Reports</h2>");
-        if (!vm.HasReportData)
-        {
-            sb.Append("<p class='note'>Not generated for this date. Press Generate reports in the Reports section, then export again.</p>");
-        }
-        else
-        {
-            sb.Append("<div class='cards'>");
-            sb.Append($"<div class='card'><div class='label'>VOIDS</div><div class='value'>£{vm.ReportVoidsValue:N2}</div><div class='label'>{vm.ReportVoidsQuantity} items</div></div>");
-            sb.Append($"<div class='card'><div class='label'>RETURNS</div><div class='value'>£{vm.ReportRefundsValue:N2}</div><div class='label'>{vm.ReportRefundsQuantity} refunds</div></div>");
-            sb.Append($"<div class='card'><div class='label'>NO SALES</div><div class='value'>{vm.ReportNoSales}</div><div class='label'>drawer opens</div></div>");
-            sb.Append($"<div class='card'><div class='label'>STAFF DISCOUNT</div><div class='value'>{H(vm.ReportStaffDiscountText)}</div><div class='label'>{H(vm.ReportStaffDiscountDetail)}</div></div></div>");
-            sb.Append("<table><thead><tr><th>Name</th><th>Voids Qty</th><th>Voids Value</th><th>Returns Qty</th><th>Returns Value</th><th>No Sales</th><th>Staff Discount</th></tr></thead><tbody>");
-            foreach (var row in vm.ReportRows)
-            {
-                sb.Append($"<tr><td>{H(row.Name)}</td><td>{row.VoidsQuantity}</td><td{(row.VoidsFlagged ? " class='flag'" : "")}>£{row.VoidsValue:N2}</td>");
-                sb.Append($"<td>{row.RefundsQuantity}</td><td{(row.RefundsFlagged ? " class='flag'" : "")}>£{row.RefundsValue:N2}</td><td>{row.NoSales}</td><td>{H(row.StaffDiscount)}</td></tr>");
-            }
-            sb.Append("</tbody></table>");
-            sb.Append($"<div class='note'>£{MainViewModel.ReportFlagValue:N2}+ highlighted to look into · voids include transaction and line voids</div>");
-        }
-        sb.Append($"<div class='foot'>Flooid: {H(vm.FlooidStatusText)} · {H(vm.FlooidLastUpdatedText)}. Gift-card exclusions are applied only to the P&amp;L counted figures; Branch Performance remains the Flooid report values.</div>");
-        sb.Append("</body></html>");
-        return sb.ToString();
-    }
-
     private static FlowDocument BuildPrintableReport(MainViewModel vm)
     {
         var doc = new FlowDocument { FontFamily = new FontFamily("Arial"), FontSize = 10, Foreground = new SolidColorBrush(Color.FromRgb(0x18, 0x31, 0x53)) };
@@ -1332,23 +1241,6 @@ public partial class MainWindow : Window
     }
 
     // Polish 6: a packed resource as a data: URI, so an exported page carries it inside.
-    private static string? ResourceDataUri(string path, string mime)
-    {
-        try
-        {
-            var info = Application.GetResourceStream(new Uri("pack://application:,,,/" + path));
-            if (info is null) return null;
-            using var stream = info.Stream;
-            using var copy = new MemoryStream();
-            stream.CopyTo(copy);
-            return $"data:{mime};base64,{Convert.ToBase64String(copy.ToArray())}";
-        }
-        catch
-        {
-            return null;   // the page still exports, just without the picture or font
-        }
-    }
-
     // Polish 6: the printout's logo band - navy, smiley with its bar badge, CARD FACTORY over
     // Profit & Loss, store and dates on the right, and a yellow rule beneath.
     private static UIElement BuildPrintBrandBand(string? store, string dates)
@@ -1713,7 +1605,10 @@ public partial class MainWindow : Window
                 viewModel.SetFlooidStatus("Retrieving Branch Performance…", "Working");
                 SetRetrievalStep(3);
                 // Stage 6A.75: a single day, for the same reason as the Branch refresh.
-                var branchHtml = await PullAsync("Branch", endDate, endDate, () => loginWindow.FetchBranchPerformanceHtmlAsync(endDate, endDate));
+                // A week pulls Branch for the whole range (one block per day) for the weekly
+                // Performance Sheet; the Branch section still shows the selected day's hours.
+                var branchFrom = weekly ? startDate : endDate;
+                var branchHtml = await PullAsync("Branch", branchFrom, endDate, () => loginWindow.FetchBranchPerformanceHtmlAsync(branchFrom, endDate));
                 var branch = new BranchPerformanceReportParser().Parse(branchHtml);
                 viewModel.ApplyBranchPerformance(branch);
                 branchActualPeriod = DescribeFlooidPeriod(branch.FromDate, branch.ToDate, startDate, endDate);

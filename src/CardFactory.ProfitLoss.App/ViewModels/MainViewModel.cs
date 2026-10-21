@@ -75,6 +75,8 @@ public sealed class MainViewModel : ObservableObject
 
     public ObservableCollection<OperatorRowViewModel> Operators { get; } = new();
     public ObservableCollection<BranchHourlyRowViewModel> BranchHours { get; } = new();
+    /// <summary>Each day of the week pulled from Branch Performance; empty for a single day.</summary>
+    public IReadOnlyList<BranchDayFigure> BranchDays { get; private set; } = Array.Empty<BranchDayFigure>();
     public ObservableCollection<BranchGiftCardRowViewModel> BranchGiftCards { get; } = new();
     public IReadOnlyList<string> HistoricalTargetModes { get; }
     public IRelayCommand AddOperatorCommand { get; }
@@ -375,6 +377,11 @@ public sealed class MainViewModel : ObservableObject
             }
 
             _branchReportDriven = true;
+            // The weekly Performance Sheet's day-by-day table (owner, 21 Oct 2026, W1): a range
+            // pull gives one block per day; a single day keeps none.
+            BranchDays = report.Days.Count > 1
+                ? report.Days.Select(d => new BranchDayFigure(d.Date.Date, d.Total.Sales, d.Total.Transactions, d.Total.Abv, d.Total.Aub)).ToList()
+                : Array.Empty<BranchDayFigure>();
             _branchReportedAbv = total.Abv;
             _branchReportedAub = total.Aub;
             BranchDataMessage = BranchHours.Count == 0
@@ -983,6 +990,9 @@ public sealed class MainViewModel : ObservableObject
     private static string FormatArrowMoney(decimal? value) => value is null ? "—" : value.Value >= 0m ? $"▲ £{Math.Abs(value.Value):N2}" : $"▼ £{Math.Abs(value.Value):N2}";
     private static string FormatArrowNumber(decimal? value) => value is null ? "—" : value.Value >= 0m ? $"▲ {Math.Abs(value.Value):N2}" : $"▼ {Math.Abs(value.Value):N2}";
 }
+
+/// <summary>One day of a week's Branch Performance (Flooid's own figures), for the weekly Performance Sheet.</summary>
+public sealed record BranchDayFigure(DateTime Date, decimal Sales, int Transactions, decimal Abv, decimal Aub);
 
 /// <summary>One chip in the top performers strip. State Good / Bad colours a P&amp;L value.</summary>
 public sealed record TopPerformerChip(string Label, string Names, string Value, string State);
