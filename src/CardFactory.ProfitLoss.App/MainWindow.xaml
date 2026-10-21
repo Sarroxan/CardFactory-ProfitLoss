@@ -2168,6 +2168,17 @@
                                                VerticalAlignment="Center" Margin="10,0,0,0" />
                                 </StackPanel>
                             </Border>
+                            <!-- Stamps sold (owner, 21 Oct 2026): with Staff Discounts, for Reports and the Daily Briefing. -->
+                            <Border x:Name="RetrievalStepStampsRow" BorderBrush="#EDF1F6" BorderThickness="0,1,0,0" Padding="0,7" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border x:Name="RetrievalStepStampsDot" Width="20" Height="20" CornerRadius="10" Background="#E3ECF7">
+                                        <TextBlock x:Name="RetrievalStepStampsMarker" Text="" FontFamily="Arial" FontSize="11" FontWeight="Bold"
+                                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock x:Name="RetrievalStepStampsText" Text="Stamps sold" FontFamily="Arial" FontSize="12" Foreground="{StaticResource CfMuted}"
+                                               VerticalAlignment="Center" Margin="10,0,0,0" />
+                                </StackPanel>
+                            </Border>
                             <Border x:Name="RetrievalStep5Row" BorderBrush="#EDF1F6" BorderThickness="0,1,0,0" Padding="0,7" Visibility="Collapsed">
                                 <StackPanel Orientation="Horizontal">
                                     <Border x:Name="RetrievalStep5Dot" Width="20" Height="20" CornerRadius="10" Background="#E3ECF7">

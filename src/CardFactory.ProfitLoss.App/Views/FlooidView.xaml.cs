@@ -1330,13 +1330,40 @@ public partial class FlooidView : UserControl
         return reportHtml;
     }
 
-    public async Task<string> FetchGiftCardHtmlAsync(DateTime fromDate, DateTime toDate)
+    /// <summary>
+    /// A product group pulled through Item Sales By Operator. Gift Cards since Stage 6A.55;
+    /// Stamps added 21 Oct 2026 (owner), codes from the saved pickers 16 and 17:
+    /// 200005 > 300017 > 400065 > 500300 > 600561. Each pull checks that ONLY its own leaf
+    /// reached the criteria form, so one group can never ride along with the other.
+    /// </summary>
+    private sealed record ItemSalesGroup(string Name, string Level4, string Leaf, string OtherLeaf)
     {
-        var timing = new PhaseLog("Gift Cards");
+        public (string Query, string Code)[] Drill => new[]
+        {
+            ("", "200005"),
+            ("parent=200005&level=1&", "300017"),
+            ("parent=300017&level=2&", "400065"),
+            ("parent=400065&level=3&", Level4),
+            ("parent=" + Level4 + "&level=4&", Leaf),
+        };
+    }
+
+    private static readonly ItemSalesGroup GiftCardsGroup = new("Gift Cards", "500303", "600527", "600561");
+    private static readonly ItemSalesGroup StampsGroup = new("Stamps", "500300", "600561", "600527");
+
+    public Task<string> FetchGiftCardHtmlAsync(DateTime fromDate, DateTime toDate) =>
+        FetchItemSalesHtmlAsync(GiftCardsGroup, fromDate, toDate);
+
+    public Task<string> FetchStampsHtmlAsync(DateTime fromDate, DateTime toDate) =>
+        FetchItemSalesHtmlAsync(StampsGroup, fromDate, toDate);
+
+    private async Task<string> FetchItemSalesHtmlAsync(ItemSalesGroup group, DateTime fromDate, DateTime toDate)
+    {
+        var timing = new PhaseLog(group.Name);
         var succeeded = false;
         try
         {
-            var html = await FetchGiftCardHtmlCoreAsync(fromDate, toDate, timing);
+            var html = await FetchGiftCardHtmlCoreAsync(group, fromDate, toDate, timing);
             succeeded = true;
             return html;
         }
@@ -1370,7 +1397,7 @@ public partial class FlooidView : UserControl
 
     private string _lastProductGroupAtOpenNote = "<not read>";
 
-    private async Task<string> FetchGiftCardHtmlCoreAsync(DateTime fromDate, DateTime toDate, PhaseLog timing)
+    private async Task<string> FetchGiftCardHtmlCoreAsync(ItemSalesGroup group, DateTime fromDate, DateTime toDate, PhaseLog timing)
     {
         await InitialiseBrowserAsync();
         EnsureReadyForAutomation();
@@ -1507,7 +1534,7 @@ public partial class FlooidView : UserControl
         // before configuring the rest of the form. This must happen before the configure
         // script runs, because the configure script's submit would otherwise fire while
         // no product group had been chosen.
-        await SelectGiftCardProductGroupAsync(TimeSpan.FromSeconds(90), timing);
+        await SelectGiftCardProductGroupAsync(group, TimeSpan.FromSeconds(90), timing);
 
         var configure = """
             (() => {
@@ -1887,7 +1914,7 @@ public partial class FlooidView : UserControl
                 // overwriting Flooid's own encoding with a guessed one.
                 if (dataControl && inProductGroup) {
                   const current = String(element.value || '');
-                  if (current.includes('600527') || current.toLowerCase().includes('gift card'))
+                  if (current.includes(__LEAF__) || current.toLowerCase().includes(__GROUP_LOWER__))
                     giftGroupSet = true;
                 }
                 // The level control on this page is a <select> (handled below). Only a
@@ -1915,9 +1942,9 @@ public partial class FlooidView : UserControl
                 if (surrounding.includes('product group') && !surrounding.includes('level')) {
                   // If this installation exposes product group as a <select> rather than
                   // the picker popup, choosing the gift-card option here is still valid.
-                  const gift = options.find(o => (o.value || '').includes('600527') || (o.textContent || '').toLowerCase().includes('gift cards'));
+                  const gift = options.find(o => (o.value || '').includes(__LEAF__) || (o.textContent || '').toLowerCase().includes(__GROUP_LOWER__));
                   if (gift) { select.value = gift.value; fire(select); giftGroupSet = true; }
-                  else if ([...select.selectedOptions].some(o => (o.value || '').includes('600527')))
+                  else if ([...select.selectedOptions].some(o => (o.value || '').includes(__LEAF__)))
                     giftGroupSet = true;
                 }
 
@@ -1952,11 +1979,11 @@ public partial class FlooidView : UserControl
               if (!giftGroupSet) {
                 for (const element of form.elements) {
                   const v = String(element.value || '');
-                  if (v.includes('600527')) { giftGroupSet = true; break; }
+                  if (v.includes(__LEAF__)) { giftGroupSet = true; break; }
                 }
               }
               if (!giftGroupSet)
-                return 'ERROR: Product Group 600527 (Gift Cards) is not selected on the criteria form after using Flooid\'s product group picker.';
+                return 'ERROR: Product Group ' + __LEAF__ + ' (' + __GROUP__ + ') is not selected on the criteria form after using Flooid\'s product group picker.';
               if (!levelSet)
                 return 'ERROR: Product Group Level 5 is not available on the Item Sales By Operator criteria page.';
               if (!itemDetailSet)
@@ -2010,7 +2037,10 @@ public partial class FlooidView : UserControl
             .Replace("__FROM__", JsonSerializer.Serialize(from), StringComparison.Ordinal)
             .Replace("__TO__", JsonSerializer.Serialize(to), StringComparison.Ordinal)
             .Replace("__YEAR__", JsonSerializer.Serialize(year), StringComparison.Ordinal)
-            .Replace("__SKIP_DATES__", skipDateEntry ? "true" : "false", StringComparison.Ordinal);
+            .Replace("__SKIP_DATES__", skipDateEntry ? "true" : "false", StringComparison.Ordinal)
+            .Replace("__LEAF__", JsonSerializer.Serialize(group.Leaf), StringComparison.Ordinal)
+            .Replace("__GROUP_LOWER__", JsonSerializer.Serialize(group.Name.ToLowerInvariant()), StringComparison.Ordinal)
+            .Replace("__GROUP__", JsonSerializer.Serialize(group.Name), StringComparison.Ordinal);
 
         // Stage 6A.65 diagnostics: read the product group state on the criteria form
         // immediately before it is submitted. Flooid's confirmButton() posts no code at
@@ -2028,7 +2058,7 @@ public partial class FlooidView : UserControl
             productGroupState = "<probe failed: " + probeError.Message + ">";
         }
 
-        WriteDiagnosticFile("Gift Cards - product group state at submit", string.Join(Environment.NewLine, new[]
+        WriteDiagnosticFile(group.Name + " - product group state at submit", string.Join(Environment.NewLine, new[]
         {
             "at criteria open   : " + _lastProductGroupAtOpenNote,
             "picker drill       : " + _lastProductGroupDrillNote,
@@ -2044,7 +2074,7 @@ public partial class FlooidView : UserControl
 
         var reportHtml = await WaitForGeneratedReportHtmlAsync(
             new[] { "item sales by operator" },
-            "Item Sales By Operator — Gift Cards",
+            "Item Sales By Operator — " + group.Name,
             TimeSpan.FromSeconds(40));
         timing.Mark("report generated and captured");
         return reportHtml;
@@ -3207,7 +3237,7 @@ public partial class FlooidView : UserControl
     /// the popup has closed.</item>
     /// </list>
     /// </summary>
-    private async Task SelectGiftCardProductGroupAsync(TimeSpan timeout, PhaseLog? timing = null)
+    private async Task SelectGiftCardProductGroupAsync(ItemSalesGroup group, TimeSpan timeout, PhaseLog? timing = null)
     {
         const string criteriaMarker = "product group to include";
         var deadline = DateTime.UtcNow + timeout;
@@ -3253,7 +3283,7 @@ public partial class FlooidView : UserControl
         {
             RetireProductGroupPicker();
             throw new TimeoutException(
-                $"Gift Cards: Flooid's Product Group picker window did not open (open attempt: {opened}).");
+                $"{group.Name}: Flooid's Product Group picker window did not open (open attempt: {opened}).");
         }
 
         // Stage 6A.67: walk the hierarchy the way a person does, ticking each level on the
@@ -3275,14 +3305,7 @@ public partial class FlooidView : UserControl
 
         // (url suffix, code to tick at that level). Levels taken from the real saved pages
         // in saved copies of the picker pages..07.
-        var drill = new (string Query, string Code)[]
-        {
-            ("", "200005"),
-            ("parent=200005&level=1&", "300017"),
-            ("parent=300017&level=2&", "400065"),
-            ("parent=400065&level=3&", "500303"),
-            ("parent=500303&level=4&", "600527"),
-        };
+        var drill = group.Drill;
 
         const string tickTemplate = """
             (() => {
@@ -3367,10 +3390,10 @@ public partial class FlooidView : UserControl
             if (!ticked)
             {
                 var note = string.Join(Environment.NewLine, drillLog);
-                WriteDiagnosticFile("Gift Cards - product group drill failed", note);
+                WriteDiagnosticFile(group.Name + " - product group drill failed", note);
                 RetireProductGroupPicker();
                 throw new TimeoutException(
-                    $"Gift Cards: could not tick product group {code} at level {step + 1} of Flooid's picker · {tickResult}");
+                    $"{group.Name}: could not tick product group {code} at level {step + 1} of Flooid's picker · {tickResult}");
             }
 
             // Stage 6A.81: the 6A.80 timings answered the question these waits posed.
@@ -3421,7 +3444,7 @@ public partial class FlooidView : UserControl
         {
             RetireProductGroupPicker();
             throw new InvalidOperationException(
-                $"Gift Cards: could not confirm the product group selection · {confirmResult}");
+                $"{group.Name}: could not confirm the product group selection · {confirmResult}");
         }
 
         // The process page writes the value into the criteria form's hidden field and then
@@ -3435,6 +3458,7 @@ public partial class FlooidView : UserControl
         var verify = """
             (() => {
               const leaf = __LEAF__;
+              const other = __OTHER__;
               const el = document.getElementById('components.productGroup.productGroupMultiples')
                       || document.querySelector('[name="components.productGroup.productGroupMultiples"]');
               const out = document.getElementById('components.productGroup.productGroupMultiplesOutput');
@@ -3444,6 +3468,9 @@ public partial class FlooidView : UserControl
               // selected server-side it writes the bare delimiter "##&##", which the old
               // truthiness test accepted - so an empty selection passed as success and the
               // report ran across every product group. Require an actual code.
+              // 21 Oct 2026: the other Item Sales group (Gift Cards / Stamps) must not ride along.
+              if (value.includes(other + '##&##'))
+                return 'WRONG_GROUP: Flooid wrote back "' + value + '", which also holds product group ' + other;
               if (value.includes(leaf + '##&##'))
                 return 'OK: value="' + value + '" shown="' + shown + '"';
               if (value.split('##&##').some(part => part.trim().length > 0))
@@ -3453,7 +3480,8 @@ public partial class FlooidView : UserControl
               return 'MISSING: field ' + (el ? 'present but empty' : 'not found')
                    + ', output "' + shown + '"';
             })()
-            """.Replace("__LEAF__", JsonSerializer.Serialize(drill[^1].Code), StringComparison.Ordinal);
+            """.Replace("__LEAF__", JsonSerializer.Serialize(drill[^1].Code), StringComparison.Ordinal)
+            .Replace("__OTHER__", JsonSerializer.Serialize(group.OtherLeaf), StringComparison.Ordinal);
 
         string landed = "criteria form could not be read";
         while (DateTime.UtcNow < deadline)
@@ -3473,7 +3501,7 @@ public partial class FlooidView : UserControl
             }
         }
 
-        WriteDiagnosticFile("Gift Cards - picker verify failed", string.Join(Environment.NewLine, new[]
+        WriteDiagnosticFile(group.Name + " - picker verify failed", string.Join(Environment.NewLine, new[]
         {
             "picker drill      : " + _lastProductGroupDrillNote,
             "verify result     : " + landed,
@@ -3481,7 +3509,7 @@ public partial class FlooidView : UserControl
         }));
         RetireProductGroupPicker();
         throw new InvalidOperationException(
-            "Gift Cards: the product group was confirmed in Flooid's picker, but the criteria "
+            group.Name + ": the product group was confirmed in Flooid's picker, but the criteria "
             + $"form never received it · {landed}");
     }
 

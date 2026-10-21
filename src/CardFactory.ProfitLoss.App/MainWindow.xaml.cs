@@ -889,6 +889,27 @@ public partial class MainWindow : Window
         _lastYearCache.Clear();
     }
 
+    /// <summary>Stamps sold (owner, 21 Oct 2026). Never stops a pull: a problem shows the tile
+    /// as "—", leaves the Daily Briefing's Sold boxes blank, and returns a note for the status line.</summary>
+    private async Task<string?> PullStampsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate)
+    {
+        try
+        {
+            viewModel.SetFlooidStatus("Retrieving Stamps…", "Working");
+            SetRetrievalStep(5);
+            var html = await PullAsync("Stamps", startDate, endDate, () => loginWindow.FetchStampsHtmlAsync(startDate, endDate));
+            var report = new GiftCardReportParser("Stamps").Parse(html);
+            viewModel.ApplyStampsSold(StampsSold.From(report.Items));
+            return null;
+        }
+        catch (Exception ex)
+        {
+            viewModel.ApplyStampsSold(null);
+            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Stamps ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) failed: {ex}{Environment.NewLine}");
+            return "Stamps not read: " + ex.Message;
+        }
+    }
+
     private void NoteOldest(DateTime pulledAt)
     {
         if (_oldestPullUsed is null || pulledAt < _oldestPullUsed) _oldestPullUsed = pulledAt;
@@ -1607,6 +1628,7 @@ public partial class MainWindow : Window
 
             // Stage 6B.11: the overlay replaces the two section labels 6A.94 was setting.
             RetrievalStep4Row.Visibility = includeDiscounts ? Visibility.Visible : Visibility.Collapsed;
+            RetrievalStepStampsRow.Visibility = includeDiscounts ? Visibility.Visible : Visibility.Collapsed;
             LastYearTargetSettings.Load();
             var fillFromLastYear = LastYearTargetSettings.Enabled;
             RetrievalStep5Row.Visibility = fillFromLastYear ? Visibility.Visible : Visibility.Collapsed;
@@ -1722,9 +1744,13 @@ public partial class MainWindow : Window
             {
                 // Not pulled this time, and what is held is for another day or range.
                 viewModel.ApplyStaffDiscounts(null);
+                viewModel.ApplyStampsSold(null);
                 _staffDiscountPeriod = null;
             }
             var discountsOk = !includeDiscounts || discountsUpdated;
+
+            // Stamps sold travel with Staff Discounts: Reports and the Daily Briefing.
+            var stampsNote = includeDiscounts ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate) : null;
 
             // Targets from last year. Last, after everything the screen shows, so it can never
             // get in the way of today's figures; a problem only leaves the targets as they were.
@@ -1732,7 +1758,7 @@ public partial class MainWindow : Window
             if (fillFromLastYear)
             {
                 viewModel.SetFlooidStatus("Retrieving last year's figures…", "Working");
-                SetRetrievalStep(5);
+                SetRetrievalStep(6);
                 lastYearNote = await FillTargetsFromLastYearAsync(viewModel, loginWindow, startDate, endDate);
             }
 
@@ -1775,6 +1801,7 @@ public partial class MainWindow : Window
                 viewModel.SetFlooidStatus("Retrieval failed", "Bad");
                 viewModel.SetStatus("Flooid retrieval failed · " + string.Join(" | ", errors));
             }
+            if (stampsNote is not null) viewModel.SetStatus(viewModel.StatusText + " · " + stampsNote);
         }
         catch (Exception ex)
         {
@@ -1853,6 +1880,8 @@ public partial class MainWindow : Window
                 _staffDiscountPeriod = null;
             }
 
+            var stampsNote = await PullStampsAsync(viewModel, loginWindow, startDate, endDate);
+
             var errors = new List<string>();
             if (!activityUpdated && !string.IsNullOrWhiteSpace(activityError)) errors.Add("Voids, returns and no sales: " + activityError);
             if (!discountsUpdated && !string.IsNullOrWhiteSpace(discountsError)) errors.Add("Staff Discounts: " + discountsError);
@@ -1870,6 +1899,7 @@ public partial class MainWindow : Window
                 viewModel.SetStatus((activityUpdated || discountsUpdated ? "Reports partly generated · " : "Reports could not be generated · ")
                     + string.Join(" | ", errors));
             }
+            if (stampsNote is not null) viewModel.SetStatus(viewModel.StatusText + " · " + stampsNote);
         }
         catch (Exception ex)
         {
@@ -1917,6 +1947,7 @@ public partial class MainWindow : Window
         RetrievalStep2Row.Visibility = reportsOnly ? Visibility.Collapsed : Visibility.Visible;
         RetrievalStep3Row.Visibility = reportsOnly ? Visibility.Collapsed : Visibility.Visible;
         if (reportsOnly) RetrievalStep4Row.Visibility = Visibility.Visible;
+        if (reportsOnly) RetrievalStepStampsRow.Visibility = Visibility.Visible;
         if (reportsOnly) RetrievalStep5Row.Visibility = Visibility.Collapsed;
         RetrievalTitle.Text = reportsOnly ? "Generating reports" : "Getting reports";
         RetrievalSubtitle.Text = DataContext is MainViewModel periodViewModel ? periodViewModel.PeriodDisplayText : string.Empty;
@@ -1928,13 +1959,14 @@ public partial class MainWindow : Window
         RetrievalOverlay.Visibility = Visibility.Visible;
     }
 
-    /// <summary>0 is nothing started, 1 to 5 mark that step running and earlier ones done.</summary>
+    /// <summary>0 is nothing started, 1 to 6 mark that step running and earlier ones done
+    /// (5 is Stamps, 6 last year's figures).</summary>
     private void SetRetrievalStep(int running)
     {
-        var rows = new[] { RetrievalStep1Row, RetrievalStep2Row, RetrievalStep3Row, RetrievalStep4Row, RetrievalStep5Row };
-        var dots = new[] { RetrievalStep1Dot, RetrievalStep2Dot, RetrievalStep3Dot, RetrievalStep4Dot, RetrievalStep5Dot };
-        var markers = new[] { RetrievalStep1Marker, RetrievalStep2Marker, RetrievalStep3Marker, RetrievalStep4Marker, RetrievalStep5Marker };
-        var texts = new[] { RetrievalStep1Text, RetrievalStep2Text, RetrievalStep3Text, RetrievalStep4Text, RetrievalStep5Text };
+        var rows = new[] { RetrievalStep1Row, RetrievalStep2Row, RetrievalStep3Row, RetrievalStep4Row, RetrievalStepStampsRow, RetrievalStep5Row };
+        var dots = new[] { RetrievalStep1Dot, RetrievalStep2Dot, RetrievalStep3Dot, RetrievalStep4Dot, RetrievalStepStampsDot, RetrievalStep5Dot };
+        var markers = new[] { RetrievalStep1Marker, RetrievalStep2Marker, RetrievalStep3Marker, RetrievalStep4Marker, RetrievalStepStampsMarker, RetrievalStep5Marker };
+        var texts = new[] { RetrievalStep1Text, RetrievalStep2Text, RetrievalStep3Text, RetrievalStep4Text, RetrievalStepStampsText, RetrievalStep5Text };
         var navy = (Brush)FindResource("CfDeepBlue");
 
         int shown = 0, done = 0;
