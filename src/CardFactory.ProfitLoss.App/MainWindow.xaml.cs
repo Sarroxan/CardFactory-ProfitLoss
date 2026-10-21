@@ -1052,11 +1052,11 @@ public partial class MainWindow : Window
     {
         if (DataContext is not MainViewModel viewModel) return;
         var range = viewModel.IsRangeMode;
-        DailyBriefingExportButton.IsEnabled = !range;
-        DailyBriefingExportButton.Opacity = range ? 0.45 : 1.0;
+        DailyBriefingExportButton.IsEnabled = !range;   // the Open button greys itself out
         DailyBriefingNote.Text = range
             ? "For one day · choose Single day in the calendar first"
-            : "The store's sheet, filled in from Flooid · " + (viewModel.SelectedDate ?? DateTime.Today).ToString("ddd dd/MM");
+            : "The store's sheet · " + (viewModel.SelectedDate ?? DateTime.Today).ToString("ddd dd/MM");
+        TeamScorecardNote.Text = (range ? "The team's week on one page · " : "The team on one page · ") + viewModel.PeriodDisplayText;
     }
 
     private async void ExportDailyBriefing_Click(object sender, RoutedEventArgs e)

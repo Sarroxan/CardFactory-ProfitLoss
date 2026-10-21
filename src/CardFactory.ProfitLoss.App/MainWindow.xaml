@@ -1762,6 +1762,35 @@
                     <Setter Property="BorderBrush" Value="#F0F3F8" />
                     <Setter Property="BorderThickness" Value="0,0,0,1" />
                 </Style>
+                <!-- Print & Share (owner, 21 Oct 2026, concept B2): the yellow Open button on each sheet's strip. -->
+                <Style x:Key="MenuOpenButtonStyle" TargetType="Button">
+                    <Setter Property="Height" Value="28" />
+                    <Setter Property="MinWidth" Value="58" />
+                    <Setter Property="Cursor" Value="Hand" />
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="B" Background="{StaticResource CfYellow}" BorderBrush="#E0AC00" BorderThickness="1" CornerRadius="9" Padding="12,0">
+                                    <TextBlock Text="Open" FontFamily="Arial" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#FFD53D" /></Trigger>
+                                    <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#F2BC00" /></Trigger>
+                                    <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.45" /></Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+                <Style x:Key="MenuSheetStripStyle" TargetType="Border">
+                    <Setter Property="BorderBrush" Value="#D6E2EF" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Setter Property="CornerRadius" Value="12" />
+                    <Setter Property="Background" Value="White" />
+                    <Setter Property="Margin" Value="0,0,0,8" />
+                </Style>
                 <Style x:Key="MenuPaneTitleStyle" TargetType="TextBlock">
                     <Setter Property="FontFamily" Value="{StaticResource CfTitleFont}" />
                     <Setter Property="FontSize" Value="22" />
@@ -1835,33 +1864,39 @@
                         <StackPanel x:Name="MenuPaneShare" Grid.Column="1" Margin="18,14,18,14">
                             <TextBlock Text="Print &amp; Share" Style="{StaticResource MenuPaneTitleStyle}" />
                             <TextBlock Text="The store's sheets and the day's figures." Style="{StaticResource MenuPaneSubtitleStyle}" />
-                            <Border Style="{StaticResource MenuItemRowStyle}">
-                                <Button x:Name="DailyBriefingExportButton" Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="ExportDailyBriefing_Click"
-                                        ToolTip="Pull every report for the day and fill in the Daily Briefing">
-                                    <Grid Width="300">
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                        <Path Data="M5,3 L15,3 L15,17 L5,17 Z M8,7 L12,7 M8,10 L12,10 M8,13 L10.5,13" Style="{StaticResource MenuItemIconStyle}" />
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Daily Briefing" Style="{StaticResource MenuItemNameStyle}" />
-                                            <TextBlock x:Name="DailyBriefingNote" Text="The store's sheet, filled in from Flooid" Style="{StaticResource MenuItemNoteStyle}" />
-                                        </StackPanel>
-                                        <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
-                                    </Grid>
-                                </Button>
+                            <!-- Owner, 21 Oct 2026 (concept B2): each sheet as a wide strip with a coloured edge -
+                                 yellow for the Daily Briefing, blue for the Team Scorecard - and an Open button. -->
+                            <Border Style="{StaticResource MenuSheetStripStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="5" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CfYellow}" CornerRadius="11,0,0,11" />
+                                    <Border Grid.Column="1" Width="34" Height="34" CornerRadius="10" Background="{StaticResource CfBlueSoft}" Margin="9,9,10,9">
+                                        <Path Data="M5,3 L15,3 L15,17 L5,17 Z M8,7 L12,7 M8,10 L12,10 M8,13 L10.5,13" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="18" Height="18" Stretch="Uniform" />
+                                    </Border>
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                        <TextBlock Text="Daily Briefing" FontFamily="Arial" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource CfInk}" />
+                                        <TextBlock x:Name="DailyBriefingNote" Text="The store's sheet" Style="{StaticResource MenuItemNoteStyle}" />
+                                    </StackPanel>
+                                    <Button x:Name="DailyBriefingExportButton" Grid.Column="3" Style="{StaticResource MenuOpenButtonStyle}" Margin="8,0,10,0" VerticalAlignment="Center"
+                                            Click="ExportDailyBriefing_Click" ToolTip="Pull every report for the day and fill in the Daily Briefing" />
+                                </Grid>
                             </Border>
-                            <Border Style="{StaticResource MenuItemRowStyle}">
-                                <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="ExportReport_Click">
-                                    <Grid Width="300">
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                        <!-- Owner, 21 Oct 2026: the Team Scorecard (was "Export as a web page"). -->
-                                        <Path Data="M5,2 L12,2 L16,6 L16,18 L5,18 Z M12,2 L12,6 L16,6 M8,11 L13,11 M8,14 L13,14" Style="{StaticResource MenuItemIconStyle}" />
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Team Scorecard" Style="{StaticResource MenuItemNameStyle}" />
-                                            <TextBlock Text="How the team did, on one page · as a PDF to print or pin up" Style="{StaticResource MenuItemNoteStyle}" />
-                                        </StackPanel>
-                                        <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
-                                    </Grid>
-                                </Button>
+                            <Border Style="{StaticResource MenuSheetStripStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="5" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <Border Background="{StaticResource CfBlue}" CornerRadius="11,0,0,11" />
+                                    <Border Grid.Column="1" Width="34" Height="34" CornerRadius="10" Background="{StaticResource CfBlueSoft}" Margin="9,9,10,9">
+                                        <Path Data="M5,2 L12,2 L16,6 L16,18 L5,18 Z M12,2 L12,6 L16,6 M8,11 L13,11 M8,14 L13,14" Stroke="{StaticResource CfDeepBlue}" StrokeThickness="1.6" StrokeLineJoin="Round"
+                                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="18" Height="18" Stretch="Uniform" />
+                                    </Border>
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                        <TextBlock Text="Team Scorecard" FontFamily="Arial" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource CfInk}" />
+                                        <TextBlock x:Name="TeamScorecardNote" Text="The team on one page" Style="{StaticResource MenuItemNoteStyle}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="3" Style="{StaticResource MenuOpenButtonStyle}" Margin="8,0,10,0" VerticalAlignment="Center"
+                                            Click="ExportReport_Click" ToolTip="How the team did, on one page, opened as a PDF to print or pin up" />
+                                </Grid>
                             </Border>
                             <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="PrintReport_Click">
                                 <Grid Width="300">
