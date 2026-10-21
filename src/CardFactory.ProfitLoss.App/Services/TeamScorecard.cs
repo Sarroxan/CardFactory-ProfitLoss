@@ -8,7 +8,7 @@ using CardFactory.ProfitLoss.App.ViewModels;
 namespace CardFactory.ProfitLoss.App.Services;
 
 /// <summary>
-/// The Performance Sheet (owner, 21 Oct 2026): the day - or the week, when the calendar is
+/// The Team Scorecard (owner, 21 Oct 2026): the day - or the week, when the calendar is
 /// on a date range - on one A4 page in the app's look, opened as a PDF (ReportPdf).
 /// Concept P1 for a day: the brand band; Sales / ABV / AUB / P&amp;L against target; Top
 /// Performers; Team with red/green ABV, AUB and P&amp;L; Branch by hour beside Reports; Notes
@@ -16,17 +16,17 @@ namespace CardFactory.ProfitLoss.App.Services;
 /// the seven days (Flooid's Branch Performance for the range). No Gift Cards section.
 /// Every figure is read from the app as it stands; nothing is worked out differently here.
 /// </summary>
-internal static class PerformanceSheet
+internal static class TeamScorecard
 {
     private static readonly CultureInfo Uk = CultureInfo.GetCultureInfo("en-GB");
 
-    public static string Title(MainViewModel vm) => vm.IsRangeMode ? "Weekly Performance Sheet" : "Performance Sheet";
+    public static string Title(MainViewModel vm) => vm.IsRangeMode ? "Weekly Team Scorecard" : "Team Scorecard";
 
     public static string FileStem(MainViewModel vm)
     {
         var end = (vm.SelectedDate ?? DateTime.Today).Date;
         var store = new string((vm.StoreLocation ?? string.Empty).Where(ch => !Path.GetInvalidFileNameChars().Contains(ch)).ToArray()).Trim();
-        var name = vm.IsRangeMode ? "Weekly-Performance-Sheet" : "Performance-Sheet";
+        var name = vm.IsRangeMode ? "Weekly-Team-Scorecard" : "Team-Scorecard";
         return string.IsNullOrWhiteSpace(store) ? $"{name}-{end:yyyy-MM-dd}" : $"{name}-{store}-{end:yyyy-MM-dd}";
     }
 

@@ -995,7 +995,7 @@ public partial class MainWindow : Window
     private void ShowProblem(string title, string question, string detail) =>
         new ThemedConfirmationWindow(title, question, detail, "OK", subtitle: "Nothing was changed", showCancel: false) { Owner = this }.ShowDialog();
 
-    // Owner, 21 Oct 2026: the Performance Sheet - the day (concept P1) or the week (W1) on one
+    // Owner, 21 Oct 2026: the Team Scorecard - the day (concept P1) or the week (W1) on one
     // page in the app's look - opened straight away as a PDF in the browser, with no save box.
     private async void ExportReport_Click(object sender, RoutedEventArgs e)
     {
@@ -1003,14 +1003,14 @@ public partial class MainWindow : Window
         if (DataContext is not MainViewModel viewModel) return;
         try
         {
-            viewModel.SetStatus("Opening the " + PerformanceSheet.Title(viewModel) + "…", notify: false);
-            await ReportPdf.OpenAsync(this, PerformanceSheet.Build(viewModel), PerformanceSheet.FileStem(viewModel));
-            viewModel.SetStatus(PerformanceSheet.Title(viewModel) + " opened as a PDF");
+            viewModel.SetStatus("Opening the " + TeamScorecard.Title(viewModel) + "…", notify: false);
+            await ReportPdf.OpenAsync(this, TeamScorecard.Build(viewModel), TeamScorecard.FileStem(viewModel));
+            viewModel.SetStatus(TeamScorecard.Title(viewModel) + " opened as a PDF");
         }
         catch (Exception ex)
         {
-            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Performance Sheet failed: {ex}{Environment.NewLine}");
-            viewModel.SetStatus("The Performance Sheet could not be opened · " + ex.Message);
+            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Team Scorecard failed: {ex}{Environment.NewLine}");
+            viewModel.SetStatus("The Team Scorecard could not be opened · " + ex.Message);
         }
     }
 
@@ -1556,7 +1556,7 @@ public partial class MainWindow : Window
                 SetRetrievalStep(3);
                 // Stage 6A.75: a single day, for the same reason as the Branch refresh.
                 // A week pulls Branch for the whole range (one block per day) for the weekly
-                // Performance Sheet; the Branch section still shows the selected day's hours.
+                // Team Scorecard; the Branch section still shows the selected day's hours.
                 var branchFrom = weekly ? startDate : endDate;
                 var branchHtml = await PullAsync("Branch", branchFrom, endDate, () => loginWindow.FetchBranchPerformanceHtmlAsync(branchFrom, endDate));
                 var branch = new BranchPerformanceReportParser().Parse(branchHtml);

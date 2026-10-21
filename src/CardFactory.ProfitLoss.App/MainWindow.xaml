@@ -1815,7 +1815,7 @@
                         <Border BorderBrush="#EDF1F6" BorderThickness="0,0,1,0">
                             <StackPanel Margin="8,10,8,10">
                                 <!-- Owner, 21 Oct 2026 (concept S3): two tabs. Print & Share holds everything that
-                                     is printed - the Daily Briefing, the Performance Sheet and Print summary. -->
+                                     is printed - the Daily Briefing, the Team Scorecard and Print summary. -->
                                 <Button x:Name="MenuTabShare" Style="{StaticResource MenuTabStyle}" Tag="Active" Click="MenuTab_Click">
                                     <StackPanel Orientation="Horizontal">
                                         <Path Data="M6,7 L6,3 L14,3 L14,7 M5,14 L3,14 L3,8 L17,8 L17,14 L15,14 M6,11 L14,11 L14,17 L6,17 Z" Style="{StaticResource MenuTabIconStyle}" />
@@ -1853,11 +1853,11 @@
                                 <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="ExportReport_Click">
                                     <Grid Width="300">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                        <!-- Owner, 21 Oct 2026: the Performance Sheet (was "Export as a web page"). -->
+                                        <!-- Owner, 21 Oct 2026: the Team Scorecard (was "Export as a web page"). -->
                                         <Path Data="M5,2 L12,2 L16,6 L16,18 L5,18 Z M12,2 L12,6 L16,6 M8,11 L13,11 M8,14 L13,14" Style="{StaticResource MenuItemIconStyle}" />
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Performance Sheet" Style="{StaticResource MenuItemNameStyle}" />
-                                            <TextBlock Text="The day or week on one page, as a PDF to print or pin up" Style="{StaticResource MenuItemNoteStyle}" />
+                                            <TextBlock Text="Team Scorecard" Style="{StaticResource MenuItemNameStyle}" />
+                                            <TextBlock Text="How the team did, on one page · as a PDF to print or pin up" Style="{StaticResource MenuItemNoteStyle}" />
                                         </StackPanel>
                                         <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
                                     </Grid>

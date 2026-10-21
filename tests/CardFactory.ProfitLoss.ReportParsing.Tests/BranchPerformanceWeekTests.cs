@@ -4,7 +4,7 @@ using Xunit;
 namespace CardFactory.ProfitLoss.ReportParsing.Tests;
 
 /// <summary>The owner's real week (page 18, 14-20 Oct 2026, Report Type Daily, For Date),
-/// store name replaced: one block per day, then the period. For the weekly Performance Sheet.</summary>
+/// store name replaced: one block per day, then the period. For the weekly Team Scorecard.</summary>
 public sealed class BranchPerformanceWeekTests
 {
     private const string Fixture = "BranchPerformanceWeek_2026-10-14_20.html";

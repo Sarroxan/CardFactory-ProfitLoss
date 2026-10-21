@@ -377,7 +377,7 @@ public sealed class MainViewModel : ObservableObject
             }
 
             _branchReportDriven = true;
-            // The weekly Performance Sheet's day-by-day table (owner, 21 Oct 2026, W1): a range
+            // The weekly Team Scorecard's day-by-day table (owner, 21 Oct 2026, W1): a range
             // pull gives one block per day; a single day keeps none.
             BranchDays = report.Days.Count > 1
                 ? report.Days.Select(d => new BranchDayFigure(d.Date.Date, d.Total.Sales, d.Total.Transactions, d.Total.Abv, d.Total.Aub)).ToList()
@@ -991,7 +991,7 @@ public sealed class MainViewModel : ObservableObject
     private static string FormatArrowNumber(decimal? value) => value is null ? "—" : value.Value >= 0m ? $"▲ {Math.Abs(value.Value):N2}" : $"▼ {Math.Abs(value.Value):N2}";
 }
 
-/// <summary>One day of a week's Branch Performance (Flooid's own figures), for the weekly Performance Sheet.</summary>
+/// <summary>One day of a week's Branch Performance (Flooid's own figures), for the weekly Team Scorecard.</summary>
 public sealed record BranchDayFigure(DateTime Date, decimal Sales, int Transactions, decimal Abv, decimal Aub);
 
 /// <summary>One chip in the top performers strip. State Good / Bad colours a P&amp;L value.</summary>
