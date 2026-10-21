@@ -6,7 +6,9 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `back-office-after-timeout` (owner, 19 Oct 2026) - not built yet
+## Released - v1.0.2 (21 Oct 2026, owner's say-so), from branch `back-office-after-timeout`
+
+Test build 39590725109 (version 1.0.2) green, tests passed. Small-update notice from 1.0.1: 78.98 MB in 240 parts (over the 60% limit, so tills take the full zip once) - very likely the .NET 8 runtime moving 8.0.31 -> 8.0.32 (October 2026 security update).
 
 | Change | Proven | Check |
 |--------|--------|-------|
