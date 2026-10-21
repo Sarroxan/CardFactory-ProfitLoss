@@ -5,7 +5,8 @@ namespace CardFactory.ProfitLoss.ReportParsing.Models;
 /// From Item Sales By Operator with Product Groups = Stamps. Each line is matched by its
 /// description: "1ST"/"First" class, "2ND"/"Second" class, or "Large" (Large wins, so a
 /// "Large 1st Class" line counts as Large). Counts are Flooid's quantity: a book of 8 is 1.
-/// Anything else stays in <see cref="Other"/>, so the total always equals the report's.
+/// Christmas stamps are not recorded at all (owner, 21 Oct 2026): any line naming Christmas or
+/// Xmas is skipped. Anything else unmatched stays in <see cref="Other"/>.
 /// </summary>
 public sealed record StampsSold(int FirstClass, int SecondClass, int Large, int Other)
 {
@@ -18,6 +19,7 @@ public sealed record StampsSold(int FirstClass, int SecondClass, int Large, int 
         int first = 0, second = 0, large = 0, other = 0;
         foreach (var item in items)
         {
+            if (IsChristmas(item.Description)) continue;
             switch (Classify(item.Description))
             {
                 case "Large": large += item.Quantity; break;
@@ -28,6 +30,10 @@ public sealed record StampsSold(int FirstClass, int SecondClass, int Large, int 
         }
         return new StampsSold(first, second, large, other);
     }
+
+    public static bool IsChristmas(string? description) =>
+        (description ?? string.Empty).Contains("christmas", StringComparison.OrdinalIgnoreCase)
+        || (description ?? string.Empty).Contains("xmas", StringComparison.OrdinalIgnoreCase);
 
     /// <returns>"Large", "1st", "2nd", or null.</returns>
     public static string? Classify(string? description)

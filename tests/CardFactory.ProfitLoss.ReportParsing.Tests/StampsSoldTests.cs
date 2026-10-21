@@ -45,6 +45,18 @@ public sealed class StampsSoldTests
         Assert.Equal(expected, StampsSold.Classify(description));
 
     [Fact]
+    public void ChristmasStamps_AreNotRecorded()
+    {
+        GiftCardItemRecord Line(string d, int q) => new("1", "A", "0", d, q, 1m);
+        var sold = StampsSold.From(new[]
+        {
+            Line("8x2ND Class Stamp Book", 1), Line("Christmas 2nd Class Stamps", 4),
+            Line("XMAS 1ST CLASS STAMP BOOK", 2), Line("12x1ST Class Stamp Book", 1),
+        });
+        Assert.Equal(new StampsSold(1, 1, 0, 0), sold);
+    }
+
+    [Fact]
     public void Quantities_AddUpPerKind_AndNothingIsLost()
     {
         GiftCardItemRecord Line(string d, int q) => new("1", "A", "0", d, q, 1m);
