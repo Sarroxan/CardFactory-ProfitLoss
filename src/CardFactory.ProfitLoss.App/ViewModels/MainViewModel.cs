@@ -857,6 +857,32 @@ public sealed class MainViewModel : ObservableObject
     public decimal? ReportStaffDiscountValue => _reportStaffDiscounts?.Sum(line => line.DiscountValue);
     public decimal? ReportStaffDiscountQuantity => _reportStaffDiscounts?.Sum(line => line.Quantity);
 
+    // Stamps sold (owner, 21 Oct 2026, concept R1): from Item Sales By Operator with the Stamps
+    // group. Null = not retrieved, shown as a dash, never as 0.
+    private StampsSold? _reportStamps;
+    private string _reportStampsText = "—";
+    private string _reportStampsDetail = string.Empty;
+    public string ReportStampsText { get => _reportStampsText; private set => SetProperty(ref _reportStampsText, value); }
+    public string ReportStampsDetail { get => _reportStampsDetail; private set => SetProperty(ref _reportStampsDetail, value); }
+    /// <summary>For the Daily Briefing's Stamp Count; null when not retrieved.</summary>
+    public StampsSold? ReportStamps => _reportStamps;
+
+    public void ApplyStampsSold(StampsSold? stamps)
+    {
+        _reportStamps = stamps;
+        if (stamps is not null) _reportPeriod = CurrentPeriod();
+        ShowStamps();
+    }
+
+    private void ShowStamps()
+    {
+        var s = _reportStamps;
+        ReportStampsText = s is null ? "—" : s.Total.ToString();
+        ReportStampsDetail = s is null
+            ? "not retrieved"
+            : $"1st {s.FirstClass} · 2nd {s.SecondClass} · Large {s.Large}" + (s.Other > 0 ? $" · other {s.Other}" : string.Empty);
+    }
+
     public void ApplyActivityReport(IReadOnlyList<OperatorActivityRecord> activity)
     {
         _reportActivity = activity;
@@ -925,8 +951,10 @@ public sealed class MainViewModel : ObservableObject
     {
         _reportActivity = Array.Empty<OperatorActivityRecord>();
         _reportStaffDiscounts = null;
+        _reportStamps = null;
         _reportPeriod = null;
         RebuildReportRows();
+        ShowStamps();
     }
 
     // Reports have no date line of their own, so figures for one day must never sit on

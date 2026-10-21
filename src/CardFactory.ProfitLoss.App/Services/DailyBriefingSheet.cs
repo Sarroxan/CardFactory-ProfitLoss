@@ -6,6 +6,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CardFactory.ProfitLoss.App.ViewModels;
+using CardFactory.ProfitLoss.ReportParsing.Models;
 
 namespace CardFactory.ProfitLoss.App.Services;
 
@@ -53,7 +54,11 @@ public static class DailyBriefingSheet
     /// <param name="ProfitLossState">"Good", "Bad" or "None" (no ABV target, so no P&amp;L).</param>
     public sealed record Person(string Name, decimal Abv, decimal Aub, string ProfitLossText, string ProfitLossState);
     public sealed record Data(DateTime Date, Measure Sales, Measure Abv, Measure Aub, IReadOnlyList<Hour> Hours,
-        Reports? Reports, IReadOnlyList<Person> Team, int TeamNotShown);
+        Reports? Reports, IReadOnlyList<Person> Team, int TeamNotShown)
+    {
+        /// <summary>Stamps sold for page 2's Stamp Count; null when not retrieved (left blank).</summary>
+        public StampsSold? Stamps { get; init; }
+    }
 
     /// <summary>The day's figures as the app holds them. Call only in single-day mode.</summary>
     public static Data FromViewModel(MainViewModel vm)
@@ -88,7 +93,10 @@ public static class DailyBriefingSheet
             new Measure(Target(vm.SalesTarget), Actual(vm.TotalSales), true),
             new Measure(Target(vm.AbvTarget), Actual(vm.ActualAbv), true),
             new Measure(Target(vm.AubTarget), Actual(vm.ActualAub), false),
-            hours, reports, team, Math.Max(0, people.Count - TeamSlots));
+            hours, reports, team, Math.Max(0, people.Count - TeamSlots))
+        {
+            Stamps = vm.ReportStamps,
+        };
     }
 
     /// <summary>"09:00 - 09:59", "09:00–10:00" or "9:00" → 9.</summary>
@@ -115,7 +123,7 @@ public static class DailyBriefingSheet
         var doc = new FixedDocument();
         doc.DocumentPaginator.PageSize = new Size(PageWidthPt * Pt, PageHeightPt * Pt);
         doc.Pages.Add(Page("DailyBriefing-1.png", canvas => FillPageOne(canvas, data)));
-        doc.Pages.Add(Page("DailyBriefing-2.png", _ => { }));   // page 2 is for the team to write on
+        doc.Pages.Add(Page("DailyBriefing-2.png", canvas => FillPageTwo(canvas, data)));   // page 2 is the team's, apart from Stamps Sold
         return doc;
     }
 
@@ -204,6 +212,17 @@ public static class DailyBriefingSheet
     public static bool BeatsTarget(decimal hourly, Measure measure) =>
         measure.Target is { } target && hourly > target;
 
+    // Page 2, Stamp Count (owner, 21 Oct 2026, concept B1): only the Sold column - Start and
+    // Finish are counted and written by the team. Box positions measured on the 300 dpi form
+    // (px x 765-978; rows 1761-1861, 1911-2012, 2062-2163; pt = px x 0.24), corners about 4.7pt.
+    private static void FillPageTwo(Canvas c, Data d)
+    {
+        if (d.Stamps is not { } stamps) return;
+        Box(c, 183.6, 422.6, 234.7, 446.6, stamps.FirstClass.ToString(), 11, cornerPt: 4.7);
+        Box(c, 183.6, 458.6, 234.7, 482.9, stamps.SecondClass.ToString(), 11, cornerPt: 4.7);
+        Box(c, 183.6, 494.9, 234.7, 519.1, stamps.Large.ToString(), 11, cornerPt: 4.7);
+    }
+
     // Target box tinted; Actual box green or red with the difference inside (D1), or tinted
     // when there is no target to compare with.
     private static void TargetAndActual(Canvas c, double targetX, double actualX, Measure m)
@@ -235,9 +254,9 @@ public static class DailyBriefingSheet
     /// <summary>A filled box over one of the sheet's rounded boxes (its outline stays visible),
     /// with the text centred (or left-aligned) and shrunk if it would not fit.</summary>
     private static void Box(Canvas c, double x0, double y0, double x1, double y1, string text, double sizePt,
-        bool ring = false, bool left = false, Brush? fill = null, Brush? ink = null, string? small = null)
+        bool ring = false, bool left = false, Brush? fill = null, Brush? ink = null, string? small = null, double? cornerPt = null)
     {
-        double w = (x1 - x0) * Pt, h = (y1 - y0) * Pt, inset = 1.6 * Pt, radius = h / 2.3;
+        double w = (x1 - x0) * Pt, h = (y1 - y0) * Pt, inset = 1.6 * Pt, radius = cornerPt is { } r ? r * Pt : h / 2.3;
         var shape = new Border
         {
             Width = Math.Max(0, w - 2 * inset),

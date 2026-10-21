@@ -13,6 +13,16 @@ public sealed class GiftCardReportParser
 {
     public const string ExpectedTitle = "Item Sales By Operator Report";
 
+    private readonly string _expectedProductGroup;
+
+    /// <param name="expectedProductGroup">The report's "Product Groups" line. The same report
+    /// layout is used for Stamps (owner, 21 Oct 2026; saved page 15), so the group is checked
+    /// rather than assumed.</param>
+    public GiftCardReportParser(string expectedProductGroup = "Gift Cards")
+    {
+        _expectedProductGroup = expectedProductGroup;
+    }
+
     public GiftCardReportParseResult Parse(string html)
     {
         if (string.IsNullOrWhiteSpace(html))
@@ -25,10 +35,10 @@ public sealed class GiftCardReportParser
         var productGroups = ReportText.RequireField(fields, ExpectedTitle, "Product Groups");
         var reportType = ReportText.RequireField(fields, ExpectedTitle, "Report Type");
 
-        if (!string.Equals(ReportText.NormalizeWhitespace(productGroups), "Gift Cards", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(ReportText.NormalizeWhitespace(productGroups), _expectedProductGroup, StringComparison.OrdinalIgnoreCase))
         {
             throw new ReportParseException(
-                $"{ExpectedTitle}: Product Groups must be 'Gift Cards' but was '{ReportText.NormalizeWhitespace(productGroups)}'.");
+                $"{ExpectedTitle}: Product Groups must be '{_expectedProductGroup}' but was '{ReportText.NormalizeWhitespace(productGroups)}'.");
         }
 
         if (!reportType.Contains("Show Item Detail", StringComparison.OrdinalIgnoreCase))

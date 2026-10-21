@@ -1156,6 +1156,19 @@
                                                             </StackPanel>
                                                         </Grid>
                                                     </Border>
+                                                    <!-- Stamps sold (owner, 21 Oct 2026, concept R1): total, with 1st / 2nd / Large beside it. -->
+                                                    <Border Margin="0,0,14,0" Height="62" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions><RowDefinition Height="18"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                                            <Border Background="{StaticResource CfBlueSoft}" CornerRadius="13,13,0,0">
+                                                                <TextBlock Text="STAMPS SOLD" Margin="11,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource CfBlue}" FontFamily="Arial" FontSize="10" FontWeight="Bold" />
+                                                            </Border>
+                                                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="11,0,0,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding ReportStampsText}" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="17" FontWeight="Bold" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding ReportStampsDetail}" Margin="8,0,0,0" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
                                             </UniformGrid>
 
                                             <Grid Grid.Row="1" Background="{StaticResource CfBlueSoft}">
