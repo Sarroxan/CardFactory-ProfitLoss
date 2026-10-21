@@ -652,7 +652,7 @@ public partial class MainWindow : Window
         UpdateCheckForUpdatesDetail();
         UpdateDailyBriefingCardDetail();
         UpdateMenuVersionPill();
-        if (!MainMenuPopup.IsOpen) ShowMenuTab(MenuTabBriefing);   // opens on Daily Briefing
+        if (!MainMenuPopup.IsOpen) ShowMenuTab(MenuTabShare);   // opens on Print & Share
         // Stage 6B.30: read the setting each time the menu opens, so it always shows what is
         // actually in force - including a value written into the file by hand.
         if (!MainMenuPopup.IsOpen) { LoadRetrievalSpeedOptions(); LoadLastYearTargetsHint(); }
@@ -991,57 +991,9 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void SaveFile_Click(object sender, RoutedEventArgs e)
-    {
-        MainMenuPopup.IsOpen = false;
-        if (DataContext is not MainViewModel viewModel) return;
-        var dialog = new SaveFileDialog
-        {
-            Title = "Save Profit & Loss Calculator File",
-            Filter = "Card Factory P&L file (*.cfpl)|*.cfpl|JSON file (*.json)|*.json",
-            DefaultExt = ".cfpl",
-            AddExtension = true,
-            FileName = string.IsNullOrWhiteSpace(viewModel.StoreLocation) ? "Profit-Loss" : $"Profit-Loss-{MakeSafeFileName(viewModel.StoreLocation)}"
-        };
-        if (dialog.ShowDialog(this) != true) return;
-        try
-        {
-            await _stateService.SaveAsync(dialog.FileName, viewModel.CaptureState());
-            viewModel.SetStatus("File saved");
-        }
-        catch (Exception ex)
-        {
-            ShowProblem("Couldn't save this day", "The file could not be saved.", ex.Message + " Try saving to Documents.");
-        }
-    }
-
     // Deep check 5: the app's own message box instead of the grey Windows one.
     private void ShowProblem(string title, string question, string detail) =>
         new ThemedConfirmationWindow(title, question, detail, "OK", subtitle: "Nothing was changed", showCancel: false) { Owner = this }.ShowDialog();
-
-    private async void LoadFile_Click(object sender, RoutedEventArgs e)
-    {
-        MainMenuPopup.IsOpen = false;
-        if (DataContext is not MainViewModel viewModel) return;
-        var dialog = new OpenFileDialog
-        {
-            Title = "Load Profit & Loss Calculator File",
-            Filter = "Card Factory P&L file (*.cfpl)|*.cfpl|JSON file (*.json)|*.json|All files (*.*)|*.*",
-            CheckFileExists = true
-        };
-        if (dialog.ShowDialog(this) != true) return;
-        try
-        {
-            var state = await _stateService.LoadAsync(dialog.FileName);
-            if (state is null) throw new InvalidDataException("The selected file does not contain calculator data.");
-            viewModel.ApplyState(state);
-            viewModel.SetStatus("File loaded");
-        }
-        catch (Exception ex)
-        {
-            ShowProblem("Couldn't open that day", "The file could not be opened.", ex.Message);
-        }
-    }
 
     // Owner, 21 Oct 2026: the Performance Sheet - the day (concept P1) or the week (W1) on one
     // page in the app's look - opened straight away as a PDF in the browser, with no save box.
@@ -1070,7 +1022,7 @@ public partial class MainWindow : Window
 
     private void ShowMenuTab(Button open)
     {
-        var tabs = new[] { (MenuTabBriefing, MenuPaneBriefing), (MenuTabShare, MenuPaneShare), (MenuTabSettings, MenuPaneSettings) };
+        var tabs = new[] { (MenuTabShare, MenuPaneShare), (MenuTabSettings, MenuPaneSettings) };
         foreach (var (tab, pane) in tabs)
         {
             var isOpen = ReferenceEquals(tab, open);
@@ -1095,18 +1047,16 @@ public partial class MainWindow : Window
         MenuVersionText.Foreground = (Brush)new BrushConverter().ConvertFromString(fore)!;
     }
 
-    // Export to Daily Briefing (Menu, Daily Briefing tab). One day only: the sheet is a daily form.
+    // Daily Briefing (Menu, Print & Share). One day only: the sheet is a daily form.
     private void UpdateDailyBriefingCardDetail()
     {
         if (DataContext is not MainViewModel viewModel) return;
         var range = viewModel.IsRangeMode;
-        DailyBriefingDayText.Text = range
-            ? "A date range is chosen"
-            : (viewModel.SelectedDate ?? DateTime.Today).ToString("ddd dd/MM/yyyy");
         DailyBriefingExportButton.IsEnabled = !range;
+        DailyBriefingExportButton.Opacity = range ? 0.45 : 1.0;
         DailyBriefingNote.Text = range
-            ? "The briefing is for one day · choose Single day in the calendar first"
-            : "Opens a preview to print or save as PDF";
+            ? "For one day · choose Single day in the calendar first"
+            : "The store's sheet, filled in from Flooid · " + (viewModel.SelectedDate ?? DateTime.Today).ToString("ddd dd/MM");
     }
 
     private async void ExportDailyBriefing_Click(object sender, RoutedEventArgs e)

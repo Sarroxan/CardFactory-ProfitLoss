@@ -1814,16 +1814,12 @@
                         <!-- Tabs -->
                         <Border BorderBrush="#EDF1F6" BorderThickness="0,0,1,0">
                             <StackPanel Margin="8,10,8,10">
-                                <Button x:Name="MenuTabBriefing" Style="{StaticResource MenuTabStyle}" Tag="Active" Click="MenuTab_Click">
+                                <!-- Owner, 21 Oct 2026 (concept S3): two tabs. Print & Share holds everything that
+                                     is printed - the Daily Briefing, the Performance Sheet and Print summary. -->
+                                <Button x:Name="MenuTabShare" Style="{StaticResource MenuTabStyle}" Tag="Active" Click="MenuTab_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <Path Data="M5,3 L15,3 L15,17 L5,17 Z M8,7 L12,7 M8,10 L12,10 M8,13 L10.5,13" Style="{StaticResource MenuTabIconStyle}" />
-                                        <TextBlock Text="Daily Briefing" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Button>
-                                <Button x:Name="MenuTabShare" Style="{StaticResource MenuTabStyle}" Click="MenuTab_Click">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Path Data="M3,6 L8,6 L10,8 L17,8 L17,16 L3,16 Z" Style="{StaticResource MenuTabIconStyle}" />
-                                        <TextBlock Text="Save &amp; Share" VerticalAlignment="Center" />
+                                        <Path Data="M6,7 L6,3 L14,3 L14,7 M5,14 L3,14 L3,8 L17,8 L17,14 L15,14 M6,11 L14,11 L14,17 L6,17 Z" Style="{StaticResource MenuTabIconStyle}" />
+                                        <TextBlock Text="Print &amp; Share" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                                 <Button x:Name="MenuTabSettings" Style="{StaticResource MenuTabStyle}" Click="MenuTab_Click">
@@ -1835,76 +1831,19 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Daily Briefing -->
-                        <StackPanel x:Name="MenuPaneBriefing" Grid.Column="1" Margin="18,14,18,14">
-                            <TextBlock Text="Daily Briefing" Style="{StaticResource MenuPaneTitleStyle}" />
-                            <TextBlock Text="The store's sheet, filled in from Flooid." Style="{StaticResource MenuPaneSubtitleStyle}" />
-                            <Grid Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="6" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Background="#F4F7FB" CornerRadius="9" Padding="9,7">
-                                    <StackPanel>
-                                        <TextBlock Text="Day" FontFamily="Arial" FontSize="9.5" Foreground="{StaticResource CfMuted}" />
-                                        <TextBlock x:Name="DailyBriefingDayText" FontFamily="Arial" FontSize="12" FontWeight="Bold"
-                                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,2,0,0" TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Grid.Column="2" Background="#F4F7FB" CornerRadius="9" Padding="9,7">
-                                    <StackPanel>
-                                        <TextBlock Text="Pulls" FontFamily="Arial" FontSize="9.5" Foreground="{StaticResource CfMuted}" />
-                                        <TextBlock Text="Team · Branch · Gift · Discounts" FontFamily="Arial" FontSize="12" FontWeight="Bold"
-                                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,2,0,0" TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </Border>
-                            </Grid>
-                            <Button x:Name="DailyBriefingExportButton" Height="40" Cursor="Hand" Click="ExportDailyBriefing_Click"
-                                    ToolTip="Pull every report for the day and fill in the Daily Briefing">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="B" Background="{StaticResource CfYellow}" BorderBrush="#E0AC00" BorderThickness="1" CornerRadius="11">
-                                            <TextBlock Text="Export to Daily Briefing" FontFamily="Arial" FontSize="12.5" FontWeight="Bold"
-                                                       Foreground="{StaticResource CfDeepBlue}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#FFD53D" /></Trigger>
-                                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#F2BC00" /></Trigger>
-                                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.45" /></Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                            <TextBlock x:Name="DailyBriefingNote" Text="Opens a preview to print or save as PDF"
-                                       FontFamily="Arial" FontSize="9.5" Foreground="#8A99AD" Margin="0,10,0,0" TextWrapping="Wrap" />
-                        </StackPanel>
-
-                        <!-- Save & Share -->
-                        <StackPanel x:Name="MenuPaneShare" Grid.Column="1" Margin="18,14,18,14" Visibility="Collapsed">
-                            <TextBlock Text="Save &amp; Share" Style="{StaticResource MenuPaneTitleStyle}" />
-                            <TextBlock Text="Keep this day, open another, or pass it on." Style="{StaticResource MenuPaneSubtitleStyle}" />
+                        <!-- Print & Share (was Save & Share; Open a saved day and Save this day removed, owner 21 Oct 2026). -->
+                        <StackPanel x:Name="MenuPaneShare" Grid.Column="1" Margin="18,14,18,14">
+                            <TextBlock Text="Print &amp; Share" Style="{StaticResource MenuPaneTitleStyle}" />
+                            <TextBlock Text="The store's sheets and the day's figures." Style="{StaticResource MenuPaneSubtitleStyle}" />
                             <Border Style="{StaticResource MenuItemRowStyle}">
-                                <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="LoadFile_Click">
+                                <Button x:Name="DailyBriefingExportButton" Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="ExportDailyBriefing_Click"
+                                        ToolTip="Pull every report for the day and fill in the Daily Briefing">
                                     <Grid Width="300">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                        <Path Data="M3,6 L8,6 L10,8 L17,8 L17,16 L3,16 Z" Style="{StaticResource MenuItemIconStyle}" />
+                                        <Path Data="M5,3 L15,3 L15,17 L5,17 Z M8,7 L12,7 M8,10 L12,10 M8,13 L10.5,13" Style="{StaticResource MenuItemIconStyle}" />
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Open a saved day" Style="{StaticResource MenuItemNameStyle}" />
-                                            <TextBlock Text="A .cfpl file you saved earlier" Style="{StaticResource MenuItemNoteStyle}" />
-                                        </StackPanel>
-                                        <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
-                                    </Grid>
-                                </Button>
-                            </Border>
-                            <Border Style="{StaticResource MenuItemRowStyle}">
-                                <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="SaveFile_Click">
-                                    <Grid Width="300">
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                        <Path Data="M4,3 L14,3 L17,6 L17,17 L4,17 Z M7,3 L7,8 L13,8 L13,3 M7,17 L7,12 L14,12 L14,17" Style="{StaticResource MenuItemIconStyle}" />
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Save this day" Style="{StaticResource MenuItemNameStyle}" />
-                                            <TextBlock Text="As a .cfpl file, to open later or on another till" Style="{StaticResource MenuItemNoteStyle}" />
+                                            <TextBlock Text="Daily Briefing" Style="{StaticResource MenuItemNameStyle}" />
+                                            <TextBlock x:Name="DailyBriefingNote" Text="The store's sheet, filled in from Flooid" Style="{StaticResource MenuItemNoteStyle}" />
                                         </StackPanel>
                                         <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
                                     </Grid>
