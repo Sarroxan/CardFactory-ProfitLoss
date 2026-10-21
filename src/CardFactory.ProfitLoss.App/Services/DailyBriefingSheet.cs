@@ -25,7 +25,7 @@ namespace CardFactory.ProfitLoss.App.Services;
 /// boxes solid green (on or above target) or red (below) with the difference inside; P&amp;L
 /// boxes solid green or red; the best hour ringed in yellow; £20+ voids and refunds amber.
 /// 16 Oct 2026 (A1 + S2): the best sales hour filled navy with white figures and a yellow
-/// edge; hourly ABV and AUB boxes marked when they beat the day's target - solid green with
+/// edge (solid yellow with navy figures and a ★ since 21 Oct 2026, B2); hourly ABV and AUB boxes marked when they beat the day's target - solid green with
 /// white figures since 21 Oct 2026 (G2).
 /// </summary>
 public static class DailyBriefingSheet
@@ -172,9 +172,11 @@ public static class DailyBriefingSheet
             // (above it, not equal) is marked; the best sales hour is filled navy with white
             // figures and a yellow edge. 21 Oct 2026 (G2): the mark is solid green with white
             // figures - the same green as the Actual boxes - instead of a yellow ring.
+            // 21 Oct 2026 (B2): the best sales hour is solid yellow with navy figures and a ★, a
+            // third colour beside the green; the star still says "best" in black and white.
             var isBest = ReferenceEquals(row, best) && row.Sales > 0m;
-            Box(c, 83.6, y, 156.2, y + 27.5, Money(row.Sales), 10.5, ring: isBest,
-                fill: isBest ? Navy : null, ink: isBest ? Brushes.White : null);
+            Box(c, 83.6, y, 156.2, y + 27.5, (isBest ? "★ " : string.Empty) + Money(row.Sales), 10.5,
+                fill: isBest ? Yellow : null);
             var abvBeat = BeatsTarget(row.Abv, d.Abv);
             var aubBeat = BeatsTarget(row.Aub, d.Aub);
             Box(c, 162.9, y, 235.6, y + 27.5, Money(row.Abv), 10.5,

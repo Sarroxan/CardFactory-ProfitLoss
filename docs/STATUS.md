@@ -10,7 +10,7 @@ or released without the owner's say-so. A push to `main` starts a build.
 
 | Change | Proven | Check |
 |--------|--------|-------|
-| **Daily Briefing: beaten ABV/AUB hours in solid green** (concept G2). Hourly ABV and AUB boxes above the day's target are filled green (the Actual boxes' green, #2FB866) with white figures, instead of a yellow ring. Best sales hour unchanged (navy, yellow edge). | Not compiled yet | Export a day with ABV/AUB targets: hours above target green with white figures |
+| **Daily Briefing: beaten ABV/AUB hours in solid green** (concept G2). Hourly ABV and AUB boxes above the day's target are filled green (the Actual boxes' green, #2FB866) with white figures, instead of a yellow ring. Best sales hour now solid yellow with navy figures and a ★ before the figure (concept B2), instead of navy with a yellow edge. | Not compiled yet | Export a day with ABV/AUB targets: hours above target green with white figures; best sales hour yellow "★ £…" |
 
 ## Released - v1.0.2 (21 Oct 2026, owner's say-so), from branch `back-office-after-timeout`
 
