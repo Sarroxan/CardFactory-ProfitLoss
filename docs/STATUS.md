@@ -6,7 +6,9 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `briefing-green` (owner, 21 Oct 2026) - not built yet
+## Released - v1.0.3 (21 Oct 2026, owner's say-so), from branch `briefing-green`
+
+Test build 39633003634 (version 1.0.3) green first time; tests passed. Its small-update notice from 1.0.2 was 78.79 MB (that runner had .NET 8.0.31; 1.0.2 has 8.0.32) - the SDK is not pinned (owner not asked to change it).
 
 | Change | Proven | Check |
 |--------|--------|-------|
