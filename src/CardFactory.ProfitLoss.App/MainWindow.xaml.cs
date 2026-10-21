@@ -1163,27 +1163,42 @@ public partial class MainWindow : Window
         }
     }
 
+    // Owner, 21 Oct 2026 (concept V1): Print summary opens the same preview as the Daily
+    // Briefing - whole page, zoom, page arrows - then Print or Save as PDF. The pages are A4
+    // on screen and re-flowed to the printer's paper when printed, as they always were.
     private void PrintReport_Click(object sender, RoutedEventArgs e)
     {
         MainMenuPopup.IsOpen = false;
         if (DataContext is not MainViewModel viewModel) return;
         try
         {
-            var dialog = new PrintDialog();
-            if (dialog.ShowDialog() != true) return;
-            var document = BuildPrintableReport(viewModel);
-            document.PageHeight = dialog.PrintableAreaHeight;
-            document.PageWidth = dialog.PrintableAreaWidth;
-            document.PagePadding = new Thickness(36);
-            document.ColumnGap = 0;
-            document.ColumnWidth = Math.Max(1, dialog.PrintableAreaWidth - 72);
-            dialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "Card Factory Profit & Loss Report");
-            viewModel.SetStatus("Report sent to printer");
+            var date = viewModel.SelectedDate ?? DateTime.Today;
+            var preview = new DailyBriefingPreviewWindow(
+                $"Print summary · {date:ddd dd/MM/yyyy}", $"Summary for {date:dd/MM/yyyy}",
+                "Card Factory Profit & Loss Report", System.Printing.PageOrientation.Portrait,
+                area => SummaryPages(viewModel, area ?? new Size(96 * 8.27, 96 * 11.69)))   // A4 on screen
+            { Owner = this };
+            preview.ShowDialog();
+            viewModel.SetStatus(preview.Outcome ?? "Print summary closed without printing");
         }
         catch (Exception ex)
         {
             viewModel.SetStatus("Print failed · " + ex.Message);
         }
+    }
+
+    private static DocumentPaginator SummaryPages(MainViewModel vm, Size area)
+    {
+        var document = BuildPrintableReport(vm);
+        document.PageHeight = area.Height;
+        document.PageWidth = area.Width;
+        document.PagePadding = new Thickness(36);
+        document.ColumnGap = 0;
+        document.ColumnWidth = Math.Max(1, area.Width - 72);
+        var paginator = ((IDocumentPaginatorSource)document).DocumentPaginator;
+        paginator.PageSize = area;
+        paginator.ComputePageCount();
+        return paginator;
     }
 
     private static string BuildReportHtml(MainViewModel vm)

@@ -11,12 +11,19 @@ namespace CardFactory.ProfitLoss.App.Views;
 /// <summary>
 /// Export to Daily Briefing: the store's sheet filled in with the day's figures, to print
 /// or save as a PDF. <see cref="Outcome"/> says what was done, for the status line.
+/// Owner, 21 Oct 2026 (concept V1): Print summary opens in this same preview first.
 /// </summary>
 public partial class DailyBriefingPreviewWindow : Window
 {
     private const string PdfPrinterName = "Microsoft Print to PDF";
-    private readonly DailyBriefingSheet.Data _data;
-    private readonly FixedDocument _document;
+
+    /// <summary>Builds the pages. Given the printer's printable area when printing; null
+    /// for the preview on screen.</summary>
+    private readonly Func<Size?, DocumentPaginator> _build;
+    private readonly DocumentPaginator _paginator;
+    private readonly PageOrientation _orientation;
+    private readonly string _what;      // "Daily Briefing for 21/10/2026", for the status line
+    private readonly string _jobName;   // the print queue's job name
 
     // D3 (owner, 16 Oct 2026). Fit page is a mode rather than a number, so the whole sheet stays
     // in view whatever the window's size; the zoom steps are fixed sizes (1.0 = 100%).
@@ -28,19 +35,32 @@ public partial class DailyBriefingPreviewWindow : Window
     public string? Outcome { get; private set; }
 
     public DailyBriefingPreviewWindow(DailyBriefingSheet.Data data)
+        : this($"Daily Briefing · {data.Date:ddd dd/MM/yyyy}", $"Daily Briefing for {data.Date:dd/MM/yyyy}",
+               $"Daily Briefing {data.Date:dd-MM-yyyy}", PageOrientation.Landscape,
+               _ => DailyBriefingSheet.Build(data).DocumentPaginator)
     {
-        InitializeComponent();
-        _data = data;
-        TitleText.Text = $"Daily Briefing · {data.Date:ddd dd/MM/yyyy}";
-        _document = DailyBriefingSheet.Build(data);
-        PageView.DocumentPaginator = _document.DocumentPaginator;
-
         var missing = Missing(data);
         if (missing.Count > 0)
         {
             MissingText.Text = "Left blank, Flooid had no figures for: " + string.Join(", ", missing);
             MissingBanner.Visibility = Visibility.Visible;
         }
+    }
+
+    /// <param name="build">Fresh pages each call: one for the screen, one per print job.</param>
+    public DailyBriefingPreviewWindow(string title, string what, string jobName, PageOrientation orientation,
+        Func<Size?, DocumentPaginator> build)
+    {
+        InitializeComponent();
+        Title = title;
+        TitleText.Text = title;
+        _what = what;
+        _jobName = jobName;
+        _orientation = orientation;
+        _build = build;
+        _paginator = build(null);
+        if (!_paginator.IsPageCountValid) _paginator.ComputePageCount();
+        PageView.DocumentPaginator = _paginator;
 
         // D3: about 90% of the screen above the taskbar (no more than 1600 x 1100), centred on
         // the app; the page is fitted inside it, so it never needs to be the whole screen.
@@ -51,7 +71,7 @@ public partial class DailyBriefingPreviewWindow : Window
         PreviewKeyDown += Window_PreviewKeyDown;
     }
 
-    private int PageCount => _document.Pages.Count;
+    private int PageCount => Math.Max(1, _paginator.PageCount);
 
     private void ShowPage(int index)
     {
@@ -91,7 +111,7 @@ public partial class DailyBriefingPreviewWindow : Window
     /// <summary>The size Fit page is showing now, so − and + step on from what is on screen.</summary>
     private double CurrentFitScale()
     {
-        var page = _document.DocumentPaginator.PageSize;   // 1 = 100%
+        var page = _paginator.PageSize;   // 1 = 100%
         var width = Math.Max(1, PageScroller.ActualWidth - PageFrame.Margin.Left - PageFrame.Margin.Right);
         var height = Math.Max(1, PageScroller.ActualHeight - PageFrame.Margin.Top - PageFrame.Margin.Bottom);
         return page.Width > 0 && page.Height > 0 ? Math.Min(width / page.Width, height / page.Height) : 1.0;
@@ -163,15 +183,15 @@ public partial class DailyBriefingPreviewWindow : Window
         try
         {
             var dialog = new PrintDialog();
-            dialog.PrintTicket.PageOrientation = PageOrientation.Landscape;
+            dialog.PrintTicket.PageOrientation = _orientation;
             if (dialog.ShowDialog() != true) return;
             Send(dialog);
-            Outcome = $"Daily Briefing for {_data.Date:dd/MM/yyyy} sent to {dialog.PrintQueue?.Name ?? "the printer"}";
+            Outcome = $"{_what} sent to {dialog.PrintQueue?.Name ?? "the printer"}";
             Close();
         }
         catch (Exception ex)
         {
-            ShowProblem("The Daily Briefing could not be printed.", ex.Message);
+            ShowProblem($"The {_what.Split(" for ")[0]} could not be printed.", ex.Message);
         }
     }
 
@@ -193,26 +213,27 @@ public partial class DailyBriefingPreviewWindow : Window
             var dialog = new PrintDialog { PrintQueue = queue, PrintTicket = queue.DefaultPrintTicket };
             Send(dialog);
             // The PDF printer asks for the file name itself, so whether it was saved is not known here.
-            Outcome = $"Daily Briefing for {_data.Date:dd/MM/yyyy} sent to Microsoft Print to PDF";
+            Outcome = $"{_what} sent to Microsoft Print to PDF";
             Close();
         }
         catch (Exception ex)
         {
-            ShowProblem("The Daily Briefing could not be saved as a PDF.", ex.Message);
+            ShowProblem($"The {_what.Split(" for ")[0]} could not be saved as a PDF.", ex.Message);
         }
     }
 
-    // A fresh copy of the sheet for each job: the one on screen belongs to the viewer.
+    // A fresh copy of the pages for each job: the one on screen belongs to the viewer. The
+    // printer's printable area is passed in, so flowing pages (Print summary) fit its paper.
     private void Send(PrintDialog dialog)
     {
-        dialog.PrintTicket.PageOrientation = PageOrientation.Landscape;
-        var document = DailyBriefingSheet.Build(_data);
-        dialog.PrintDocument(document.DocumentPaginator, $"Daily Briefing {_data.Date:dd-MM-yyyy}");
+        dialog.PrintTicket.PageOrientation = _orientation;
+        var paginator = _build(new Size(dialog.PrintableAreaWidth, dialog.PrintableAreaHeight));
+        dialog.PrintDocument(paginator, _jobName);
     }
 
     private void ShowProblem(string question, string detail)
     {
-        new ThemedConfirmationWindow("Daily Briefing", question, detail, "OK",
+        new ThemedConfirmationWindow(_what.Split(" for ")[0], question, detail, "OK",
             subtitle: "Nothing was printed or saved", showCancel: false) { Owner = this }.ShowDialog();
     }
 
