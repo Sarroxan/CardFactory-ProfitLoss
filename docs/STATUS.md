@@ -6,9 +6,15 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `pin-dotnet` (owner, 22 Oct 2026) - not built or released yet
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **.NET SDK pinned to 8.0.426** (`global.json`, `rollForward: disable`; `build.yml` Setup .NET reads it). Before, `8.0.x` let the runtime inside the exe flip between 8.0.31 and 8.0.32 by runner, which made every till download the full zip (1.0.3 -> 1.0.4 was 78.86 MB). 8.0.426 is the SDK released with runtime 8.0.32 (dotnet/core release-notes/8.0/releases.json, 13 Oct 2026), the runtime the tills have from 1.0.4. No app code changed. | Not yet built | Test build: green, and its Small updates notice from 1.0.4 is small (not ~79 MB); the exe contains 8.0.32 |
+
 ## Released - v1.0.4 (22 Oct 2026, owner's say-so), from branch `faster-pulls`
 
-Test build 39843142699 (version 1.0.3 at the time) green; tests passed; small update from 1.0.3: 1.16 MB in 9 parts.
+Test build 39843142699 (version 1.0.3 at the time) green; tests passed; small update from 1.0.3: 1.16 MB in 9 parts. Main build 39843501493 green; Publish release 39843850002; release build 39843911600 green; zip SHA-256 765ee199…ca29 matches; exe 1.0.4+b7bdcc0; runtime 8.0.32.
 
 The till's log of 22 Oct 2026: the pull after signing in took about 22 s, 11 s of it last year's Team and Gift Cards; opening the Daily Briefing then took about 8 s for Staff Discounts and Stamps.
 

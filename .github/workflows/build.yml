@@ -25,10 +25,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      # The .NET SDK is pinned in global.json (owner, 22 Oct 2026). With '8.0.x' each runner
+      # used whichever .NET 8 it had, so the runtime inside the exe flipped between 8.0.31 and
+      # 8.0.32 and every till had to download the full zip instead of a small update. SDK
+      # 8.0.426 carries runtime 8.0.32, the one the tills have since 1.0.4. Move it up on
+      # purpose (a newer 8.0.4xx in global.json) when taking .NET's security fixes.
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '8.0.x'
+          global-json-file: global.json
 
       - name: Restore
         run: dotnet restore CardFactory.ProfitLoss.sln
