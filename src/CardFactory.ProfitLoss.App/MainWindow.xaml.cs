@@ -889,14 +889,66 @@ public partial class MainWindow : Window
         _lastYearCache.Clear();
     }
 
+    // Owner, 22 Oct 2026 (option B): after the sign-in pull, Staff Discounts and Stamps are
+    // fetched quietly - no progress panel, no status messages - so the Reports section and the
+    // Daily Briefing open almost at once. Anything that needs Flooid first calls
+    // StopQuietFetchAsync: the report already being fetched is allowed to finish (stopping
+    // Flooid half way through a page could leave its form in a muddle), nothing further is
+    // started, and the button then carries on as normal.
+    private Task? _quietFetch;
+    private bool _quietFetchStop;
+
+    private void StartQuietFetch(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate)
+    {
+        if (_quietFetch is { IsCompleted: false }) return;
+        _quietFetchStop = false;
+        _quietFetch = QuietFetchAsync(viewModel, loginWindow, startDate, endDate);
+    }
+
+    private async Task QuietFetchAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate)
+    {
+        // Let the screen settle after the main pull before using Flooid again.
+        await Task.Delay(500);
+        try
+        {
+            if (_quietFetchStop || !loginWindow.IsSignedIn) return;
+            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch of Staff Discounts and Stamps ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) started{Environment.NewLine}");
+            var discountsHtml = await PullAsync("Discounts", startDate, endDate, () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate));
+            var discounts = new DiscountsReportParser().Parse(discountsHtml);
+            viewModel.ApplyStaffDiscounts(discounts.StaffDiscountLines);
+            _staffDiscountPeriod = (startDate, endDate);
+
+            if (_quietFetchStop || !loginWindow.IsSignedIn) return;
+            await PullStampsAsync(viewModel, loginWindow, startDate, endDate, quiet: true);
+            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch finished{Environment.NewLine}");
+        }
+        catch (Exception ex)
+        {
+            // Only a head start: the Reports section or the Daily Briefing pulls it as before.
+            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch stopped: {ex.Message}{Environment.NewLine}");
+        }
+    }
+
+    private async Task StopQuietFetchAsync(MainViewModel? viewModel = null)
+    {
+        var running = _quietFetch;
+        if (running is null || running.IsCompleted) return;
+        _quietFetchStop = true;
+        viewModel?.SetStatus("One moment · finishing a report from Flooid", notify: false);
+        try { await running; } catch { }
+    }
+
     /// <summary>Stamps sold (owner, 21 Oct 2026). Never stops a pull: a problem shows the tile
     /// as "—", leaves the Daily Briefing's Sold boxes blank, and returns a note for the status line.</summary>
-    private async Task<string?> PullStampsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate)
+    private async Task<string?> PullStampsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate, bool quiet = false)
     {
         try
         {
-            viewModel.SetFlooidStatus("Retrieving Stamps…", "Working");
-            SetRetrievalStep(5);
+            if (!quiet)
+            {
+                viewModel.SetFlooidStatus("Retrieving Stamps…", "Working");
+                SetRetrievalStep(5);
+            }
             var html = await PullAsync("Stamps", startDate, endDate, () => loginWindow.FetchStampsHtmlAsync(startDate, endDate));
             var report = new GiftCardReportParser("Stamps").Parse(html);
             viewModel.ApplyStampsSold(StampsSold.From(report.Items));
@@ -920,13 +972,25 @@ public partial class MainWindow : Window
         var (lyFrom, lyTo) = LastYearTargetCalculator.LastYearRange(startDate, endDate);
         try
         {
+            // Owner, 22 Oct 2026 (option A): last year can't change, so once pulled it is kept on
+            // the till for this store (LastYearFigureStore) and not pulled again on the next run.
+            var savedStore = new LastYearFigureStore(Path.Combine(AppFiles.Folder, "last-year-figures.json"));
             if (!_lastYearCache.TryGetValue((lyFrom, lyTo), out var held))
             {
-                var refunds = new RefundsVoidsReportParser().Parse(await loginWindow.FetchRefundsVoidsHtmlAsync(lyFrom, lyTo));
-                var giftCards = new GiftCardReportParser().Parse(await loginWindow.FetchGiftCardHtmlAsync(lyFrom, lyTo));
-                var merged = new OperatorReportMerger().Merge(refunds, giftCards);
-                var team = new TeamPerformanceCalculator().Calculate(merged, new PerformanceTargets(0m, 0m, 0m));
-                held = (team.TotalTransactions, team.ActualAbv, team.ActualAub);
+                if (savedStore.TryGet(viewModel.StoreLocation, lyFrom, lyTo, out var saved))
+                {
+                    held = (saved.Transactions, saved.Abv, saved.Aub);
+                    AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Last year {lyFrom:dd/MM/yyyy} - {lyTo:dd/MM/yyyy}: used the figures kept on this till{Environment.NewLine}");
+                }
+                else
+                {
+                    var refunds = new RefundsVoidsReportParser().Parse(await loginWindow.FetchRefundsVoidsHtmlAsync(lyFrom, lyTo));
+                    var giftCards = new GiftCardReportParser().Parse(await loginWindow.FetchGiftCardHtmlAsync(lyFrom, lyTo));
+                    var merged = new OperatorReportMerger().Merge(refunds, giftCards);
+                    var team = new TeamPerformanceCalculator().Calculate(merged, new PerformanceTargets(0m, 0m, 0m));
+                    held = (team.TotalTransactions, team.ActualAbv, team.ActualAub);
+                    savedStore.Save(viewModel.StoreLocation, lyFrom, lyTo, new LastYearFigures(held.Transactions, held.Abv, held.Aub));
+                }
                 _lastYearCache[(lyFrom, lyTo)] = held;
             }
 
@@ -1308,6 +1372,7 @@ public partial class MainWindow : Window
         FlooidAccountMenu.IsOpen = false;
         try
         {
+            await StopQuietFetchAsync(DataContext as MainViewModel);
             ForgetPulledReports();
             var result = await GetOrCreateFlooidLoginWindow().ChangeStoreAsync();
             if (DataContext is MainViewModel viewModel)
@@ -1328,6 +1393,7 @@ public partial class MainWindow : Window
     private async void AccountSignOut_Click(object sender, RoutedEventArgs e)
     {
         FlooidAccountMenu.IsOpen = false;
+        await StopQuietFetchAsync(DataContext as MainViewModel);
         ForgetPulledReports();
         var result = await GetOrCreateFlooidLoginWindow().SignOutAsync();
         if (DataContext is MainViewModel viewModel)
@@ -1351,7 +1417,11 @@ public partial class MainWindow : Window
     private async void AccountOpenFlooid_Click(object sender, RoutedEventArgs e)
     {
         FlooidAccountMenu.IsOpen = false;
-        try { await GetOrCreateFlooidLoginWindow().OpenBackOfficeAsync(); }
+        try
+        {
+            await StopQuietFetchAsync(DataContext as MainViewModel);
+            await GetOrCreateFlooidLoginWindow().OpenBackOfficeAsync();
+        }
         catch (Exception ex)
         {
             if (DataContext is MainViewModel viewModel) viewModel.SetStatus(ex.Message);
@@ -1449,6 +1519,8 @@ public partial class MainWindow : Window
         if (_flooidGrabBusy || DataContext is not MainViewModel viewModel) return false;
         var loginWindow = GetOrCreateFlooidLoginWindow();
         if (!loginWindow.IsSignedIn) return false;
+        await StopQuietFetchAsync(viewModel);
+        if (_flooidGrabBusy || !loginWindow.IsSignedIn) return false;
         _pullFresh = fresh;
         _oldestPullUsed = null;
 
@@ -1459,6 +1531,7 @@ public partial class MainWindow : Window
         }
 
         var succeeded = false;
+        DateTime? quietFrom = null, quietTo = null;
 
         _flooidGrabBusy = true;
         // Stage 6A.93: remember which section is showing. Both Refresh buttons run this
@@ -1633,6 +1706,7 @@ public partial class MainWindow : Window
             // report it are gone and an error with nowhere to appear is worse than a
             // cluttered header.
             succeeded = teamUpdated && giftUpdated && branchUpdated && discountsOk;
+            if (succeeded && !includeDiscounts) (quietFrom, quietTo) = (startDate, endDate);
             if (succeeded) HideRetrievalOverlay();
             else ShowRetrievalError(string.Join(Environment.NewLine, errors));
 
@@ -1676,6 +1750,8 @@ public partial class MainWindow : Window
             SetBranchPerformanceView(wasBranchView, wasReportsView);
             SetBranchDetailView(wasGiftCardsView);
         }
+        if (quietFrom is DateTime qFrom && quietTo is DateTime qTo)
+            StartQuietFetch(viewModel, loginWindow, qFrom, qTo);
         return succeeded;
     }
 

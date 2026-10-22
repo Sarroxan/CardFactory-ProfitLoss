@@ -6,9 +6,18 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## Waiting - branch `faster-pulls` (not built, not released)
+
+The till's log of 22 Oct 2026: the pull after signing in took about 22 s, 11 s of it last year's Team and Gift Cards; opening the Daily Briefing then took about 8 s for Staff Discounts and Stamps.
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Last year's figures kept on the till** (owner, 22 Oct 2026, option A). Once last year's Team and Gift Cards have been pulled for a day or range, the three figures the targets come from (transactions, ABV, AUB, gift cards out) are kept in `%APPDATA%\CardFactory-ProfitLoss\last-year-figures.json`, per store and per last-year day or range, and used from then on - last year can't change. The targets are worked out from them exactly as before. Not kept until the store name is known; a damaged file is ignored and pulled again. `Core/Services/LastYearFigureStore`. Log line: "used the figures kept on this till". | LastYearFigureStore unit tests (read back, other store/days, no store name, damaged file). Not compiled yet | Sign in twice on the same day (close the app between): the second pull has no last-year step in the log, targets the same |
+| **Staff Discounts and Stamps fetched quietly** (owner, 22 Oct 2026, option B). After a full pull without them (signing in, Refresh from Team or Branch) they are fetched in the background - no progress box, no messages - so Reports and the Daily Briefing open almost at once. Anything that needs Flooid (Refresh, Generate reports, Daily Briefing, Open back office, Sign out, Change store) first lets the report being fetched finish ("One moment · finishing a report from Flooid") and stops the rest. A failure is only logged; the Reports section or Briefing pulls it as before. Log lines "Quiet fetch …". | Code reading only; can't run offline. Not compiled yet | Sign in, wait ~10 s, Daily Briefing: opens with nothing pulled ("used the copy" for Discounts and Stamps). Sign in and press Daily Briefing straight away: short "One moment", then opens normally |
+
 ## Released - v1.0.3 (21 Oct 2026, owner's say-so), from branch `briefing-green`
 
-Test build 39633003634 (version 1.0.3) green first time; tests passed. Its small-update notice from 1.0.2 was 78.79 MB (that runner had .NET 8.0.31; 1.0.2 has 8.0.32) - the SDK is not pinned (owner not asked to change it).
+Test build 39633003634 (version 1.0.3) green first time; tests passed. Main build 39633489871, Publish release 39633764475, release build 39633797434; zip sha256 6626c975…1f25; exe 1.0.3+795c1fc on .NET 8.0.31. Its small-update notice from 1.0.2 was 78.79 MB (that runner had .NET 8.0.31; 1.0.2 has 8.0.32) - the SDK is not pinned (owner not asked to change it).
 
 | Change | Proven | Check |
 |--------|--------|-------|
