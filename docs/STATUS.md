@@ -6,11 +6,15 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `pin-dotnet` (owner, 22 Oct 2026) - not built or released yet
+## Released - v1.0.5 (24 Oct 2026, owner's say-so), from branch `pin-dotnet`
+
+Test build 39848737373 (version 1.0.4 at the time) green; tests passed; small update from 1.0.4: 1.17 MB in 7 parts (runtime stayed 8.0.32). The new SDK reports one extra compiler warning (async without await, `MainWindow.xaml.cs` line 122, Window_Loaded) - harmless, left alone.
+
+Release housekeeping (owner, 21 Oct 2026): 1.0.5's notes carry everything from 1.0.1-1.0.4, and once 1.0.5 was published and checked, releases v1.0.1-v1.0.4 were removed. v1.0.0 (V1) stays.
 
 | Change | Proven | Check |
 |--------|--------|-------|
-| **.NET SDK pinned to 8.0.426** (`global.json`, `rollForward: disable`; `build.yml` Setup .NET reads it). Before, `8.0.x` let the runtime inside the exe flip between 8.0.31 and 8.0.32 by runner, which made every till download the full zip (1.0.3 -> 1.0.4 was 78.86 MB). 8.0.426 is the SDK released with runtime 8.0.32 (dotnet/core release-notes/8.0/releases.json, 13 Oct 2026), the runtime the tills have from 1.0.4. No app code changed. | Not yet built | Test build: green, and its Small updates notice from 1.0.4 is small (not ~79 MB); the exe contains 8.0.32 |
+| **.NET SDK pinned to 8.0.426** (`global.json`, `rollForward: disable`; `build.yml` Setup .NET reads it). Before, `8.0.x` let the runtime inside the exe flip between 8.0.31 and 8.0.32 by runner, which made every till download the full zip (1.0.3 -> 1.0.4 was 78.86 MB). 8.0.426 is the SDK released with runtime 8.0.32 (dotnet/core release-notes/8.0/releases.json, 13 Oct 2026), the runtime the tills have from 1.0.4. No app code changed. | Test build 39848737373 green; small update from 1.0.4 1.17 MB | Next .NET move: change global.json on purpose and expect one full download on the tills |
 
 ## Released - v1.0.4 (22 Oct 2026, owner's say-so), from branch `faster-pulls`
 

@@ -7,9 +7,9 @@
     <!-- Debug symbols inside each .dll/.exe rather than separate .pdb files beside the
          exe, so the release zip holds just the app. Error stack traces keep line numbers. -->
     <DebugType>embedded</DebugType>
-    <Version>1.0.4</Version>
-    <AssemblyVersion>1.0.4.0</AssemblyVersion>
-    <FileVersion>1.0.4.0</FileVersion>
+    <Version>1.0.5</Version>
+    <AssemblyVersion>1.0.5.0</AssemblyVersion>
+    <FileVersion>1.0.5.0</FileVersion>
     <Company>Card Factory</Company>
     <Product>Card Factory Profit &amp; Loss Calculator</Product>
   </PropertyGroup>
