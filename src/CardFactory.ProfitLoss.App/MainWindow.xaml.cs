@@ -956,7 +956,17 @@ public partial class MainWindow : Window
             return await loginWindow.CheckSessionAsync();
         }
 
-        await SecondSignInTest.RunAsync(environment, username, password, CheckFirstAsync, () => loginWindow.IsSignedIn);
+        // The store the app is signed into (header "0627 - Name"), else the remembered one.
+        var storeCode = FlooidLoginWindow.RememberedStoreCode;
+        try
+        {
+            var shown = await loginWindow.TryReadStoreAsync();
+            var dash = shown.IndexOf(" - ", StringComparison.Ordinal);
+            if (dash > 0) storeCode = shown[..dash].Trim();
+        }
+        catch { }
+
+        await SecondSignInTest.RunAsync(environment, username, password, storeCode, CheckFirstAsync, () => loginWindow.IsSignedIn);
     }
 
     private async Task StopQuietFetchAsync(MainViewModel? viewModel = null)

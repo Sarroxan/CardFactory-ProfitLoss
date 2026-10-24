@@ -33,6 +33,7 @@ internal static class SecondSignInTest
         CoreWebView2Environment environment,
         string username,
         string password,
+        string? storeCode,
         Func<Task<string>> checkFirstSignIn,
         Func<bool> appStillSignedIn)
     {
@@ -104,10 +105,15 @@ internal static class SecondSignInTest
             }
             Log("second sign-in submitted after " + clock.ElapsedMilliseconds + " ms");
 
-            // 2. Signed in, refused, or stopped on Flooid's Select Store page.
+            // 2. Signed in, refused, or on Flooid's Select Store page. Every sign-in passes
+            // through /web/spring/login; an account with several stores (this one: 0713 and
+            // 0627, log of 24 Oct 2026) stops there until a store is chosen. The test chooses
+            // the same store the app is signed into, the way the app does (real row, then
+            // the real Select Store button).
             var session = new FlooidSessionService();
             var signInDeadline = DateTime.UtcNow.AddSeconds(30);
-            var outcome = "no answer within 30 s";
+            var outcome = "no answer within 30 s, at the end on " + "{0}";
+            var storeChosen = false;
             while (DateTime.UtcNow < signInDeadline)
             {
                 await Task.Delay(250);
@@ -120,8 +126,22 @@ internal static class SecondSignInTest
                 }
                 if (FlooidSessionService.IsLoginFlowUri(source))
                 {
-                    outcome = "stopped on Flooid's Select Store page (an account with several stores) - this test does not choose a store";
-                    break;
+                    if (storeChosen) continue;
+                    string choice;
+                    try { choice = await RunScriptAsync(core, SelectStoreScript(storeCode ?? string.Empty)); }
+                    catch { continue; }
+                    if (choice.StartsWith("CLICKED", StringComparison.Ordinal))
+                    {
+                        storeChosen = true;
+                        Log("second sign-in chose store " + storeCode + " after " + clock.ElapsedMilliseconds + " ms (" + choice + ")");
+                        continue;
+                    }
+                    if (choice == "NO_ROW")
+                    {
+                        outcome = "stopped - Flooid's Select Store page did not offer store " + (string.IsNullOrEmpty(storeCode) ? "(none known)" : storeCode);
+                        break;
+                    }
+                    continue;   // NO_FORM: passing through, or the store list is still loading
                 }
                 string error;
                 try { error = await RunScriptAsync(core, LoginErrorScript); }
@@ -132,7 +152,7 @@ internal static class SecondSignInTest
                     break;
                 }
             }
-            Log("second sign-in " + outcome);
+            Log("second sign-in " + outcome.Replace("{0}", PathOf(browser.Source)));
             if (!secondSignedIn) return;
 
             // 3. Both straight away, then both a minute later.
@@ -287,6 +307,29 @@ internal static class SecondSignInTest
         """
         .Replace("__USER__", JsonSerializer.Serialize(username))
         .Replace("__PASS__", JsonSerializer.Serialize(password));
+
+    // The app's own store choice (FlooidView.SelectStoreAsync, from the saved Select Store page).
+    private static string SelectStoreScript(string code) => """
+        (() => {
+          const code = __CODE__;
+          const form = document.getElementById('storeselectionform');
+          if (!form) return 'NO_FORM';
+          let row = null;
+          form.querySelectorAll('tbody.ui-datatable-data > tr[data-rk]').forEach(r => {
+            if ((r.getAttribute('data-rk') || '').trim() === code) row = r;
+          });
+          if (!row) return 'NO_ROW';
+          const button = document.getElementById('storeselectionform:selectstore');
+          if (!button) return 'NO_BUTTON';
+          (row.querySelector('td') || row).click();
+          let via = 'row';
+          const selection = document.getElementById('storeselectionform:userOrgUnitTable_selection');
+          if (selection && selection.value !== code) { selection.value = code; via = 'row+input'; }
+          setTimeout(() => button.click(), 0);
+          return 'CLICKED:' + via;
+        })()
+        """
+        .Replace("__CODE__", JsonSerializer.Serialize(code));
 
     private const string LoginErrorScript = """
         (() => {
