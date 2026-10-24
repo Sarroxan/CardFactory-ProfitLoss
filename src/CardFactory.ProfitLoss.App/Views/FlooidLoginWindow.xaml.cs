@@ -337,6 +337,14 @@ public partial class FlooidLoginWindow : Window
     public Task<string> FetchDiscountsHtmlAsync(DateTime fromDate, DateTime toDate) =>
         FlooidView.FetchDiscountsHtmlAsync(fromDate, toDate);
 
+    // Second sign-in test (owner, 24 Oct 2026).
+    internal bool TryGetSignInForTest(out string username, out string password) =>
+        FlooidView.TryGetSignInForTest(out username, out password);
+
+    internal Microsoft.Web.WebView2.Core.CoreWebView2Environment? BrowserEnvironment => FlooidView.BrowserEnvironment;
+
+    internal Task<string> CheckSessionAsync() => FlooidView.CheckSessionAsync();
+
     public async Task EnsureOpenAsync()
     {
         // Stage 6B.31: each time this window is opened for a sign in, start with our card.

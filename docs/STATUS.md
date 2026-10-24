@@ -6,6 +6,14 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `second-sign-in-test` (owner, 24 Oct 2026) - a test build only, not for release
+
+Question: can reports be pulled at the same time? Not inside one sign-in - every criteria page carries that sign-in's one `struts.token_REPORT` (saved pages 04, 06, 08, 11) and the product group choice is kept per sign-in. The only way would be a second sign-in, and nothing in the saved pages says whether Flooid allows the same account to be signed in twice.
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Second sign-in test** (`Views/SecondSignInTest.cs`). Once per run, after the first quiet fetch has finished: signs in a second time in a hidden browser with its own in-memory profile (shares no cookies with the app's sign-in), with the sign-in just typed or the saved one (held in memory only, never written); checks both sign-ins straight away and a minute later by asking for `/web/spring/menu` from inside each browser (signed out = Flooid answers with its login page); signs the second out with Flooid's Log Out; checks the app's own once more; writes every step and a `RESULT:` line to the diagnostic log. Reports are pulled exactly as before. Stops at Select Store (several-store accounts). | Not yet built | Sign in on a till, wait about 2 minutes, send the log: lines starting "Second sign-in test:" |
+
 ## Released - v1.0.5 (24 Oct 2026, owner's say-so), from branch `pin-dotnet`
 
 Test build 39848737373 (version 1.0.4 at the time) green; tests passed; small update from 1.0.4: 1.17 MB in 7 parts (runtime stayed 8.0.32). The new SDK reports one extra compiler warning (async without await, `MainWindow.xaml.cs` line 122, Window_Loaded) - harmless, left alone.

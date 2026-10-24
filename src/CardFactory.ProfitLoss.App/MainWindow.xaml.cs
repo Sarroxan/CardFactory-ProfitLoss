@@ -921,12 +921,42 @@ public partial class MainWindow : Window
             if (_quietFetchStop || !loginWindow.IsSignedIn) return;
             await PullStampsAsync(viewModel, loginWindow, startDate, endDate, quiet: true);
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch finished{Environment.NewLine}");
+            _ = RunSecondSignInTestOnceAsync(loginWindow);
         }
         catch (Exception ex)
         {
             // Only a head start: the Reports section or the Daily Briefing pulls it as before.
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch stopped: {ex.Message}{Environment.NewLine}");
         }
+    }
+
+    // Second sign-in test (owner, 24 Oct 2026): once per run, after the first quiet fetch has
+    // finished, find out whether Flooid lets the same account be signed in twice at once.
+    // Writes its steps and a RESULT line to the diagnostic log; changes nothing about how
+    // reports are pulled. The app's own sign-in is only checked while nothing else is using
+    // Flooid. See Views/SecondSignInTest.cs.
+    private bool _secondSignInTestStarted;
+
+    private async Task RunSecondSignInTestOnceAsync(FlooidLoginWindow loginWindow)
+    {
+        if (_secondSignInTestStarted) return;
+        _secondSignInTestStarted = true;
+        await Task.Delay(2000);
+        var environment = loginWindow.BrowserEnvironment;
+        if (environment is null || !loginWindow.TryGetSignInForTest(out var username, out var password))
+        {
+            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Second sign-in test: skipped - no sign-in from this run to use{Environment.NewLine}");
+            return;
+        }
+
+        async Task<string> CheckFirstAsync()
+        {
+            while (_flooidGrabBusy || _quietFetch is { IsCompleted: false })
+                await Task.Delay(500);
+            return await loginWindow.CheckSessionAsync();
+        }
+
+        await SecondSignInTest.RunAsync(environment, username, password, CheckFirstAsync, () => loginWindow.IsSignedIn);
     }
 
     private async Task StopQuietFetchAsync(MainViewModel? viewModel = null)

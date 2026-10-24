@@ -3755,6 +3755,11 @@ public partial class FlooidView : UserControl
                 await Task.Delay(250);
                 result = await ExecuteStringScriptOnAsync(core, script);
             }
+            if (result is "CLICKED" or "SUBMITTED")
+            {
+                _testUsername = username;
+                _testPassword = password;
+            }
             return string.IsNullOrWhiteSpace(result) ? "NO_RESULT" : result;
         }
         catch (Exception ex)
@@ -3762,6 +3767,24 @@ public partial class FlooidView : UserControl
             return "ERROR: " + ex.Message;
         }
     }
+
+    // Second sign-in test (owner, 24 Oct 2026): the sign-in last sent to Flooid, held in
+    // memory only for this run so SecondSignInTest can sign in a second time. Never written
+    // anywhere; forgotten on Sign out and when the browser shuts down.
+    private string? _testUsername;
+    private string? _testPassword;
+
+    internal bool TryGetSignInForTest(out string username, out string password)
+    {
+        username = _testUsername ?? string.Empty;
+        password = _testPassword ?? string.Empty;
+        return username.Length > 0 && password.Length > 0;
+    }
+
+    internal CoreWebView2Environment? BrowserEnvironment => _webViewEnvironment;
+
+    /// <summary>Second sign-in test: is the app's own sign-in still working? Does not move the browser.</summary>
+    internal Task<string> CheckSessionAsync() => SecondSignInTest.CheckSessionOnAsync(Browser.CoreWebView2);
 
     /// <summary>
     /// Flooid's own answer to a refused sign in, or an empty string. From the saved page of a
@@ -3847,6 +3870,8 @@ public partial class FlooidView : UserControl
     /// </summary>
     public async Task<string> SignOutAsync()
     {
+        _testUsername = null;
+        _testPassword = null;
         const string script = """
             (() => {
               const docs = [document];
@@ -3884,6 +3909,8 @@ public partial class FlooidView : UserControl
 
     public void Shutdown()
     {
+        _testUsername = null;
+        _testPassword = null;
         ResetReportPopupContext();
         ResetGeneratedReportCapture();
         try
