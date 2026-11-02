@@ -331,7 +331,7 @@
 
                         <CheckBox x:Name="RememberStoreCheck" Style="{StaticResource CfCheckBoxStyle}"
                                   Content="Remember this store"
-                                  IsChecked="True"
+                                  IsChecked="False"
                                   FontFamily="Arial" FontSize="11"
                                   Foreground="{StaticResource CfDeepBlue}" Margin="0,8,0,0" />
 

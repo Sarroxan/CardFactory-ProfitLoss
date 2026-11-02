@@ -122,8 +122,10 @@ public partial class FlooidLoginWindow : Window
 
     // ---------------------------------------------------------------- Stage 6B.50
     // Concept B: an account with several stores picks one the first time, "Remember this
-    // store" (ticked by default) keeps it, and every later sign in - automatic included -
-    // goes straight to it. "Change store" in the account menu brings the list back.
+    // store" keeps it, and every later sign in - automatic included - goes straight to it.
+    // "Change store" in the account menu brings the list back.
+    // Owner, 2 Nov 2026: the box starts unticked. With several stores the person picks the
+    // store at every sign in, unless they tick "Remember this store".
 
     private static string RememberedStorePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -223,7 +225,7 @@ public partial class FlooidLoginWindow : Window
         StoreCountText.Text = "This account has " + stores.Count + " stores. Choose the one to open.";
         StoreErrorBox.Visibility = Visibility.Collapsed;
         StoreBusyText.Visibility = Visibility.Collapsed;
-        RememberStoreCheck.IsChecked = true;
+        RememberStoreCheck.IsChecked = false;   // owner, 2 Nov 2026: pick each time unless ticked
         SignInForm.Visibility = Visibility.Collapsed;
         StoreChoicePanel.Visibility = Visibility.Visible;
         BackToSimpleSignInLink.Visibility = Visibility.Collapsed;

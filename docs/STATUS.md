@@ -6,6 +6,12 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `pick-store` (owner, 2 Nov 2026) - not built or released yet
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Pick the store at every sign-in unless "Remember this store" is ticked.** On an account with several stores (the owner's has 0713 and 0627) the store list's "Remember this store" box now starts unticked (it started ticked, so a store was remembered unless someone unticked it). Unticked: the store is not remembered and the list is shown at the next sign-in, automatic sign-in included. Ticked: as before, later sign-ins go straight to it, and Change store brings the list back. A store remembered before this change stays remembered until Change store. | Not yet built | Sign in with the box left unticked: the next sign-in shows the list. Tick it: the next sign-in goes straight in |
+
 ## Released - v1.0.5 (24 Oct 2026, owner's say-so), from branch `pin-dotnet`
 
 Test build 39848737373 (version 1.0.4 at the time) green; tests passed; small update from 1.0.4: 1.17 MB in 7 parts (runtime stayed 8.0.32). The new SDK reports one extra compiler warning (async without await, `MainWindow.xaml.cs` line 122, Window_Loaded) - harmless, left alone.
