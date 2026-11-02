@@ -6,9 +6,9 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `two-sign-ins` (owner, 2 Nov 2026) - not built or released yet
+## Released - v1.0.6 (2 Nov 2026, owner's say-so), from branch `two-sign-ins`
 
-Built on `pick-store`, so it carries that change too.
+Carries `pick-store` (below) too. Test builds 41432057584, 41440096540 (tried on the till), 41448661151 (its two fixes - quiet fetch on both sign-ins, wait for the second's menu - not yet tried on a till when released).
 
 Flooid lets the same account be signed in twice at once: the second-sign-in test (branch `second-sign-in-test`, test build 40104600355, till log 2 Nov 2026 10:19) signed in a second time in 6.2 s including choosing store 0627, both sign-ins were working straight away and a minute later, and signing the second out left the app's own signed in. Inside one sign-in reports can't run side by side (one `struts.token_REPORT` per sign-in).
 
@@ -18,7 +18,7 @@ Report times on the till that morning (Fast): Refunds 2.4 s, Gift Cards 6.4 s, B
 |--------|--------|-------|
 | **A second, hidden sign-in pulls reports at the same time** (`Views/SecondSignIn.cs`, `Views/PullPlan.cs`). A second `FlooidView` in a hidden window, in the app's browser environment but with its own in-memory profile (`SecondSignIn`, InPrivate; its report and picker windows too). It starts signing in the moment the app's own sign-in is sent (`SignInSubmitted`), with the same sign-in (typed or saved; held in memory only, forgotten on Sign out), waits on Select Store until the person has chosen and then chooses the same store (`ChosenStoreCode`, set from the click). Each pull puts all the reports it needs on one plan, longest first (Gift Cards 6.4 s, Stamps 6.2, Refunds 2.4, Branch 2.3, Staff Discounts 2.2; last year's two for the targets last, when not kept on the till yet), and the app's own and the second sign-in each take the next report as soon as they are free; the figures are then worked out in the same order and the same way as before. Whatever the second sign-in doesn't get to (still signing in, not in use, failed) the app's own takes; a report that fails on the second goes back on the plan. Before each pull it checks it is still signed in and signs in again if not; after a failure it starts again from a fresh profile; two failures in a row or a refused password: not used until the next sign-in. Sign out and Change store sign it out first. Every pull logs who pulled what and how long it all took. No figures are worked out differently and nothing on screen changes. | Test build 41432057584 (first version) on the till 2 Nov 11:37: it never pulled anything - it started before the store was known, then got stuck on Select Store - fixed as above. Test build 41440096540 on the till 2 Nov 12:18-12:20: works - second sign-in ready 3.1 s and 4.7 s after the sign-in was sent (store 0627); Refresh 6.3 s with Refunds and Branch on the second and Gift Cards on the app's own (was about 11 s); sign-in pull 8.7 s. Two faults, fixed: the quiet fetch never used the second (its stop check counted the moment of "not signed in" during every page change); the second's first report opened 5.2-5.6 s after the click (later ones about 1 s) - it now waits for the menu's report links before it counts as ready | Log lines "Second sign-in: …" and "Refresh: Refunds by …, GiftCards by …, Branch by … · all done in … ms". Refresh about 6½ s (was 11); sign-in pull about 6½–8 s; Daily Briefing about 11 s (was 19½) - estimates |
 
-## On branch `pick-store` (owner, 2 Nov 2026) - not built or released yet
+## Released - v1.0.6 (2 Nov 2026), from branch `pick-store` (inside `two-sign-ins`)
 
 | Change | Proven | Check |
 |--------|--------|-------|
@@ -28,7 +28,9 @@ Report times on the till that morning (Fast): Refunds 2.4 s, Gift Cards 6.4 s, B
 
 Test build 39848737373 (version 1.0.4 at the time) green; tests passed; small update from 1.0.4: 1.17 MB in 7 parts (runtime stayed 8.0.32). The new SDK reports one extra compiler warning (async without await, `MainWindow.xaml.cs` line 122, Window_Loaded) - harmless, left alone.
 
-Release housekeeping (owner, 21 Oct 2026): 1.0.5's notes carry everything from 1.0.1-1.0.4, and once 1.0.5 was published and checked, releases v1.0.1-v1.0.4 were removed. v1.0.0 (V1) stays.
+Main build 40091867854 green; Publish release 40091975035; release build 40091982748 green; zip SHA-256 afc15dc6…2197 matches its .sha256; exe 1.0.5+64281e1; runtime 8.0.32.
+
+Release housekeeping (owner, 21 Oct 2026): 1.0.5's notes carry everything from 1.0.1-1.0.4, and once 1.0.5 was published and checked, releases v1.0.1-v1.0.4 were removed (Remove release 40092129034, 40092147158, 40092166804, 40092186317). v1.0.0 (V1) stays.
 
 | Change | Proven | Check |
 |--------|--------|-------|
