@@ -94,6 +94,7 @@ public partial class FlooidLoginWindow : Window
     public async Task<string> SignOutAsync()
     {
         _autoSignInTried = true;
+        ChosenStoreCode = null;
         return await FlooidView.SignOutAsync();
     }
 
@@ -176,6 +177,10 @@ public partial class FlooidLoginWindow : Window
     public static bool AccountHasSeveralStores => RememberedStoreCode is not null || _storeChoiceSeen;
     private static bool _storeChoiceSeen;
 
+    /// <summary>Two sign-ins (owner, 2 Nov 2026): the store chosen at this sign-in, so the second
+    /// sign-in chooses the same one. Null when no store was chosen (one-store account).</summary>
+    internal string? ChosenStoreCode { get; private set; }
+
     private bool _storeCheckInFlight;
     private bool _storeChoiceInFlight;
     private bool _storeListShown;
@@ -188,6 +193,7 @@ public partial class FlooidLoginWindow : Window
     public async Task<string> ChangeStoreAsync()
     {
         ForgetRememberedStore();
+        ChosenStoreCode = null;
         LogSignInStep("change store: remembered store forgotten, signing out");
         var result = await FlooidView.SignOutAsync();
         _autoSignInTried = false;
@@ -293,6 +299,7 @@ public partial class FlooidLoginWindow : Window
                 LogSignInStep("store " + code + " opened after " + (int)(DateTime.UtcNow - started).TotalMilliseconds + " ms");
                 if (remember) RememberedStoreCode = code;
                 else ForgetRememberedStore();
+                ChosenStoreCode = code;
 
                 HideStoreList();
                 _autoSignInTried = false;   // re-arm, exactly as a successful sign in does
@@ -350,6 +357,12 @@ public partial class FlooidLoginWindow : Window
 
     public Task<string> FetchDiscountsHtmlAsync(DateTime fromDate, DateTime toDate) =>
         FlooidView.FetchDiscountsHtmlAsync(fromDate, toDate);
+
+    // Two sign-ins (owner, 2 Nov 2026).
+    internal bool TryGetHeldSignIn(out string username, out string password) =>
+        FlooidView.TryGetHeldSignIn(out username, out password);
+
+    internal Microsoft.Web.WebView2.Core.CoreWebView2Environment? BrowserEnvironment => FlooidView.BrowserEnvironment;
 
     public async Task EnsureOpenAsync()
     {
@@ -792,6 +805,7 @@ public partial class FlooidLoginWindow : Window
 
     private async Task SignInAsync(string username, string password, bool automatic)
     {
+        ChosenStoreCode = null;
         SetLoginBusy(true);
         var started = DateTime.UtcNow;
         LogSignInStep("submitting (" + (automatic ? "automatic" : "typed") + ")");

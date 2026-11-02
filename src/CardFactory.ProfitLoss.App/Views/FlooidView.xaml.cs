@@ -41,6 +41,33 @@ public partial class FlooidView : UserControl
 
     public FlooidView() => InitializeComponent();
 
+    // Two sign-ins (owner, 2 Nov 2026). The second sign-in is another FlooidView, hidden, in
+    // the same browser environment as the app's own but with its own in-memory profile, so it
+    // shares no cookies with it. Its popups (report windows, product group picker) must be
+    // created in that same profile. Set before the view is first opened.
+    private CoreWebView2Environment? _sharedEnvironment;
+    private string? _privateProfileName;
+
+    /// <summary>Written in front of this view's timing lines in the diagnostic log.</summary>
+    public string LogPrefix { get; set; } = string.Empty;
+
+    internal void UseSeparateProfile(CoreWebView2Environment environment, string profileName)
+    {
+        _sharedEnvironment = environment;
+        _privateProfileName = profileName;
+    }
+
+    private CoreWebView2ControllerOptions CreatePrivateOptions(CoreWebView2Environment environment)
+    {
+        var options = environment.CreateCoreWebView2ControllerOptions();
+        options.ProfileName = _privateProfileName!;
+        options.IsInPrivateModeEnabled = true;
+        return options;
+    }
+
+    internal CoreWebView2Environment? BrowserEnvironment => _webViewEnvironment;
+    internal Uri? CurrentSource => Browser.Source;
+
     private static bool _cookiesClearedThisRun;   // Stage 6B.63
 
     private static void LogStartupStep(string step)
@@ -95,14 +122,24 @@ public partial class FlooidView : UserControl
 
         try
         {
-            Directory.CreateDirectory(_sessionService.UserDataFolder);
-            var environment = await CoreWebView2Environment.CreateAsync(
-                browserExecutableFolder: null,
-                userDataFolder: _sessionService.UserDataFolder,
-                options: new CoreWebView2EnvironmentOptions());
-            _webViewEnvironment = environment;
+            CoreWebView2Environment environment;
+            if (_sharedEnvironment is not null)
+            {
+                environment = _sharedEnvironment;
+                _webViewEnvironment = environment;
+                await Browser.EnsureCoreWebView2Async(environment, CreatePrivateOptions(environment));
+            }
+            else
+            {
+                Directory.CreateDirectory(_sessionService.UserDataFolder);
+                environment = await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: null,
+                    userDataFolder: _sessionService.UserDataFolder,
+                    options: new CoreWebView2EnvironmentOptions());
+                _webViewEnvironment = environment;
 
-            await Browser.EnsureCoreWebView2Async(environment);
+                await Browser.EnsureCoreWebView2Async(environment);
+            }
 
             Browser.CoreWebView2.WebResourceResponseReceived += Browser_WebResourceResponseReceived;
             Browser.CoreWebView2.Settings.AreDevToolsEnabled = false;
@@ -119,7 +156,8 @@ public partial class FlooidView : UserControl
             // first page is asked for - once per run, so a browser rebuilt mid-run does not
             // sign anyone out. Done at start-up rather than on exit so a crash, a kill from
             // Task Manager or a power cut starts signed out too.
-            if (!_cookiesClearedThisRun)
+            // (A private in-memory profile starts with no cookies, so only the app's own.)
+            if (_privateProfileName is null && !_cookiesClearedThisRun)
             {
                 _cookiesClearedThisRun = true;
                 Browser.CoreWebView2.CookieManager.DeleteAllCookies();
@@ -221,7 +259,10 @@ public partial class FlooidView : UserControl
             };
 
             popupHost.Show();
-            await popupBrowser.EnsureCoreWebView2Async(_webViewEnvironment);
+            if (_privateProfileName is not null)
+                await popupBrowser.EnsureCoreWebView2Async(_webViewEnvironment, CreatePrivateOptions(_webViewEnvironment));
+            else
+                await popupBrowser.EnsureCoreWebView2Async(_webViewEnvironment);
             popupBrowser.CoreWebView2.WebResourceResponseReceived += Browser_WebResourceResponseReceived;
             popupBrowser.CoreWebView2.Settings.AreDevToolsEnabled = false;
             popupBrowser.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
@@ -422,7 +463,7 @@ public partial class FlooidView : UserControl
 
     public async Task<string> FetchRefundsVoidsHtmlAsync(DateTime fromDate, DateTime toDate)
     {
-        var timing = new PhaseLog("Refunds/Voids");
+        var timing = new PhaseLog(LogPrefix + "Refunds/Voids");
         var succeeded = false;
         try
         {
@@ -900,7 +941,7 @@ public partial class FlooidView : UserControl
     // Canonical Flooid Branch criteria submit: /backoffice/branchPerformanceReportCriteriaSubmit.action
     public async Task<string> FetchBranchPerformanceHtmlAsync(DateTime fromDate, DateTime toDate)
     {
-        var timing = new PhaseLog("Branch Performance");
+        var timing = new PhaseLog(LogPrefix + "Branch Performance");
         var succeeded = false;
         try
         {
@@ -1359,7 +1400,7 @@ public partial class FlooidView : UserControl
 
     private async Task<string> FetchItemSalesHtmlAsync(ItemSalesGroup group, DateTime fromDate, DateTime toDate)
     {
-        var timing = new PhaseLog(group.Name);
+        var timing = new PhaseLog(LogPrefix + group.Name);
         var succeeded = false;
         try
         {
@@ -2097,7 +2138,7 @@ public partial class FlooidView : UserControl
     // are not in any save.
     public async Task<string> FetchDiscountsHtmlAsync(DateTime fromDate, DateTime toDate)
     {
-        var timing = new PhaseLog("Discounts");
+        var timing = new PhaseLog(LogPrefix + "Discounts");
         var succeeded = false;
         try
         {
@@ -3755,11 +3796,67 @@ public partial class FlooidView : UserControl
                 await Task.Delay(250);
                 result = await ExecuteStringScriptOnAsync(core, script);
             }
+            if (result is "CLICKED" or "SUBMITTED")
+            {
+                _heldUsername = username;
+                _heldPassword = password;
+            }
             return string.IsNullOrWhiteSpace(result) ? "NO_RESULT" : result;
         }
         catch (Exception ex)
         {
             return "ERROR: " + ex.Message;
+        }
+    }
+
+    // Two sign-ins (owner, 2 Nov 2026): the sign-in last sent to Flooid, typed or saved, held in
+    // memory only while the app is open so the second sign-in can use it. Never written
+    // anywhere; forgotten on Sign out and when the browser shuts down.
+    private string? _heldUsername;
+    private string? _heldPassword;
+
+    internal bool TryGetHeldSignIn(out string username, out string password)
+    {
+        username = _heldUsername ?? string.Empty;
+        password = _heldPassword ?? string.Empty;
+        return username.Length > 0 && password.Length > 0;
+    }
+
+    /// <summary>
+    /// Is this view's sign-in still alive on Flooid's side? Asks for the menu page from inside
+    /// the browser without moving it: still signed in, Flooid serves the menu; signed out, it
+    /// answers with its login page. Returns SIGNED-IN, SIGNED-OUT or ERROR, then detail.
+    /// (Second sign-in test, till log of 2 Nov 2026: SIGNED-IN 200 /web/spring/menu.)
+    /// </summary>
+    internal async Task<string> CheckSessionAsync()
+    {
+        const string script = """
+            (() => {
+              try {
+                const x = new XMLHttpRequest();
+                x.open('GET', '/web/spring/menu', false);
+                x.send(null);
+                const url = String(x.responseURL || '');
+                const body = String(x.responseText || '');
+                let path = url;
+                try { path = new URL(url).pathname; } catch (_) {}
+                const login = url.toLowerCase().includes('/authserver/login')
+                           || body.includes('id="Uname"') || body.includes("id='Uname'");
+                return (login ? 'SIGNED-OUT ' : 'SIGNED-IN ') + x.status + ' ' + path;
+              } catch (e) {
+                return 'ERROR ' + String(e && e.message ? e.message : e);
+              }
+            })()
+            """;
+        try
+        {
+            var core = Browser.CoreWebView2;
+            if (core is null) return "ERROR browser not ready";
+            return await ExecuteStringScriptOnAsync(core, script);
+        }
+        catch (Exception ex)
+        {
+            return "ERROR " + ex.Message;
         }
     }
 
@@ -3847,6 +3944,8 @@ public partial class FlooidView : UserControl
     /// </summary>
     public async Task<string> SignOutAsync()
     {
+        _heldUsername = null;
+        _heldPassword = null;
         const string script = """
             (() => {
               const docs = [document];
@@ -3884,6 +3983,8 @@ public partial class FlooidView : UserControl
 
     public void Shutdown()
     {
+        _heldUsername = null;
+        _heldPassword = null;
         ResetReportPopupContext();
         ResetGeneratedReportCapture();
         try

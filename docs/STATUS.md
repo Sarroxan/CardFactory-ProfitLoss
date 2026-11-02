@@ -6,6 +6,18 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `two-sign-ins` (owner, 2 Nov 2026) - not built or released yet
+
+Built on `pick-store`, so it carries that change too.
+
+Flooid lets the same account be signed in twice at once: the second-sign-in test (branch `second-sign-in-test`, test build 40104600355, till log 2 Nov 2026 10:19) signed in a second time in 6.2 s including choosing store 0627, both sign-ins were working straight away and a minute later, and signing the second out left the app's own signed in. Inside one sign-in reports can't run side by side (one `struts.token_REPORT` per sign-in).
+
+Report times on the till that morning (Fast): Refunds 2.4 s, Gift Cards 6.4 s, Branch Performance 2.3 s, Staff Discounts 2.2 s, Stamps 6.2 s.
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **A second, hidden sign-in pulls some reports at the same time** (`Views/SecondSignIn.cs`). A second `FlooidView` in a hidden window, in the app's browser environment but with its own in-memory profile (`SecondSignIn`, InPrivate; its report and picker windows too), signs in with the sign-in the app's own was given (typed or saved; held in memory only, forgotten on Sign out) and chooses the same store (`FlooidLoginWindow.ChosenStoreCode`, the store chosen at this sign-in). Refresh / sign-in pull / Daily Briefing: Branch Performance (and Stamps when pulled) on the second, Refunds, Gift Cards, Staff Discounts on the app's own. Quiet fetch and Generate reports: Stamps on the second. Before each report it checks it is still signed in (`CheckSessionAsync`, the menu page asked for from inside the browser) and signs in again if not. If the second has not started on a report by the time the app's own reaches it, the app's own takes it back and pulls it exactly as before (`SideJob`, `PullAsync`); a report that fails on the second is pulled by the app's own. Two failures in a row, or a refused password: not used again until the next sign-in. Sign out and Change store sign the second out first; on closing the app it is left to run out like the app's own. No figures are worked out differently and nothing on screen changes. | Not yet built | Log lines "Second sign-in: …" and timing blocks "Second sign-in · Branch Performance - timings (ok)". Sign-in pull about 9 s instead of 11; Refresh about 6½ s instead of 11 (estimates) |
+
 ## On branch `pick-store` (owner, 2 Nov 2026) - not built or released yet
 
 | Change | Proven | Check |
