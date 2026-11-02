@@ -127,7 +127,14 @@ public partial class FlooidLoginWindow : Window
     // Owner, 2 Nov 2026: the box starts unticked. With several stores the person picks the
     // store at every sign in, unless they tick "Remember this store".
 
+    // Owner, 2 Nov 2026: a new file name. remembered-store.txt was written while the box
+    // started ticked, so it holds a store nobody chose to remember; it is deleted unread and
+    // every till with several stores asks again until someone ticks the box.
     private static string RememberedStorePath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "CardFactory-ProfitLoss", "remembered-store-ticked.txt");
+
+    private static string OldRememberedStorePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "CardFactory-ProfitLoss", "remembered-store.txt");
 
@@ -135,6 +142,11 @@ public partial class FlooidLoginWindow : Window
     {
         get
         {
+            try
+            {
+                if (File.Exists(OldRememberedStorePath)) File.Delete(OldRememberedStorePath);
+            }
+            catch { }
             try
             {
                 if (!File.Exists(RememberedStorePath)) return null;
