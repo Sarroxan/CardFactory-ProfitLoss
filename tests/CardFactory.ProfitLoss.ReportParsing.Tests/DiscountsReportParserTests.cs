@@ -41,6 +41,28 @@ public sealed class DiscountsReportParserTests
         Assert.Equal(2.61m, result.StaffDiscountLines.Sum(line => line.DiscountValue));
     }
 
+    // Owner's till, 2 Nov 2026: "Discounts & Price Overrides line 'BISCOFF BAR' discount %: ''
+    // is not a valid number." A line with nothing in Discount % Applied (a price override has
+    // no percentage) stopped the whole report. Same genuine report with that cell emptied on
+    // one line: every line is still read and the totals still add up.
+    [Fact]
+    public void Parse_LineWithBlankDiscountPercent_IsReadAsNoPercentage()
+    {
+        const string percentCell = "<td class=\"reportRight\">25.00</td><td class=\"reportRight\"></td></tr>";
+        var html = TestFixtureLoader.Read(Fixture);
+        var first = html.IndexOf(percentCell, StringComparison.Ordinal);
+        Assert.True(first >= 0, "the fixture's Discount % cell was not found");
+        html = html[..first] + "<td class=\"reportRight\"></td><td class=\"reportRight\"></td></tr>" + html[(first + percentCell.Length)..];
+
+        var result = new DiscountsReportParser().Parse(html);
+
+        Assert.Equal(4, result.Lines.Count);
+        var grandad = Assert.Single(result.Lines, line => line.ProductCode == "0000392");
+        Assert.Equal(0m, grandad.DiscountPercent);
+        Assert.Equal(0.25m, grandad.DiscountValue);
+        Assert.Equal(2.61m, result.StaffDiscountLines.Sum(line => line.DiscountValue));
+    }
+
     // Saved from the live system on 16/10/2026 for 15/10/2026, a day with no discounts at all
     // (Discount Type All, Reason All), outlet and operator replaced as above. The table is
     // still there with its headings and a REPORT TOTAL of 0.00 - not a missing table.

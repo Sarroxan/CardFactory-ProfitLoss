@@ -103,7 +103,12 @@ public sealed class DiscountsReportParser
                 ReportText.ParseDecimal(Cell("Selling Price"), context + " selling price"),
                 ReportText.ParseDecimal(Cell("Discount Price"), context + " discount price"),
                 ReportText.ParseDecimal(Cell("Discount Value"), context + " discount value"),
-                ReportText.ParseDecimal(Cell("Discount % Applied"), context + " discount %")));
+                // Owner's till, 2 Nov 2026: a line ('BISCOFF BAR') with nothing in Discount %
+                // Applied - a price override has no percentage - stopped the whole report. The
+                // percentage is not used for any figure (the £ Discount Value is), so blank is 0.
+                string.IsNullOrWhiteSpace(Cell("Discount % Applied"))
+                    ? 0m
+                    : ReportText.ParseDecimal(Cell("Discount % Applied"), context + " discount %")));
         }
 
         if (totals is null)

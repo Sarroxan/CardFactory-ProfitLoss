@@ -6,11 +6,13 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `flag-values` (owner, 2 Nov 2026) - not built or released yet
+## On branch `flag-values` (owner, 2 Nov 2026) - not built or released yet (three changes)
 
 | Change | Proven | Check |
 |--------|--------|-------|
 | **Voids flagged from £30, refunds from £25** (were £20 for both). A person's voids of £30.00 or more and refunds of £25.00 or more (for the day, or the week when the calendar is on a week) are highlighted amber in Reports, Print summary, the Daily Briefing sheet and the Team Scorecard (its store-total tiles too). The key under the Reports table shows two labels, "Voids £30.00+" and "Refunds £25.00+" (concept K1); Print summary and the Team Scorecard say "Voids £30.00+ · Refunds £25.00+ highlighted". `MainViewModel.VoidsFlagValue` / `RefundsFlagValue` replace `ReportFlagValue`. | Not yet built | £26 of voids not flagged; £27.98 of refunds flagged |
+| **Daily Briefing: a "+/–" box in each top panel** (owner, 2 Nov 2026, concept S3 fitted). Sales, ABV and AUB each get a third box beside Actual with how far over or under target the actual is, as a whole percentage ("▲4%" green, "▼3%" red; `DailyBriefingSheet.PercentAgainstTarget`). The printed panel only fits two boxes, so the app draws the panel again over the printed one in the form's own style (panel colour #E2EBF6, Chewy title and labels, navy outlined boxes, yellow edge on Actual) with Target and Actual a little narrower (70 pt each, "+/–" 36 pt). Shows in the preview and the printout. Nothing when there is no target. | Not yet built | Concept pictures briefing-S3-fitted*.png matched |
+| **Staff Discounts failed on a line with no Discount %** (owner's till, 2 Nov 2026: "Discounts & Price Overrides line 'BISCOFF BAR' discount %: '' is not a valid number"). A price override has no percentage; the whole report was refused. A blank Discount % Applied is now read as 0 - the percentage isn't used for any figure, the £ Discount Value is. Test `Parse_LineWithBlankDiscountPercent_IsReadAsNoPercentage` (the genuine report with that cell emptied). | Not yet built | Staff Discounts show on a day with a price override |
 
 ## Released - v1.0.6 (2 Nov 2026, owner's say-so), from branch `two-sign-ins`
 

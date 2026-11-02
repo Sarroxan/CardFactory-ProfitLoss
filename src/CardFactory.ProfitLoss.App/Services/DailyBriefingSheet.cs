@@ -22,7 +22,8 @@ namespace CardFactory.ProfitLoss.App.Services;
 ///
 /// Design (chosen 14 Oct 2026, "C1 + D1"): figures in Fredoka SemiBold, CfDeepBlue; boxes the
 /// app filled are tinted CfBlueSoft so printed and handwritten boxes are told apart; Actual
-/// boxes solid green (on or above target) or red (below) with the difference inside; P&amp;L
+/// boxes solid green (on or above target) or red (below) with the difference inside, and since
+/// 2 Nov 2026 a "+/–" box beside each with the percentage over or under target (S3); P&amp;L
 /// boxes solid green or red; the best hour ringed in yellow; voids £30+ and refunds £25+ amber.
 /// 16 Oct 2026 (A1 + S2): the best sales hour filled navy with white figures and a yellow
 /// edge (solid yellow with navy figures and a ★ since 21 Oct 2026, B2); hourly ABV and AUB boxes marked when they beat the day's target - solid green with
@@ -152,9 +153,9 @@ public static class DailyBriefingSheet
         Box(c, 527.1, 30.8, 644.2, 56.7, d.Date.ToString("dddd", uk), 11);
         Box(c, 727.7, 30.8, 810.3, 56.7, d.Date.ToString("dd/MM/yyyy", uk), 11);
 
-        TargetAndActual(c, 105.6, 194.0, d.Sales);
-        TargetAndActual(c, 366.8, 455.1, d.Abv);
-        TargetAndActual(c, 627.9, 716.2, d.Aub);
+        TopPanel(c, 38.4, "Sales", d.Sales);
+        TopPanel(c, 299.5, "ABV", d.Abv);
+        TopPanel(c, 560.6, "AUB", d.Aub);
 
         // Hours: the times are written by the app (the form's own were removed from the
         // background) in the sheet's lettering - Chewy 16.32pt, CfBlue, baseline as printed.
@@ -233,22 +234,95 @@ public static class DailyBriefingSheet
 
     // Target box tinted; Actual box green or red with the difference inside (D1), or tinted
     // when there is no target to compare with.
-    private static void TargetAndActual(Canvas c, double targetX, double actualX, Measure m)
+    // Owner, 2 Nov 2026 (concept S3, fitted): each of the three panels at the top - Sales, ABV,
+    // AUB - gets a third box, "+/–", with how far over or under target the actual is as a
+    // percentage ("▲4%" green, "▼3%" red). The printed panel has room for two boxes only, so the
+    // panel is drawn again over the printed one, in the form's own style (panel colour, Chewy
+    // title and labels, navy outlined boxes, the yellow edge on Actual), with the two printed
+    // boxes a little narrower. Panel spans measured from the form: x 38.4-288.0, 299.5-549.1,
+    // 560.6-810.2 points; y 82.8-128.2.
+    private static readonly Brush Panel = Frozen(0xE2, 0xEB, 0xF6);
+
+    private static void TopPanel(Canvas c, double left, string title, Measure m)
     {
         var uk = CultureInfo.GetCultureInfo("en-GB");
         string F(decimal v) => m.IsMoney ? Money(v) : v.ToString("0.00", uk);
-        if (m.Target is { } t) Box(c, targetX, 97, targetX + 80.7, 122, F(t), 11);
+
+        var panel = new Border { Width = 249.6 * Pt, Height = 45.4 * Pt, CornerRadius = new CornerRadius(11 * Pt), Background = Panel };
+        Canvas.SetLeft(panel, left * Pt);
+        Canvas.SetTop(panel, 82.8 * Pt);
+        c.Children.Add(panel);
+        PlaceText(c, left + 11, 116, title, Chewy, 17, Navy);
+
+        double targetX = left + 58, actualX = left + 132, deltaX = left + 207;
+        CentredText(c, targetX + 35, 92.3, "Target", Chewy, 9.2, Navy);
+        CentredText(c, actualX + 35, 92.3, "Actual", Chewy, 9.2, Navy);
+        CentredText(c, deltaX + 18, 92.3, "+/–", Chewy, 9.2, Navy);
+        Frame(c, targetX, 70);
+        Frame(c, actualX, 70, yellowEdge: true);
+        Frame(c, deltaX, 36);
+
+        if (m.Target is { } t) Box(c, targetX, 97, targetX + 70, 122, F(t), 10.5);
         if (m.Actual is not { } a) return;
-        if (m.Target is not { } target)
+        if (m.Target is not { } target || target == 0m)
         {
-            Box(c, actualX, 97, actualX + 80.6, 122, F(a), 11);
+            Box(c, actualX, 97, actualX + 70, 122, F(a), 10.5);
             return;
         }
         var diff = a - target;
         var up = diff >= 0m;
         var sign = up ? "+" : "-";
         var difference = m.IsMoney ? $"({sign}£{Math.Abs(diff):0.00})" : $"({sign}{Math.Abs(diff):0.00})";
-        Box(c, actualX, 97, actualX + 80.6, 122, F(a), 10.5, fill: up ? Green : Red, ink: Brushes.White, small: difference);
+        Box(c, actualX, 97, actualX + 70, 122, F(a), 10, fill: up ? Green : Red, ink: Brushes.White, small: difference);
+        Box(c, deltaX, 97, deltaX + 36, 122, PercentAgainstTarget(a, target), 9.5, fill: up ? Green : Red, ink: Brushes.White);
+    }
+
+    /// <summary>How far over or under target, as a whole percentage: "▲4%", "▼3%".</summary>
+    public static string PercentAgainstTarget(decimal actual, decimal target)
+    {
+        var percent = Math.Round(Math.Abs(actual - target) / target * 100m, 0, MidpointRounding.AwayFromZero);
+        return (actual >= target ? "▲" : "▼") + percent.ToString("0", CultureInfo.InvariantCulture) + "%";
+    }
+
+    /// <summary>An empty box in the form's own style: navy outline, white inside.</summary>
+    private static void Frame(Canvas c, double x, double width, bool yellowEdge = false)
+    {
+        if (yellowEdge)
+        {
+            var edge = new Border
+            {
+                Width = (width + 3.2) * Pt,
+                Height = (26.8 + 3.2) * Pt,
+                CornerRadius = new CornerRadius(10.1 * Pt),
+                Background = Yellow,
+            };
+            Canvas.SetLeft(edge, (x - 1.6) * Pt);
+            Canvas.SetTop(edge, (96.2 - 1.6) * Pt);
+            c.Children.Add(edge);
+        }
+        var frame = new Border
+        {
+            Width = width * Pt,
+            Height = 26.8 * Pt,
+            CornerRadius = new CornerRadius(8.5 * Pt),
+            BorderBrush = Navy,
+            BorderThickness = new Thickness(1.35 * Pt),
+            Background = Brushes.White,
+        };
+        Canvas.SetLeft(frame, x * Pt);
+        Canvas.SetTop(frame, 96.2 * Pt);
+        c.Children.Add(frame);
+    }
+
+    private static void CentredText(Canvas c, double centreXPt, double baselinePt, string text, FontFamily family, double sizePt, Brush ink)
+    {
+        var size = sizePt * Pt;
+        var width = new FormattedText(text, CultureInfo.GetCultureInfo("en-GB"), FlowDirection.LeftToRight,
+            new Typeface(family, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal), size, Brushes.Black, 1.0).WidthIncludingTrailingWhitespace;
+        var block = new TextBlock { Text = text, FontFamily = family, FontSize = size, Foreground = ink };
+        Canvas.SetLeft(block, centreXPt * Pt - width / 2);
+        Canvas.SetTop(block, baselinePt * Pt - family.Baseline * size);
+        c.Children.Add(block);
     }
 
     private static void ReportLine(Canvas c, double y, string quantity, decimal value, bool flag)
