@@ -7,87 +7,97 @@ using Microsoft.Web.WebView2.Core;
 namespace CardFactory.ProfitLoss.App.Views;
 
 /// <summary>
-/// One report handed to the second sign-in. The app's own sign-in takes it back at the point
-/// where it would have pulled it, if the second sign-in has not started on it by then.
-/// </summary>
-internal sealed class SideJob
-{
-    public SideJob(string report) => Report = report;
-
-    public string Report { get; }
-
-    /// <summary>The app's own sign-in pulled it instead; the second sign-in must not start it.</summary>
-    public bool Taken { get; set; }
-
-    /// <summary>The second sign-in has started pulling it; its result is to be waited for.</summary>
-    public bool Started { get; set; }
-
-    public DateTime StartedAt { get; set; }
-
-    /// <summary>The report's page, or null when the second sign-in did not pull it.</summary>
-    public Task<string?> Result { get; set; } = Task.FromResult<string?>(null);
-}
-
-/// <summary>
 /// Two sign-ins (owner, 2 Nov 2026). Flooid lets the same account be signed in twice at once
 /// (till test, 2 Nov 2026: both signed in straight away and a minute later; signing the second
 /// out left the first signed in). Reports cannot be pulled side by side inside one sign-in -
 /// every criteria page carries that sign-in's one struts.token_REPORT - so a second sign-in,
-/// hidden, pulls some of them at the same time as the app's own.
+/// hidden, pulls reports at the same time as the app's own (see PullPlan).
 ///
-/// It uses the sign-in the app's own was given (typed or saved, held in memory only) and, on
-/// an account with several stores, chooses the same store the app's own chose. Before each
-/// report it checks it is still signed in, and signs in again if Flooid has ended it. Anything
-/// that goes wrong only means the app's own sign-in pulls that report, as before; after two
-/// failures in a row it is not used again until the next sign-in.
+/// It starts signing in as soon as the app's own sign-in is sent (Prepare), with the same
+/// sign-in (typed or saved, held in memory only), and on an account with several stores it
+/// waits on Flooid's Select Store page until the person has chosen, then chooses the same
+/// store. Before each pull it checks it is still signed in, and signs in again if Flooid has
+/// ended it. Anything that goes wrong only means the app's own sign-in pulls the report, as
+/// before; after two failures in a row it is not used again until the next sign-in.
+///
+/// Till log of 2 Nov 2026, 11:37 (first version): it started before the store was known and
+/// gave up on Select Store; on the next try it was still on that page and looked for a login
+/// form that was not there. Now the store is asked for when it is needed (and waited for),
+/// every page is handled where it is found, and after a failure it starts again from a fresh
+/// browser profile.
 /// </summary>
 internal sealed class SecondSignIn
 {
-    public sealed record Details(CoreWebView2Environment Environment, string Username, string Password, string? StoreCode);
+    /// <param name="StoreCode">Asked each time it is needed: the store the app's own sign-in
+    /// chose, or null while it is still being chosen (or on a one-store account).</param>
+    public sealed record Details(CoreWebView2Environment Environment, string Username, string Password, Func<string?> StoreCode);
 
     private readonly SemaphoreSlim _gate = new(1, 1);
     private Window? _host;
     private FlooidView? _view;
     private bool _signedIn;
-    private string? _signedInFor;      // the store code it was asked for when it signed in
+    private string? _signedInStore;    // the store it chose (null: no Select Store page)
+    private string? _signedInUser;
     private int _failures;
     private bool _disabled;
-    private int _generation;           // moved on by Sign out: anything begun before is dropped
+    private int _generation;           // moved on by Prepare / Sign out / closing: work begun before is dropped
 
-    /// <summary>Starts pulling a report on the second sign-in, in the background.</summary>
-    public void Start(SideJob job, Details details, Func<FlooidView, Task<string>> fetch) =>
-        job.Result = RunAsync(job, details, fetch);
+    public bool Disabled => _disabled;
 
-    private async Task<string?> RunAsync(SideJob job, Details details, Func<FlooidView, Task<string>> fetch)
+    /// <summary>
+    /// The app's own sign-in has just been sent: start this one now, so it is ready (or nearly)
+    /// by the time the first reports are wanted.
+    /// </summary>
+    public void Prepare(Details details)
     {
-        if (_disabled) return null;
+        _generation++;
+        _failures = 0;
+        _disabled = false;
+        var generation = _generation;
+        _ = PrepareAsync(details, generation);
+    }
+
+    private async Task PrepareAsync(Details details, int generation)
+    {
         await _gate.WaitAsync();
         try
         {
-            if (job.Taken || _disabled) return null;
-            var generation = _generation;
-            if (!await EnsureReadyAsync(details, generation)) return null;
-            if (job.Taken || generation != _generation)
-            {
-                Log(job.Report + ": ready, but the app's own sign-in had already pulled it");
-                return null;
-            }
-
-            job.Started = true;
-            job.StartedAt = DateTime.Now;
-            try
-            {
-                var html = await fetch(_view!);
-                _failures = 0;
-                return generation == _generation ? html : null;
-            }
-            catch (Exception ex)
-            {
-                Log(job.Report + " failed, the app's own sign-in pulls it instead: " + ex.Message);
-                _signedIn = false;   // check it properly next time
+            if (generation != _generation) return;
+            Log("starting alongside the app's own sign-in");
+            if (!await EnsureReadyAsync(details, generation, TimeSpan.FromMinutes(3)) && generation == _generation)
                 NoteFailure();
+        }
+        catch (Exception ex)
+        {
+            Log("stopped by an error: " + ex.Message);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    /// <summary>
+    /// For a pull: waits until this sign-in is ready and holds it for that pull. Null when it
+    /// can't be used, or is no longer wanted by the time it is ready.
+    /// </summary>
+    public async Task<Lease?> AcquireAsync(Details details, Func<bool> stillWanted)
+    {
+        if (_disabled) return null;
+        await _gate.WaitAsync();
+        var leased = false;
+        try
+        {
+            if (_disabled || !stillWanted()) return null;
+            var generation = _generation;
+            if (!await EnsureReadyAsync(details, generation, TimeSpan.FromSeconds(30)))
+            {
+                if (generation == _generation) NoteFailure();
                 return null;
             }
+            if (generation != _generation || !stillWanted()) return null;
+            leased = true;
+            return new Lease(this, generation);
         }
         catch (Exception ex)
         {
@@ -97,15 +107,57 @@ internal sealed class SecondSignIn
         }
         finally
         {
-            _gate.Release();
+            if (!leased) _gate.Release();
         }
     }
 
-    private async Task<bool> EnsureReadyAsync(Details details, int generation)
+    /// <summary>This sign-in, held for one pull. Dispose to let it go.</summary>
+    internal sealed class Lease : IDisposable
+    {
+        private readonly SecondSignIn _owner;
+        private readonly int _generation;
+        private bool _released;
+
+        public Lease(SecondSignIn owner, int generation)
+        {
+            _owner = owner;
+            _generation = generation;
+        }
+
+        public async Task<string> FetchAsync(Func<FlooidView, Task<string>> fetch)
+        {
+            if (_generation != _owner._generation || _owner._view is null)
+                throw new InvalidOperationException("the second sign-in was stopped");
+            var html = await fetch(_owner._view);
+            if (_generation != _owner._generation)
+                throw new InvalidOperationException("the second sign-in was stopped while pulling");
+            _owner._failures = 0;
+            return html;
+        }
+
+        public void Failed(string report, Exception ex)
+        {
+            Log(report + " failed, the app's own sign-in pulls it instead: " + ex.Message);
+            _owner._signedIn = false;   // check it properly next time
+            _owner.NoteFailure();
+        }
+
+        public void Dispose()
+        {
+            if (_released) return;
+            _released = true;
+            _owner._gate.Release();
+        }
+    }
+
+    private async Task<bool> EnsureReadyAsync(Details details, int generation, TimeSpan waitForStore)
     {
         if (_view is not null && _signedIn)
         {
-            if (string.Equals(_signedInFor, details.StoreCode, StringComparison.Ordinal))
+            var wanted = details.StoreCode();
+            var otherStore = wanted is not null && _signedInStore is not null && wanted != _signedInStore;
+            var otherUser = !string.Equals(_signedInUser, details.Username, StringComparison.OrdinalIgnoreCase);
+            if (!otherStore && !otherUser)
             {
                 var check = await _view.CheckSessionAsync();
                 if (check.StartsWith("SIGNED-IN", StringComparison.Ordinal)) return true;
@@ -113,24 +165,17 @@ internal sealed class SecondSignIn
             }
             else
             {
-                Log("the app's own sign-in is on store " + (details.StoreCode ?? "?") + ", signing out of " + (_signedInFor ?? "?") + " first");
+                Log(otherUser ? "another person signed in, starting again"
+                              : "the app's own sign-in is on store " + wanted + ", not " + _signedInStore + ", starting again");
                 await SignOutViewAsync();
             }
-            _signedIn = false;
+            TearDown();
         }
 
-        var ok = await SignInAsync(details);
-        if (ok && generation != _generation)
-        {
-            Log("signed out by the app while signing in - signing out again");
-            await SignOutViewAsync();
-            return false;
-        }
-        if (!ok) NoteFailure();
-        return ok;
+        return await SignInAsync(details, generation, waitForStore);
     }
 
-    private async Task<bool> SignInAsync(Details details)
+    private async Task<bool> SignInAsync(Details details, int generation, TimeSpan waitForStore)
     {
         var clock = Stopwatch.StartNew();
         if (_view is null)
@@ -152,77 +197,102 @@ internal sealed class SecondSignIn
                 Content = _view
             };
             _host.Show();
-            await _view.OpenAsync();
+            await _view.OpenAsync();   // opens the back office, which shows Flooid's login page
         }
-        else if (!(_view.CurrentSource?.AbsolutePath ?? string.Empty).StartsWith("/authserver/login", StringComparison.OrdinalIgnoreCase))
+        else
         {
-            // Not on the login page (Flooid ended the sign-in while the page stayed put): ask
-            // for the back office, which sends a signed-out browser to the login page. Wait for
-            // that page, so the form filled is the new one, not the page being left.
             _view.OpenBackOfficeHome();
-            var arrive = DateTime.UtcNow.AddSeconds(10);
-            while (DateTime.UtcNow < arrive
-                   && !(_view.CurrentSource?.AbsolutePath ?? string.Empty).StartsWith("/authserver/login", StringComparison.OrdinalIgnoreCase))
-                await Task.Delay(200);
         }
 
-        var submit = _view.SubmitLoginAsync(details.Username, details.Password);
-        if (await Task.WhenAny(submit, Task.Delay(TimeSpan.FromSeconds(15))) != submit)
-            return Fail("Flooid's login page did not answer within 15 s");
-        var submitted = await submit;
-        if (submitted is not ("CLICKED" or "SUBMITTED"))
-            return Fail("Flooid's login form was not found (" + submitted + ", at " + PathOf(_view.CurrentSource) + ")");
-
+        // Each page is handled where it is found: Flooid's login page (sign in), its Select
+        // Store page (choose the app's store, waiting for it to be chosen if need be), its menu
+        // (signed in). Flooid passes through other signed-in looking pages
+        // (/web/spring/redirect?authKey=…) on the way, so only the menu counts.
+        var submitted = false;
         var storeChosen = false;
+        var waitingLogged = false;
+        var storeDeadline = DateTime.UtcNow + waitForStore;
         var deadline = DateTime.UtcNow.AddSeconds(30);
         while (DateTime.UtcNow < deadline)
         {
-            await Task.Delay(250);
+            await Task.Delay(200);
+            if (generation != _generation) { TearDown(); return false; }
             var source = _view.CurrentSource;
+            var path = source?.AbsolutePath ?? string.Empty;
 
-            // Signed in means on the menu: Flooid passes through other signed-in looking pages
-            // (/web/spring/redirect?authKey=…) before its Select Store page.
             if (_view.IsCurrentlySignedIn
-                && string.Equals(source?.AbsolutePath.TrimEnd('/'), "/web/spring/menu", StringComparison.OrdinalIgnoreCase))
+                && string.Equals(path.TrimEnd('/'), "/web/spring/menu", StringComparison.OrdinalIgnoreCase))
             {
                 var check = await _view.CheckSessionAsync();
                 if (!check.StartsWith("SIGNED-IN", StringComparison.Ordinal)) continue;
                 _signedIn = true;
-                _signedInFor = details.StoreCode;
-                Log("signed in after " + clock.ElapsedMilliseconds + " ms" + (storeChosen ? " (store " + details.StoreCode + ")" : string.Empty));
+                _signedInUser = details.Username;
+                if (!storeChosen) _signedInStore = null;
+                Log("signed in after " + clock.ElapsedMilliseconds + " ms" + (storeChosen ? " (store " + _signedInStore + ")" : string.Empty));
                 return true;
+            }
+
+            if (path.StartsWith("/authserver/login", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!submitted)
+                {
+                    var submit = _view.SubmitLoginAsync(details.Username, details.Password);
+                    if (await Task.WhenAny(submit, Task.Delay(TimeSpan.FromSeconds(15))) != submit)
+                        return Fail("Flooid's login page did not answer within 15 s");
+                    var result = await submit;
+                    if (result is not ("CLICKED" or "SUBMITTED"))
+                        return Fail("Flooid's login form was not found (" + result + ")");
+                    submitted = true;
+                    continue;
+                }
+                var refused = await _view.ReadLoginErrorAsync();
+                if (refused.Length > 0)
+                {
+                    TearDown();
+                    _disabled = true;   // the same password again would only be refused again
+                    Log("could not sign in - Flooid refused the sign-in: " + refused + "; not used again until the next sign-in");
+                    return false;
+                }
+                continue;
             }
 
             if (FlooidSessionService.IsLoginFlowUri(source) && !storeChosen)
             {
                 var stores = await _view.ReadStoreChoicesAsync();
-                if (stores is { Count: > 0 })
-                {
-                    if (string.IsNullOrEmpty(details.StoreCode) || !stores.Any(x => x.Code == details.StoreCode))
-                        return Fail("Flooid offers stores " + string.Join(", ", stores.Select(x => x.Code))
-                                    + " but the app's own store " + (details.StoreCode ?? "(not known)") + " is not one of them");
-                    var chose = await _view.SelectStoreAsync(details.StoreCode);
-                    if (!chose.StartsWith("CLICKED", StringComparison.Ordinal))
-                        return Fail("could not choose store " + details.StoreCode + " (" + chose + ")");
-                    storeChosen = true;
-                }
-                continue;
-            }
+                if (stores is not { Count: > 0 }) continue;   // passing through, or still loading
 
-            var refused = await _view.ReadLoginErrorAsync();
-            if (refused.Length > 0)
-            {
-                _disabled = true;   // the same password again would only be refused again
-                return Fail("Flooid refused the sign-in: " + refused);
+                var code = details.StoreCode();
+                if (code is null)
+                {
+                    // The person is still choosing on the app's own sign-in. Wait for them.
+                    if (DateTime.UtcNow >= storeDeadline)
+                        return Fail("the store was not chosen in time on the app's own sign-in");
+                    if (!waitingLogged)
+                    {
+                        waitingLogged = true;
+                        Log("at Select Store after " + clock.ElapsedMilliseconds + " ms, waiting for the store to be chosen");
+                    }
+                    deadline = DateTime.UtcNow.AddSeconds(30);
+                    continue;
+                }
+                if (!stores.Any(x => x.Code == code))
+                    return Fail("Flooid offers stores " + string.Join(", ", stores.Select(x => x.Code)) + " but not " + code);
+                var chose = await _view.SelectStoreAsync(code);
+                if (!chose.StartsWith("CLICKED", StringComparison.Ordinal))
+                    return Fail("could not choose store " + code + " (" + chose + ")");
+                storeChosen = true;
+                _signedInStore = code;
+                deadline = DateTime.UtcNow.AddSeconds(30);
             }
         }
         return Fail("not signed in within 30 s (at " + PathOf(_view.CurrentSource) + ")");
     }
 
+    /// <summary>Starts again from a fresh, empty browser profile next time.</summary>
     private bool Fail(string why)
     {
         Log("could not sign in - " + why);
-        _signedIn = false;
+        TearDown();
         return false;
     }
 
@@ -236,14 +306,13 @@ internal sealed class SecondSignIn
         }
     }
 
-    /// <summary>Sign out and Change store: sign the second sign-in out too, and start afresh.</summary>
+    /// <summary>Sign out and Change store: sign the second sign-in out too.</summary>
     public async Task SignOutAsync()
     {
         _generation++;
         _failures = 0;
-        _disabled = false;
         if (_view is not null && _signedIn) await SignOutViewAsync();
-        _signedIn = false;
+        TearDown();
     }
 
     private async Task SignOutViewAsync()
@@ -252,9 +321,9 @@ internal sealed class SecondSignIn
         {
             var result = await _view!.SignOutAsync();
             var deadline = DateTime.UtcNow.AddSeconds(8);
-            while (DateTime.UtcNow < deadline && _view.IsCurrentlySignedIn)
-                await Task.Delay(250);
-            Log("signed out (" + result + ", now at " + PathOf(_view.CurrentSource) + ")");
+            while (DateTime.UtcNow < deadline && _view is not null && _view.IsCurrentlySignedIn)
+                await Task.Delay(200);
+            Log("signed out (" + result + ")");
         }
         catch (Exception ex)
         {
@@ -263,15 +332,24 @@ internal sealed class SecondSignIn
         _signedIn = false;
     }
 
+    private void TearDown()
+    {
+        _signedIn = false;
+        _signedInStore = null;
+        _signedInUser = null;
+        var view = _view;
+        var host = _host;
+        _view = null;
+        _host = null;
+        try { view?.Shutdown(); } catch { }
+        try { host?.Close(); } catch { }
+    }
+
     /// <summary>The app is closing. Like the app's own sign-in, Flooid ends it when it runs out.</summary>
     public void Shutdown()
     {
         _generation++;
-        try { _view?.Shutdown(); } catch { }
-        try { _host?.Close(); } catch { }
-        _view = null;
-        _host = null;
-        _signedIn = false;
+        TearDown();
     }
 
     private static string PathOf(Uri? uri) => uri?.AbsolutePath ?? "no page";

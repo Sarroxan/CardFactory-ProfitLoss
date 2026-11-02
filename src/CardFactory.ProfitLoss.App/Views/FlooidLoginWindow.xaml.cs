@@ -181,6 +181,9 @@ public partial class FlooidLoginWindow : Window
     /// sign-in chooses the same one. Null when no store was chosen (one-store account).</summary>
     internal string? ChosenStoreCode { get; private set; }
 
+    /// <summary>Two sign-ins: the app's own sign-in has just been sent to Flooid.</summary>
+    internal event EventHandler? SignInSubmitted;
+
     private bool _storeCheckInFlight;
     private bool _storeChoiceInFlight;
     private bool _storeListShown;
@@ -277,6 +280,9 @@ public partial class FlooidLoginWindow : Window
 
             var result = await FlooidView.SelectStoreAsync(code);
             LogSignInStep("store " + code + " select returned: " + result);
+            // Two sign-ins: known from the click, not only once the store has opened - the pull
+            // after signing in starts before that (till log, 2 Nov 2026 11:37).
+            if (result.StartsWith("CLICKED", StringComparison.Ordinal)) ChosenStoreCode = code;
 
             if (!result.StartsWith("CLICKED", StringComparison.Ordinal))
             {
@@ -826,6 +832,10 @@ public partial class FlooidLoginWindow : Window
 
         var submitted = await submitTask;
         LogSignInStep("submit returned: " + submitted);
+        if (submitted.StartsWith("CLICKED", StringComparison.Ordinal) || submitted.StartsWith("SUBMITTED", StringComparison.Ordinal))
+        {
+            try { SignInSubmitted?.Invoke(this, EventArgs.Empty); } catch { }
+        }
         if (!submitted.StartsWith("CLICKED", StringComparison.Ordinal)
             && !submitted.StartsWith("SUBMITTED", StringComparison.Ordinal))
         {

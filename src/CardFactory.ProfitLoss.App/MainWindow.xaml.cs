@@ -866,7 +866,7 @@ public partial class MainWindow : Window
     /// </summary>
     /// <summary>One report: the copy already held when it is still good (and this is not a
     /// Refresh), otherwise pulled from Flooid and kept.</summary>
-    private async Task<string> PullAsync(string report, DateTime from, DateTime to, Func<Task<string>> fetch, SideJob? side = null)
+    private async Task<string> PullAsync(string report, DateTime from, DateTime to, Func<Task<string>> fetch)
     {
         var now = DateTime.Now;
         if (!_pullFresh && _reportCache.TryGet(report, from, to, now, out var held, out var pulledAt))
@@ -874,28 +874,6 @@ public partial class MainWindow : Window
             AppFiles.AppendDiagnostic($"[{now:HH:mm:ss}] {report} {from:dd/MM/yyyy} - {to:dd/MM/yyyy}: used the copy pulled at {pulledAt:HH:mm:ss}{Environment.NewLine}");
             NoteOldest(pulledAt);
             return held;
-        }
-
-        // Two sign-ins (owner, 2 Nov 2026): handed to the second sign-in at the start. If it
-        // has started on it, wait for it; if not (still signing in, or not in use), the app's
-        // own sign-in takes it back and pulls it here, exactly as before.
-        if (side is not null)
-        {
-            if (side.Started)
-            {
-                var fromSecond = await side.Result;
-                if (fromSecond is not null)
-                {
-                    _reportCache.Store(report, from, to, fromSecond, side.StartedAt);
-                    NoteOldest(side.StartedAt);
-                    return fromSecond;
-                }
-            }
-            else if (!side.Taken)
-            {
-                side.Taken = true;
-                SecondSignIn.Log(report + ": the second sign-in had not started on it, so the app's own sign-in pulls it");
-            }
         }
 
         var html = await fetch();
@@ -908,31 +886,72 @@ public partial class MainWindow : Window
     private readonly SecondSignIn _secondSignIn = new();
     private bool _secondSignInUnavailableLogged;
 
-    /// <summary>Hands one report to the second sign-in, to be pulled while the app's own sign-in
-    /// pulls the others. Pass the job to PullAsync where the report used to be pulled.</summary>
-    private SideJob StartOnSecondSignIn(FlooidLoginWindow loginWindow, string report, DateTime from, DateTime to, Func<FlooidView, Task<string>> fetch)
+    /// <summary>The sign-in the second sign-in reuses, or null when there is none to reuse.</summary>
+    private SecondSignIn.Details? SecondSignInDetails(FlooidLoginWindow loginWindow)
     {
-        var job = new SideJob(report);
-        if (!_pullFresh && _reportCache.TryGet(report, from, to, DateTime.Now, out _, out _))
-        {
-            job.Taken = true;   // already held: nothing to pull
-            return job;
-        }
-
         var environment = loginWindow.BrowserEnvironment;
-        if (!loginWindow.IsSignedIn || environment is null || !loginWindow.TryGetHeldSignIn(out var username, out var password))
+        if (environment is null || !loginWindow.TryGetHeldSignIn(out var username, out var password))
         {
-            job.Taken = true;   // e.g. signed in on Flooid's own page: no sign-in to reuse
             if (!_secondSignInUnavailableLogged)
             {
                 _secondSignInUnavailableLogged = true;
                 SecondSignIn.Log("not used - no sign-in from this run to reuse (signed in on Flooid's own page?)");
             }
-            return job;
+            return null;
         }
+        return new SecondSignIn.Details(environment, username, password, () => loginWindow.ChosenStoreCode);
+    }
 
-        _secondSignIn.Start(job, new SecondSignIn.Details(environment, username, password, loginWindow.ChosenStoreCode), fetch);
-        return job;
+    // The app's own sign-in has just been sent: the second sign-in starts now, so it is ready
+    // by the time the first reports are wanted (and waits on Select Store for the same choice).
+    private void FlooidLoginWindow_SignInSubmitted(object? sender, EventArgs e)
+    {
+        if (sender is FlooidLoginWindow loginWindow && SecondSignInDetails(loginWindow) is { } details)
+            _secondSignIn.Prepare(details);
+    }
+
+    /// <summary>
+    /// One report for a pull plan. A good copy already held is used as before (and not pulled);
+    /// otherwise it goes on the plan, to be pulled by whichever sign-in is free first.
+    /// </summary>
+    private PlannedPull AddToPlan(List<PlannedPull> plan, string report, DateTime from, DateTime to, double seconds,
+        Func<Task<string>> onOwn, Func<FlooidView, Task<string>> onSecond)
+    {
+        var pull = new PlannedPull(report, seconds, 0, onOwn, onSecond) { Keep = (report, from, to) };
+        var now = DateTime.Now;
+        if (!_pullFresh && _reportCache.TryGet(report, from, to, now, out var held, out var pulledAt))
+        {
+            AppFiles.AppendDiagnostic($"[{now:HH:mm:ss}] {report} {from:dd/MM/yyyy} - {to:dd/MM/yyyy}: used the copy pulled at {pulledAt:HH:mm:ss}{Environment.NewLine}");
+            pull.StartedAt = pulledAt;
+            pull.Done.TrySetResult(held);
+            return pull;
+        }
+        plan.Add(pull);
+        return pull;
+    }
+
+    /// <summary>Starts a plan on both sign-ins. Stop it and wait for the returned task before
+    /// the pull ends, so nothing is still using Flooid afterwards.</summary>
+    private Task RunPlan(PullPlan plan, FlooidLoginWindow loginWindow) =>
+        plan.IsEmpty ? Task.CompletedTask : plan.RunAsync(_secondSignIn, SecondSignInDetails(loginWindow));
+
+    private PullPlan NewPlan(string label, List<PlannedPull> pulls, Func<bool>? stopWhen = null) =>
+        new(label, pulls, (pull, html) =>
+        {
+            if (pull.Keep is { } keep) _reportCache.Store(keep.Report, keep.From, keep.To, html, pull.StartedAt);
+        }, stopWhen);
+
+    /// <summary>A planned report's page, when it is ready (throws when its pull failed).</summary>
+    private async Task<string> TakeAsync(PlannedPull pull)
+    {
+        var html = await pull.Done.Task;
+        NoteOldest(pull.StartedAt);
+        return html ?? throw new InvalidOperationException(pull.Name + " was not pulled");
+    }
+
+    private static async Task WaitQuietly(Task task)
+    {
+        try { await task; } catch { }
     }
 
     /// <summary>Owner, 19 Oct 2026: kept across a sign in after the session runs out (same
@@ -963,51 +982,39 @@ public partial class MainWindow : Window
     {
         // Let the screen settle after the main pull before using Flooid again.
         await Task.Delay(500);
-        SideJob? stampsSide = null;
+        if (_quietFetchStop || !loginWindow.IsSignedIn) return;
+        AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch of Staff Discounts and Stamps ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) started{Environment.NewLine}");
+
+        // Two sign-ins: both reports at once, one on each. On a stop nothing more is started;
+        // one already being pulled finishes and is kept for the next pull.
+        var pulls = new List<PlannedPull>();
+        var discountsPull = AddToPlan(pulls, "Discounts", startDate, endDate, 2.2,
+            () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate));
+        var stampsPull = AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
+            () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate));
+        var plan = NewPlan("Quiet fetch", pulls, () => _quietFetchStop || !loginWindow.IsSignedIn);
+        var planRun = RunPlan(plan, loginWindow);
         try
         {
-            if (_quietFetchStop || !loginWindow.IsSignedIn) return;
-            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch of Staff Discounts and Stamps ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) started{Environment.NewLine}");
-            stampsSide = StartOnSecondSignIn(loginWindow, "Stamps", startDate, endDate, v => v.FetchStampsHtmlAsync(startDate, endDate));
-            var discountsHtml = await PullAsync("Discounts", startDate, endDate, () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate));
+            var discountsHtml = await TakeAsync(discountsPull);
             var discounts = new DiscountsReportParser().Parse(discountsHtml);
             viewModel.ApplyStaffDiscounts(discounts.StaffDiscountLines);
             _staffDiscountPeriod = (startDate, endDate);
 
-            if (_quietFetchStop || !loginWindow.IsSignedIn)
-            {
-                // Stopped: start nothing more. A Stamps pull the second sign-in has already
-                // started is let finish and kept for the next pull.
-                await KeepSideResultAsync(stampsSide, "Stamps", startDate, endDate);
-                return;
-            }
-            await PullStampsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, side: stampsSide);
+            if (_quietFetchStop || !loginWindow.IsSignedIn) return;
+            await PullStampsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, planned: stampsPull);
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch finished{Environment.NewLine}");
         }
         catch (Exception ex)
         {
             // Only a head start: the Reports section or the Daily Briefing pulls it as before.
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch stopped: {ex.Message}{Environment.NewLine}");
-            await KeepSideResultAsync(stampsSide, "Stamps", startDate, endDate);
         }
-    }
-
-    /// <summary>Two sign-ins: a report the second sign-in started for a pull that then stopped is
-    /// let finish and kept, without starting anything on the app's own sign-in.</summary>
-    private async Task KeepSideResultAsync(SideJob? side, string report, DateTime from, DateTime to)
-    {
-        if (side is null) return;
-        if (!side.Started)
+        finally
         {
-            side.Taken = true;
-            return;
+            plan.Stop();
+            await WaitQuietly(planRun);
         }
-        try
-        {
-            var html = await side.Result;
-            if (html is not null) _reportCache.Store(report, from, to, html, side.StartedAt);
-        }
-        catch { }
     }
 
     private async Task StopQuietFetchAsync(MainViewModel? viewModel = null)
@@ -1021,7 +1028,7 @@ public partial class MainWindow : Window
 
     /// <summary>Stamps sold (owner, 21 Oct 2026). Never stops a pull: a problem shows the tile
     /// as "—", leaves the Daily Briefing's Sold boxes blank, and returns a note for the status line.</summary>
-    private async Task<string?> PullStampsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate, bool quiet = false, SideJob? side = null)
+    private async Task<string?> PullStampsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate, bool quiet = false, PlannedPull? planned = null)
     {
         try
         {
@@ -1030,7 +1037,9 @@ public partial class MainWindow : Window
                 viewModel.SetFlooidStatus("Retrieving Stamps…", "Working");
                 SetRetrievalStep(5);
             }
-            var html = await PullAsync("Stamps", startDate, endDate, () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), side);
+            var html = planned is not null
+                ? await TakeAsync(planned)
+                : await PullAsync("Stamps", startDate, endDate, () => loginWindow.FetchStampsHtmlAsync(startDate, endDate));
             var report = new GiftCardReportParser("Stamps").Parse(html);
             viewModel.ApplyStampsSold(StampsSold.From(report.Items));
             return null;
@@ -1048,7 +1057,41 @@ public partial class MainWindow : Window
         if (_oldestPullUsed is null || pulledAt < _oldestPullUsed) _oldestPullUsed = pulledAt;
     }
 
-    private async Task<string?> FillTargetsFromLastYearAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate)
+    /// <summary>
+    /// Two sign-ins: last year's two reports for the targets on the pull plan, last, so they are
+    /// pulled alongside today's when the figures are not kept on the till yet (the first pull of
+    /// each day). Asked when they come up: by then the store is known, and figures kept on the
+    /// till for it - or no store known yet - mean they are skipped and the targets are filled
+    /// exactly as before.
+    /// </summary>
+    private (PlannedPull?, PlannedPull?) AddLastYearToPlan(List<PlannedPull> pulls, MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate)
+    {
+        var (lyFrom, lyTo) = LastYearTargetCalculator.LastYearRange(startDate, endDate);
+        if (_lastYearCache.ContainsKey((lyFrom, lyTo))) return (null, null);
+
+        bool Needed() =>
+            !_lastYearCache.ContainsKey((lyFrom, lyTo))
+            && !string.IsNullOrWhiteSpace(viewModel.StoreLocation)
+            && !new LastYearFigureStore(Path.Combine(AppFiles.Folder, "last-year-figures.json")).TryGet(viewModel.StoreLocation, lyFrom, lyTo, out _);
+
+        var refunds = new PlannedPull("Last year Refunds", 2.4, 1,
+            () => loginWindow.FetchRefundsVoidsHtmlAsync(lyFrom, lyTo), v => v.FetchRefundsVoidsHtmlAsync(lyFrom, lyTo), Needed);
+        var giftCards = new PlannedPull("Last year Gift Cards", 6.4, 1,
+            () => loginWindow.FetchGiftCardHtmlAsync(lyFrom, lyTo), v => v.FetchGiftCardHtmlAsync(lyFrom, lyTo), Needed);
+        pulls.Add(refunds);
+        pulls.Add(giftCards);
+        return (refunds, giftCards);
+    }
+
+    private static async Task<string?> ResultOrNull(PlannedPull? pull)
+    {
+        if (pull is null) return null;
+        try { return await pull.Done.Task; }
+        catch { return null; }
+    }
+
+    private async Task<string?> FillTargetsFromLastYearAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate,
+        PlannedPull? lastYearRefunds = null, PlannedPull? lastYearGift = null)
     {
         var (lyFrom, lyTo) = LastYearTargetCalculator.LastYearRange(startDate, endDate);
         try
@@ -1065,8 +1108,11 @@ public partial class MainWindow : Window
                 }
                 else
                 {
-                    var refunds = new RefundsVoidsReportParser().Parse(await loginWindow.FetchRefundsVoidsHtmlAsync(lyFrom, lyTo));
-                    var giftCards = new GiftCardReportParser().Parse(await loginWindow.FetchGiftCardHtmlAsync(lyFrom, lyTo));
+                    // Pulled on the plan alongside today's when they were needed; otherwise here.
+                    var refundsHtml = await ResultOrNull(lastYearRefunds) ?? await loginWindow.FetchRefundsVoidsHtmlAsync(lyFrom, lyTo);
+                    var giftHtml = await ResultOrNull(lastYearGift) ?? await loginWindow.FetchGiftCardHtmlAsync(lyFrom, lyTo);
+                    var refunds = new RefundsVoidsReportParser().Parse(refundsHtml);
+                    var giftCards = new GiftCardReportParser().Parse(giftHtml);
                     var merged = new OperatorReportMerger().Merge(refunds, giftCards);
                     var team = new TeamPerformanceCalculator().Calculate(merged, new PerformanceTargets(0m, 0m, 0m));
                     held = (team.TotalTransactions, team.ActualAbv, team.ActualAub);
@@ -1542,6 +1588,7 @@ public partial class MainWindow : Window
         if (_flooidLoginWindow is not null) return _flooidLoginWindow;
         var loginWindow = new FlooidLoginWindow { Owner = this };
         loginWindow.ConnectionStatusChanged += FlooidLoginWindow_ConnectionStatusChanged;
+        loginWindow.SignInSubmitted += FlooidLoginWindow_SignInSubmitted;
         _flooidLoginWindow = loginWindow;
         return loginWindow;
     }
@@ -1617,6 +1664,8 @@ public partial class MainWindow : Window
         DateTime? quietFrom = null, quietTo = null;
 
         _flooidGrabBusy = true;
+        PullPlan? plan = null;
+        var planRun = Task.CompletedTask;
         // Stage 6A.93: remember which section is showing. Both Refresh buttons run this
         // now, so forcing the Branch view at the end would throw you out of Team
         // Performance every time you refreshed from there.
@@ -1645,13 +1694,32 @@ public partial class MainWindow : Window
             ShowRetrievalOverlay();
             if (forBriefing) RetrievalTitle.Text = "Getting the Daily Briefing ready";
 
-            // Two sign-ins: Branch Performance (and Stamps, when pulled) go to the second sign-in
-            // while this one pulls Refunds, Gift Cards and Staff Discounts.
+            // Two sign-ins (owner, 2 Nov 2026): every report this pull needs goes on one plan,
+            // longest first, and the app's own and the second sign-in each take the next one as
+            // soon as they are free (Views/PullPlan.cs). The figures are then worked out below in
+            // the same order and the same way as before. Last year's two reports (for the targets)
+            // go on too, last, when they are not kept on the till yet.
             var branchFrom = weekly ? startDate : endDate;
-            var branchSide = StartOnSecondSignIn(loginWindow, "Branch", branchFrom, endDate, v => v.FetchBranchPerformanceHtmlAsync(branchFrom, endDate));
-            var stampsSide = includeDiscounts
-                ? StartOnSecondSignIn(loginWindow, "Stamps", startDate, endDate, v => v.FetchStampsHtmlAsync(startDate, endDate))
+            var pulls = new List<PlannedPull>();
+            var refundsPull = AddToPlan(pulls, "Refunds", startDate, endDate, 2.4,
+                () => loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate), v => v.FetchRefundsVoidsHtmlAsync(startDate, endDate));
+            var giftPull = AddToPlan(pulls, "GiftCards", startDate, endDate, 6.4,
+                () => loginWindow.FetchGiftCardHtmlAsync(startDate, endDate), v => v.FetchGiftCardHtmlAsync(startDate, endDate));
+            var branchPull = AddToPlan(pulls, "Branch", branchFrom, endDate, 2.3,
+                () => loginWindow.FetchBranchPerformanceHtmlAsync(branchFrom, endDate), v => v.FetchBranchPerformanceHtmlAsync(branchFrom, endDate));
+            var discountsPull = includeDiscounts
+                ? AddToPlan(pulls, "Discounts", startDate, endDate, 2.2,
+                    () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate))
                 : null;
+            var stampsPull = includeDiscounts
+                ? AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
+                    () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate))
+                : null;
+            var (lastYearRefunds, lastYearGift) = fillFromLastYear
+                ? AddLastYearToPlan(pulls, viewModel, loginWindow, startDate, endDate)
+                : ((PlannedPull?)null, (PlannedPull?)null);
+            plan = NewPlan(forBriefing ? "Daily Briefing pull" : fresh ? "Refresh" : "Pull", pulls);
+            planRun = RunPlan(plan, loginWindow);
 
             RefundReportParseResult? refunds = null;
             GiftCardReportParseResult? giftCards = null;
@@ -1667,7 +1735,7 @@ public partial class MainWindow : Window
             {
                 viewModel.SetFlooidStatus("Retrieving Team Performance…", "Working");
                 SetRetrievalStep(1);
-                var refundsHtml = await PullAsync("Refunds", startDate, endDate, () => loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate));
+                var refundsHtml = await TakeAsync(refundsPull);
                 refunds = new RefundsVoidsReportParser().Parse(refundsHtml);
                 viewModel.ApplyActivityReport(refunds.Activity);   // Reports section: same report, no extra step
             }
@@ -1680,7 +1748,7 @@ public partial class MainWindow : Window
             {
                 viewModel.SetFlooidStatus("Retrieving Gift Cards…", "Working");
                 SetRetrievalStep(2);
-                var giftHtml = await PullAsync("GiftCards", startDate, endDate, () => loginWindow.FetchGiftCardHtmlAsync(startDate, endDate));
+                var giftHtml = await TakeAsync(giftPull);
                 giftCards = new GiftCardReportParser().Parse(giftHtml);
             }
             catch (Exception ex)
@@ -1721,7 +1789,7 @@ public partial class MainWindow : Window
                 // Stage 6A.75: a single day, for the same reason as the Branch refresh.
                 // A week pulls Branch for the whole range (one block per day) for the weekly
                 // Team Scorecard; the Branch section still shows the selected day's hours.
-                var branchHtml = await PullAsync("Branch", branchFrom, endDate, () => loginWindow.FetchBranchPerformanceHtmlAsync(branchFrom, endDate), branchSide);
+                var branchHtml = await TakeAsync(branchPull);
                 var branch = new BranchPerformanceReportParser().Parse(branchHtml);
                 viewModel.ApplyBranchPerformance(branch);
                 branchActualPeriod = DescribeFlooidPeriod(branch.FromDate, branch.ToDate, startDate, endDate);
@@ -1747,7 +1815,7 @@ public partial class MainWindow : Window
                 {
                     viewModel.SetFlooidStatus("Retrieving Staff Discounts…", "Working");
                     SetRetrievalStep(4);
-                    var discountsHtml = await PullAsync("Discounts", startDate, endDate, () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate));
+                    var discountsHtml = await TakeAsync(discountsPull!);
                     var discounts = new DiscountsReportParser().Parse(discountsHtml);
                     viewModel.ApplyStaffDiscounts(discounts.StaffDiscountLines);
                     _staffDiscountPeriod = period;
@@ -1770,7 +1838,7 @@ public partial class MainWindow : Window
             var discountsOk = !includeDiscounts || discountsUpdated;
 
             // Stamps sold travel with Staff Discounts: Reports and the Daily Briefing.
-            var stampsNote = includeDiscounts ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, side: stampsSide) : null;
+            var stampsNote = includeDiscounts ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull) : null;
 
             // Targets from last year. Last, after everything the screen shows, so it can never
             // get in the way of today's figures; a problem only leaves the targets as they were.
@@ -1779,7 +1847,10 @@ public partial class MainWindow : Window
             {
                 viewModel.SetFlooidStatus("Retrieving last year's figures…", "Working");
                 SetRetrievalStep(6);
-                lastYearNote = await FillTargetsFromLastYearAsync(viewModel, loginWindow, startDate, endDate);
+                // Last year's reports from the plan, once settled, so nothing else is using the
+                // app's own sign-in if it still has to pull one itself.
+                await WaitQuietly(planRun);
+                lastYearNote = await FillTargetsFromLastYearAsync(viewModel, loginWindow, startDate, endDate, lastYearRefunds, lastYearGift);
             }
 
             if (teamUpdated || giftUpdated || branchUpdated)
@@ -1834,6 +1905,9 @@ public partial class MainWindow : Window
         }
         finally
         {
+            // Nothing from this pull may still be using Flooid once it has finished.
+            plan?.Stop();
+            await WaitQuietly(planRun);
             _flooidGrabBusy = false;
             _pullFresh = false;
             // Stage 6A.93: back to whichever section was showing when this started.
@@ -1853,6 +1927,8 @@ public partial class MainWindow : Window
     private async Task GenerateReportsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow)
     {
         _flooidGrabBusy = true;
+        PullPlan? plan = null;
+        var planRun = Task.CompletedTask;
         var wasBranchView = _branchPerformanceActive;
         var wasReportsView = _reportsActive;
         var wasGiftCardsView = _branchGiftCardsActive;
@@ -1866,8 +1942,16 @@ public partial class MainWindow : Window
 
             ShowRetrievalOverlay(reportsOnly: true);
 
-            // Two sign-ins: Stamps go to the second sign-in while this one pulls the other two.
-            var stampsSide = StartOnSecondSignIn(loginWindow, "Stamps", startDate, endDate, v => v.FetchStampsHtmlAsync(startDate, endDate));
+            // Two sign-ins: the three reports on one plan, shared between both sign-ins.
+            var pulls = new List<PlannedPull>();
+            var refundsPull = AddToPlan(pulls, "Refunds", startDate, endDate, 2.4,
+                () => loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate), v => v.FetchRefundsVoidsHtmlAsync(startDate, endDate));
+            var discountsPull = AddToPlan(pulls, "Discounts", startDate, endDate, 2.2,
+                () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate));
+            var stampsPull = AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
+                () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate));
+            plan = NewPlan("Generate reports", pulls);
+            planRun = RunPlan(plan, loginWindow);
 
             string? activityError = null;
             string? discountsError = null;
@@ -1878,7 +1962,7 @@ public partial class MainWindow : Window
             {
                 viewModel.SetFlooidStatus("Retrieving voids, returns and no sales…", "Working");
                 SetRetrievalStep(1);
-                var refundsHtml = await PullAsync("Refunds", startDate, endDate, () => loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate));
+                var refundsHtml = await TakeAsync(refundsPull);
                 var refunds = new RefundsVoidsReportParser().Parse(refundsHtml);
                 viewModel.ApplyActivityReport(refunds.Activity);
                 activityUpdated = true;
@@ -1893,7 +1977,7 @@ public partial class MainWindow : Window
             {
                 viewModel.SetFlooidStatus("Retrieving Staff Discounts…", "Working");
                 SetRetrievalStep(4);
-                var discountsHtml = await PullAsync("Discounts", startDate, endDate, () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate));
+                var discountsHtml = await TakeAsync(discountsPull);
                 var discounts = new DiscountsReportParser().Parse(discountsHtml);
                 viewModel.ApplyStaffDiscounts(discounts.StaffDiscountLines);
                 _staffDiscountPeriod = (startDate, endDate);
@@ -1906,7 +1990,7 @@ public partial class MainWindow : Window
                 _staffDiscountPeriod = null;
             }
 
-            var stampsNote = await PullStampsAsync(viewModel, loginWindow, startDate, endDate, side: stampsSide);
+            var stampsNote = await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull);
 
             var errors = new List<string>();
             if (!activityUpdated && !string.IsNullOrWhiteSpace(activityError)) errors.Add("Voids, returns and no sales: " + activityError);
@@ -1935,6 +2019,8 @@ public partial class MainWindow : Window
         }
         finally
         {
+            plan?.Stop();
+            await WaitQuietly(planRun);
             _flooidGrabBusy = false;
             _pullFresh = false;
             SetBranchPerformanceView(wasBranchView, wasReportsView);
