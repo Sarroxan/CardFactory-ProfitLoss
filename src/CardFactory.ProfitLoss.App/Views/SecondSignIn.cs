@@ -228,7 +228,21 @@ internal sealed class SecondSignIn
                 _signedIn = true;
                 _signedInUser = details.Username;
                 if (!storeChosen) _signedInStore = null;
-                Log("signed in after " + clock.ElapsedMilliseconds + " ms" + (storeChosen ? " (store " + _signedInStore + ")" : string.Empty));
+                var signedInAt = clock.ElapsedMilliseconds;
+
+                // Till log, 2 Nov 2026 12:18 and 12:19: its first report opened 5.2 and 5.6 s after
+                // the click (later ones about 1 s; the app's own first one 1.5 s). It went straight
+                // from reaching the menu to clicking it; wait for the menu's report links first, so
+                // that wait happens here, before any report is asked of it.
+                var menuDeadline = DateTime.UtcNow.AddSeconds(10);
+                var menuReady = false;
+                while (DateTime.UtcNow < menuDeadline && generation == _generation)
+                {
+                    if (await _view.IsMenuReadyAsync()) { menuReady = true; break; }
+                    await Task.Delay(150);
+                }
+                Log("signed in after " + signedInAt + " ms" + (storeChosen ? " (store " + _signedInStore + ")" : string.Empty)
+                    + (menuReady ? ", menu ready after " + clock.ElapsedMilliseconds + " ms" : ", menu not seen within 10 s"));
                 return true;
             }
 

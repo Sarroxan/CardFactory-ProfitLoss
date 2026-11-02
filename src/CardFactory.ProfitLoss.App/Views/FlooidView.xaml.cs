@@ -66,6 +66,13 @@ public partial class FlooidView : UserControl
     }
 
     internal CoreWebView2Environment? BrowserEnvironment => _webViewEnvironment;
+
+    /// <summary>Two sign-ins: has Flooid's menu, with its report links, finished loading?</summary>
+    internal async Task<bool> IsMenuReadyAsync()
+    {
+        try { return string.Equals(await GetPrimaryFlooidPageStateAsync(), "MENU", StringComparison.OrdinalIgnoreCase); }
+        catch { return false; }
+    }
     internal Uri? CurrentSource => Browser.Source;
 
     private static bool _cookiesClearedThisRun;   // Stage 6B.63

@@ -992,7 +992,9 @@ public partial class MainWindow : Window
             () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate));
         var stampsPull = AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
             () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate));
-        var plan = NewPlan("Quiet fetch", pulls, () => _quietFetchStop || !loginWindow.IsSignedIn);
+        // Only a real stop stops it: the sign-in state reads "not signed in" for a moment on every
+        // page change, which stopped the second sign-in from ever taking part (till log, 2 Nov 12:18).
+        var plan = NewPlan("Quiet fetch", pulls, () => _quietFetchStop);
         var planRun = RunPlan(plan, loginWindow);
         try
         {
