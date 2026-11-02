@@ -833,8 +833,10 @@ public sealed class MainViewModel : ObservableObject
 
     // ---------------------------------------------------------------- Reports (design C)
     // Voids, returns and no-sales per person, from the Refunds, Voids & No Sales report the
-    // Team figures already come from. Values of £20 or more are flagged as worth a look.
-    public const decimal ReportFlagValue = 20m;
+    // Team figures already come from. Flagged as worth a look (owner, 2 Nov 2026, was £20 for
+    // both): a person's voids of £30 or more, refunds of £25 or more.
+    public const decimal VoidsFlagValue = 30m;
+    public const decimal RefundsFlagValue = 25m;
 
     public ObservableCollection<ReportPersonRow> ReportRows { get; } = new();
 
@@ -927,8 +929,8 @@ public sealed class MainViewModel : ObservableObject
                 p.RefundsQuantity,
                 p.TotalRefundsValue,
                 p.NoSales,
-                p.VoidsValue >= ReportFlagValue,
-                p.TotalRefundsValue >= ReportFlagValue,
+                p.VoidsValue >= VoidsFlagValue,
+                p.TotalRefundsValue >= RefundsFlagValue,
                 StaffDiscountFor(p.OperatorId))))
             .ToList();
         // Anyone who gave a staff discount but is not on the Refunds report still appears.

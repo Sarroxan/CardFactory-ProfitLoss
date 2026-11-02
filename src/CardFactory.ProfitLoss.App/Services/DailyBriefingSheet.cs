@@ -23,7 +23,7 @@ namespace CardFactory.ProfitLoss.App.Services;
 /// Design (chosen 14 Oct 2026, "C1 + D1"): figures in Fredoka SemiBold, CfDeepBlue; boxes the
 /// app filled are tinted CfBlueSoft so printed and handwritten boxes are told apart; Actual
 /// boxes solid green (on or above target) or red (below) with the difference inside; P&amp;L
-/// boxes solid green or red; the best hour ringed in yellow; £20+ voids and refunds amber.
+/// boxes solid green or red; the best hour ringed in yellow; voids £30+ and refunds £25+ amber.
 /// 16 Oct 2026 (A1 + S2): the best sales hour filled navy with white figures and a yellow
 /// edge (solid yellow with navy figures and a ★ since 21 Oct 2026, B2); hourly ABV and AUB boxes marked when they beat the day's target - solid green with
 /// white figures since 21 Oct 2026 (G2).
@@ -188,8 +188,8 @@ public static class DailyBriefingSheet
         // Voids, Refunds, Staff discounts - only when Reports were generated for this date.
         if (d.Reports is { } r)
         {
-            ReportLine(c, 352.8, r.VoidsQuantity.ToString(uk), r.VoidsValue, r.VoidsValue >= MainViewModel.ReportFlagValue);
-            ReportLine(c, 369.2, r.RefundsQuantity.ToString(uk), r.RefundsValue, r.RefundsValue >= MainViewModel.ReportFlagValue);
+            ReportLine(c, 352.8, r.VoidsQuantity.ToString(uk), r.VoidsValue, r.VoidsValue >= MainViewModel.VoidsFlagValue);
+            ReportLine(c, 369.2, r.RefundsQuantity.ToString(uk), r.RefundsValue, r.RefundsValue >= MainViewModel.RefundsFlagValue);
             if (r.StaffValue is { } staff)
                 ReportLine(c, 385.5, (r.StaffQuantity ?? 0m).ToString("0.##", uk), staff, false);
         }

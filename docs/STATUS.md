@@ -6,7 +6,15 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `flag-values` (owner, 2 Nov 2026) - not built or released yet
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Voids flagged from £30, refunds from £25** (were £20 for both). A person's voids of £30.00 or more and refunds of £25.00 or more (for the day, or the week when the calendar is on a week) are highlighted amber in Reports, Print summary, the Daily Briefing sheet and the Team Scorecard (its store-total tiles too). The key under the Reports table shows two labels, "Voids £30.00+" and "Refunds £25.00+" (concept K1); Print summary and the Team Scorecard say "Voids £30.00+ · Refunds £25.00+ highlighted". `MainViewModel.VoidsFlagValue` / `RefundsFlagValue` replace `ReportFlagValue`. | Not yet built | £26 of voids not flagged; £27.98 of refunds flagged |
+
 ## Released - v1.0.6 (2 Nov 2026, owner's say-so), from branch `two-sign-ins`
+
+Main build 41449405664 green; Publish release 41449744588; release build 41449774265 green; zip SHA-256 ab0352ba…7df3 matches; exe 1.0.6+9e76ef8; runtime 8.0.32. Branches two-sign-ins and pick-store removed (41450092592, 41450127044).
 
 Carries `pick-store` (below) too. Test builds 41432057584, 41440096540 (tried on the till), 41448661151 (its two fixes - quiet fetch on both sign-ins, wait for the second's menu - not yet tried on a till when released).
 

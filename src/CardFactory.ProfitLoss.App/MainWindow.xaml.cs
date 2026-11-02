@@ -1362,7 +1362,7 @@ public partial class MainWindow : Window
         doc.Blocks.Add(MakePrintTable(new[] { "Qty", "Sales", "Card / Item", "Operator" },
             vm.BranchGiftCards.Where(r => r.Quantity > 0 || r.Sales > 0 || !string.IsNullOrWhiteSpace(r.Item)).Select(r => new[] { r.Quantity.ToString(), $"£{r.Sales:N2}", r.Item, r.OperatorName })));
 
-        // Reports, as on screen: £20+ voids and returns highlighted.
+        // Reports, as on screen: voids £30+ and returns £25+ highlighted.
         doc.Blocks.Add(MakePrintHeading("Reports"));
         if (!vm.HasReportData)
         {
@@ -1378,7 +1378,7 @@ public partial class MainWindow : Window
                     (r.RefundsQuantity.ToString(), false), ($"£{r.RefundsValue:N2}", r.RefundsFlagged),
                     (r.NoSales.ToString(), false), (r.StaffDiscount, false)
                 })));
-            doc.Blocks.Add(new Paragraph(new Run($"£{MainViewModel.ReportFlagValue:N2}+ highlighted to look into · voids include transaction and line voids")) { FontSize = 8.5, Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x78, 0x91)), Margin = new Thickness(0, 4, 0, 0) });
+            doc.Blocks.Add(new Paragraph(new Run($"Voids £{MainViewModel.VoidsFlagValue:N2}+ · Refunds £{MainViewModel.RefundsFlagValue:N2}+ highlighted to look into · voids include transaction and line voids")) { FontSize = 8.5, Foreground = new SolidColorBrush(Color.FromRgb(0x66, 0x78, 0x91)), Margin = new Thickness(0, 4, 0, 0) });
         }
         return doc;
     }
@@ -1450,7 +1450,7 @@ public partial class MainWindow : Window
     private static Table MakePrintTable(IReadOnlyList<string> headers, IEnumerable<string[]> rows) =>
         MakePrintTable(headers, rows.Select(values => values.Select(v => (v, false)).ToArray()));
 
-    /// <summary>A table whose cells can be highlighted (the Reports £20+ figures).</summary>
+    /// <summary>A table whose cells can be highlighted (the Reports figures over the flag amounts).</summary>
     private static Table MakePrintTable(IReadOnlyList<string> headers, IEnumerable<(string Text, bool Flag)[]> rows)
     {
         var table = new Table { CellSpacing = 0, BorderBrush = new SolidColorBrush(Color.FromRgb(0xD7, 0xE2, 0xEF)), BorderThickness = new Thickness(0.5) };

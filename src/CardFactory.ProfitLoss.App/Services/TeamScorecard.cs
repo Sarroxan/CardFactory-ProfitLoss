@@ -158,12 +158,11 @@ internal static class TeamScorecard
         }
         else
         {
-            var flag = MainViewModel.ReportFlagValue;
             string Tile(string label, string value, string detail, bool flagged = false, bool wide = false) =>
                 $"<div class='{(flagged ? "flag" : string.Empty)}'{(wide ? " style='grid-column:span 2'" : string.Empty)}><small>{label}</small><b>{H(value)}</b><i>{H(detail)}</i></div>";
             var r = new StringBuilder("<div class='rt'>");
-            r.Append(Tile("VOIDS", M(vm.ReportVoidsValue), $"{vm.ReportVoidsQuantity} items", vm.ReportVoidsValue >= flag));
-            r.Append(Tile("RETURNS", M(vm.ReportRefundsValue), $"{vm.ReportRefundsQuantity} refunds", vm.ReportRefundsValue >= flag));
+            r.Append(Tile("VOIDS", M(vm.ReportVoidsValue), $"{vm.ReportVoidsQuantity} items", vm.ReportVoidsValue >= MainViewModel.VoidsFlagValue));
+            r.Append(Tile("RETURNS", M(vm.ReportRefundsValue), $"{vm.ReportRefundsQuantity} refunds", vm.ReportRefundsValue >= MainViewModel.RefundsFlagValue));
             r.Append(Tile("NO SALES", vm.ReportNoSales.ToString(Uk), "drawer opens"));
             r.Append(Tile("STAFF DISCOUNT", vm.ReportStaffDiscountText, vm.ReportStaffDiscountDetail));
             r.Append(Tile("STAMPS SOLD", vm.ReportStampsText, vm.ReportStampsDetail, wide: true));
@@ -172,7 +171,7 @@ internal static class TeamScorecard
                 .Where(p => p.VoidsFlagged || p.RefundsFlagged)
                 .Select(p => H(p.Name) + (p.VoidsFlagged ? $" {M(p.VoidsValue)} voids" : string.Empty) + (p.RefundsFlagged ? $" {M(p.RefundsValue)} returns" : string.Empty))
                 .ToList();
-            r.Append($"<div class='fl'>{M(flag)}+ highlighted{(flagged.Count > 0 ? " · " + string.Join(" · ", flagged) : " · none today")}</div>");
+            r.Append($"<div class='fl'>Voids {M(MainViewModel.VoidsFlagValue)}+ · Refunds {M(MainViewModel.RefundsFlagValue)}+ highlighted{(flagged.Count > 0 ? " · " + string.Join(" · ", flagged) : " · none today")}</div>");
             right = Section("Reports" + week, r.ToString());
         }
         sb.Append("<div class='two'>").Append(left).Append(right).Append("</div>");

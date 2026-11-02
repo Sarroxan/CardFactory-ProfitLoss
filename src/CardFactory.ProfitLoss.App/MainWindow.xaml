@@ -1077,7 +1077,7 @@
                                 </StackPanel>
 
                                 <!-- Reports section (design C): totals in target-style tiles, then each person's
-                                     voids, returns and no sales, highest first; values of £20 or more flagged.
+                                     voids, returns and no sales, highest first; voids of £30 or more and refunds of £25 or more flagged.
                                      Same slot and height as Branch; the figures come from the Refunds, Voids &amp;
                                      No Sales report every Refresh already downloads. Staff discounts to follow. -->
                                 <Grid x:Name="ReportsModePanel" Height="474" Visibility="Collapsed">
@@ -1264,8 +1264,12 @@
                                             </StackPanel>
 
                                             <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
+                                                <!-- Owner, 2 Nov 2026 (concept K1): one label each. -->
                                                 <Border Background="#FFF1DC" CornerRadius="7" Padding="7,2">
-                                                    <TextBlock Text="£20.00+" Foreground="#9A5B00" FontFamily="Arial" FontSize="9.5" FontWeight="Bold"/>
+                                                    <TextBlock Text="Voids £30.00+" Foreground="#9A5B00" FontFamily="Arial" FontSize="9.5" FontWeight="Bold"/>
+                                                </Border>
+                                                <Border Background="#FFF1DC" CornerRadius="7" Padding="7,2" Margin="5,0,0,0">
+                                                    <TextBlock Text="Refunds £25.00+" Foreground="#9A5B00" FontFamily="Arial" FontSize="9.5" FontWeight="Bold"/>
                                                 </Border>
                                                 <TextBlock Text="highlighted to look into · voids include transaction and line voids" Margin="6,0,0,0"
                                                            Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9.5" VerticalAlignment="Center"/>
