@@ -6,7 +6,9 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `flag-values` (owner, 2 Nov 2026) - not built or released yet (three changes)
+## Released - v1.0.7 (3 Nov 2026, owner's say-so), from branch `flag-values` (three changes)
+
+Test build 41731290814 (version 1.0.6 at the time) green; tests passed, the new Staff Discounts test included.
 
 | Change | Proven | Check |
 |--------|--------|-------|
