@@ -95,6 +95,7 @@ public partial class FlooidLoginWindow : Window
     {
         _autoSignInTried = true;
         ChosenStoreCode = null;
+        StoreChosenThisRun = null;
         return await FlooidView.SignOutAsync();
     }
 
@@ -181,6 +182,10 @@ public partial class FlooidLoginWindow : Window
     /// sign-in chooses the same one. Null when no store was chosen (one-store account).</summary>
     internal string? ChosenStoreCode { get; private set; }
 
+    /// <summary>The store opened at the last sign-in in this run, kept when Flooid ends the
+    /// session so signing back in can return to it. Forgotten on Sign out and Change store.</summary>
+    private static string? StoreChosenThisRun { get; set; }
+
     /// <summary>Two sign-ins: the app's own sign-in has just been sent to Flooid.</summary>
     internal event EventHandler? SignInSubmitted;
 
@@ -197,6 +202,7 @@ public partial class FlooidLoginWindow : Window
     {
         ForgetRememberedStore();
         ChosenStoreCode = null;
+        StoreChosenThisRun = null;
         LogSignInStep("change store: remembered store forgotten, signing out");
         var result = await FlooidView.SignOutAsync();
         _autoSignInTried = false;
@@ -229,6 +235,19 @@ public partial class FlooidLoginWindow : Window
             }
             if (remembered is not null)
                 LogSignInStep("remembered store " + remembered + " is not in this account's list");
+
+            // Owner's till, 4 Nov 2026: after the app was left idle, Flooid ended the session, the
+            // app signed back in by itself - and, since the store list shows at every sign-in
+            // (1.0.6), waited on it with nobody there, so the pull failed ("criteria form did not
+            // open · /web/spring/login · Select Store"). A store was already chosen in this run:
+            // signing back in after the session ran out goes straight back to it. The list still
+            // shows when the app starts, and after Sign out or Change store.
+            if (StoreChosenThisRun is { } again && stores.Any(x => x.Code == again))
+            {
+                LogSignInStep("signing back in after the session ran out: store " + again + ", as chosen earlier");
+                await ChooseStoreAsync(again, remember: false);
+                return;
+            }
 
             ShowStoreList(stores);
         }
@@ -306,6 +325,7 @@ public partial class FlooidLoginWindow : Window
                 if (remember) RememberedStoreCode = code;
                 else ForgetRememberedStore();
                 ChosenStoreCode = code;
+                StoreChosenThisRun = code;
 
                 HideStoreList();
                 _autoSignInTried = false;   // re-arm, exactly as a successful sign in does

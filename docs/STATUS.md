@@ -6,6 +6,14 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `idle-sign-in` (owner, 4 Nov 2026) - not built or released yet
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Signing back in after the session ran out goes straight to the store chosen earlier.** Owner's till, 4 Nov 2026 (photo): after the app was left idle, Refresh failed - "Gift Cards: Item Sales By Operator was clicked in Flooid, but its criteria form did not open · /web/spring/login · Select Store … 0713 … 0627", "Team / Branch: Sign in to Flooid before retrieving reports". Flooid had ended the session; the app signed back in by itself with the saved password and, since the store list shows at every sign-in (1.0.6), waited on that list with nobody there. Now a store opened earlier in this run (`StoreChosenThisRun`, set when a store opens; forgotten on Sign out and Change store) is chosen again when Flooid asks after the session ran out, as the remembered store was before 1.0.6. The list still shows when the app starts, and after Sign out or Change store. | Not yet built | Leave the app idle until Flooid's session runs out, press Refresh: it signs back in without the store list and the reports come through; log line "signing back in after the session ran out: store 0627, as chosen earlier" |
+
+Main build 41731663276 green; Publish release 41732029635; release build 41732069167 green; zip SHA-256 fe91786a…e79c matches; exe 1.0.7+4e5ee99. Branch flag-values removed (41732496299).
+
 ## Released - v1.0.7 (3 Nov 2026, owner's say-so), from branch `flag-values` (three changes)
 
 Test build 41731290814 (version 1.0.6 at the time) green; tests passed, the new Staff Discounts test included.
