@@ -128,12 +128,48 @@
                 </Grid>
             </Border>
 
-            <!-- Shown only when a part of the sheet had no figures to fill in. -->
-            <Border x:Name="MissingBanner" Grid.Row="1" Visibility="Collapsed"
-                    Background="#FFF1DC" Padding="20,7">
-                <TextBlock x:Name="MissingText" Foreground="#9A5B00" FontFamily="Arial" FontSize="11"
-                           FontWeight="Bold" TextWrapping="Wrap" />
-            </Border>
+            <StackPanel Grid.Row="1">
+                <!-- Owner, 4 Nov 2026 (concept M2): where Print sends it and how - printer, paper,
+                     colour, sides, copies - kept on this till. Print goes straight out with these;
+                     "Change…" opens the app's own print box (M1). -->
+                <Border Background="{StaticResource CfPanelSoft}" BorderBrush="{StaticResource CfLineSoft}" BorderThickness="0,0,0,1" Padding="20,8,20,8">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Change…" Cursor="Hand" VerticalAlignment="Center" Click="ChangePrint_Click"
+                                ToolTip="Printer, copies, colour, sides, pages">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <TextBlock x:Name="T" Text="{TemplateBinding Content}" FontFamily="Arial" FontSize="11.5" FontWeight="Bold"
+                                               Foreground="{StaticResource CfBlue}" TextDecorations="Underline" />
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="T" Property="Foreground" Value="{StaticResource CfDeepBlue}" /></Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <TextBlock Text="PRINTS TO" VerticalAlignment="Center" Margin="0,0,8,0" FontFamily="Arial" FontSize="10.5"
+                                   FontWeight="Bold" Foreground="{StaticResource CfMuted}" />
+                        <ItemsControl x:Name="PrintChips" VerticalAlignment="Center">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource CfBlueSoft}" CornerRadius="8" Padding="9,4" Margin="0,2,6,2">
+                                        <TextBlock Text="{Binding}" FontFamily="Arial" FontSize="11" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" />
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+                </Border>
+
+                <!-- Shown only when a part of the sheet had no figures to fill in. -->
+                <Border x:Name="MissingBanner" Visibility="Collapsed"
+                        Background="#FFF1DC" Padding="20,7">
+                    <TextBlock x:Name="MissingText" Foreground="#9A5B00" FontFamily="Arial" FontSize="11"
+                               FontWeight="Bold" TextWrapping="Wrap" />
+                </Border>
+            </StackPanel>
 
             <!-- D3 (owner, 16 Oct 2026): one page at a time. Fit page (the default) shrinks the whole
                  sheet into the window; a zoom step shows it bigger and the bars scroll it. The old

@@ -67,6 +67,8 @@ public partial class DailyBriefingPreviewWindow : Window
         var area = SystemParameters.WorkArea;
         Width = Math.Min(Math.Round(area.Width * 0.9), 1600);
         Height = Math.Min(Math.Round(area.Height * 0.9), 1100);
+        _printChoices = PrintSettings.Load();
+        ShowPrintChoices();
         Loaded += (_, _) => ShowPage(0);
         PreviewKeyDown += Window_PreviewKeyDown;
     }
@@ -178,15 +180,39 @@ public partial class DailyBriefingPreviewWindow : Window
         return missing;
     }
 
-    private void Print_Click(object sender, RoutedEventArgs e)
+    // Owner, 4 Nov 2026 (concept M2): Print goes straight out with the settings kept on this
+    // till (shown in the strip above the page); "Change…" opens the app's own print box (M1).
+    // Windows' grey print box is no longer used.
+    private PrintChoices _printChoices = new();
+
+    private void ShowPrintChoices() =>
+        PrintChips.ItemsSource = PrintSettings.Describe(PrintSettings.OpenQueue(_printChoices.Printer), _printChoices, _orientation);
+
+    private void Print_Click(object sender, RoutedEventArgs e) => PrintWith(_printChoices, firstPageOnly: false);
+
+    private void ChangePrint_Click(object sender, RoutedEventArgs e)
+    {
+        var box = new PrintSettingsWindow("Print " + _what.Split(" for ")[0], _printChoices, PageCount, _orientation) { Owner = this };
+        if (box.ShowDialog() != true) return;
+        _printChoices = box.Choices;
+        PrintSettings.Save(_printChoices);
+        ShowPrintChoices();
+        PrintWith(_printChoices, box.FirstPageOnly);
+    }
+
+    private void PrintWith(PrintChoices choices, bool firstPageOnly)
     {
         try
         {
-            var dialog = new PrintDialog();
-            dialog.PrintTicket.PageOrientation = _orientation;
-            if (dialog.ShowDialog() != true) return;
-            Send(dialog);
-            Outcome = $"{_what} sent to {dialog.PrintQueue?.Name ?? "the printer"}";
+            var queue = PrintSettings.OpenQueue(choices.Printer);
+            if (queue is null)
+            {
+                ShowProblem("No printer was found on this till.", "Add a printer in Windows Settings, or press Save as PDF instead.");
+                return;
+            }
+            var dialog = new PrintDialog { PrintQueue = queue, PrintTicket = PrintSettings.Ticket(queue, choices, _orientation) };
+            Send(dialog, firstPageOnly);
+            Outcome = $"{_what} sent to {queue.Name}";
             Close();
         }
         catch (Exception ex)
@@ -224,11 +250,28 @@ public partial class DailyBriefingPreviewWindow : Window
 
     // A fresh copy of the pages for each job: the one on screen belongs to the viewer. The
     // printer's printable area is passed in, so flowing pages (Print summary) fit its paper.
-    private void Send(PrintDialog dialog)
+    private void Send(PrintDialog dialog, bool firstPageOnly = false)
     {
         dialog.PrintTicket.PageOrientation = _orientation;
         var paginator = _build(new Size(dialog.PrintableAreaWidth, dialog.PrintableAreaHeight));
+        if (firstPageOnly) paginator = new FirstPageOnly(paginator);
         dialog.PrintDocument(paginator, _jobName);
+    }
+
+    /// <summary>Just the first page of a document ("Page 1 only" in the print box).</summary>
+    private sealed class FirstPageOnly : DocumentPaginator
+    {
+        private readonly DocumentPaginator _inner;
+        public FirstPageOnly(DocumentPaginator inner)
+        {
+            _inner = inner;
+            if (!_inner.IsPageCountValid) _inner.ComputePageCount();
+        }
+        public override DocumentPage GetPage(int pageNumber) => _inner.GetPage(pageNumber);
+        public override bool IsPageCountValid => true;
+        public override int PageCount => Math.Min(1, _inner.PageCount);
+        public override Size PageSize { get => _inner.PageSize; set => _inner.PageSize = value; }
+        public override IDocumentPaginatorSource Source => _inner.Source;
     }
 
     private void ShowProblem(string question, string detail)
