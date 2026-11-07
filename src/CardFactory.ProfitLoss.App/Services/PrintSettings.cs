@@ -130,7 +130,7 @@ public static class PrintSettings
         ticket.PageMediaSize = new PageMediaSize(PageMediaSizeName.ISOA4);
         ticket.CopyCount = Math.Clamp(choices.Copies, 1, 20);
         ticket.OutputColor = choices.Colour && abilities.Colour ? OutputColor.Color : OutputColor.Monochrome;
-        ticket.Duplexing = choices.BothSides && abilities.BothSidesShortEdge ? Duplexing.TwoSidedShortEdge : Duplexing.OneSided;
+        ticket.Duplexing = choices.BothSides && abilities.BothSidesShortEdge ? BothSidesFor(orientation) : Duplexing.OneSided;
         try
         {
             return queue.MergeAndValidatePrintTicket(queue.DefaultPrintTicket, ticket).ValidatedPrintTicket;
@@ -141,18 +141,32 @@ public static class PrintSettings
         }
     }
 
-    /// <summary>The short words for the strip above the preview.</summary>
-    public static IReadOnlyList<string> Describe(PrintQueue? queue, PrintChoices choices, PageOrientation orientation)
+    /// <summary>
+    /// Both sides, flipped so the back page reads the right way up: on the short edge for a
+    /// landscape page (the Daily Briefing - owner, 4 Nov 2026), on the long edge for a portrait
+    /// one (Print summary, Team Scorecard) - short edge there turns page 2 upside down.
+    /// </summary>
+    public static Duplexing BothSidesFor(PageOrientation orientation) =>
+        orientation == PageOrientation.Landscape ? Duplexing.TwoSidedShortEdge : Duplexing.TwoSidedLongEdge;
+
+    /// <summary>A short name for the printer line (owner, 7 Nov 2026, C1): "Brother printer"
+    /// rather than the printer's full Windows name.</summary>
+    public static string ShortName(PrintQueue? queue)
     {
-        if (queue is null) return new[] { "No printer found on this till" };
+        if (queue is null) return "No printer found";
+        var name = (queue.Name ?? string.Empty).Trim();
+        if (name.Contains("PDF", StringComparison.OrdinalIgnoreCase)) return "PDF";
+        var first = name.Split(new[] { ' ', '-', '_' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        return string.IsNullOrEmpty(first) ? "Printer" : first + " printer";
+    }
+
+    /// <summary>The rest of the printer line: "Colour · Both sides · 1 copy".</summary>
+    public static string Details(PrintQueue? queue, PrintChoices choices)
+    {
+        if (queue is null) return "· add one in Windows, or use Save as PDF";
         var abilities = Abilities(queue);
-        return new[]
-        {
-            queue.Name,
-            "A4 " + (orientation == PageOrientation.Landscape ? "landscape" : "portrait"),
-            choices.Colour && abilities.Colour ? "Colour" : "Black & white",
-            choices.BothSides && abilities.BothSidesShortEdge ? "Both sides (short edge)" : "One side",
-            choices.Copies == 1 ? "1 copy" : $"{choices.Copies} copies",
-        };
+        return "· " + (choices.Colour && abilities.Colour ? "Colour" : "Black & white")
+             + " · " + (choices.BothSides && abilities.BothSidesShortEdge ? "Both sides" : "One side")
+             + " · " + (choices.Copies == 1 ? "1 copy" : $"{choices.Copies} copies");
     }
 }

@@ -6,6 +6,16 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `print-tidy` (owner, 7 Nov 2026) - not built or released yet
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Print settings look tidier (concept C1).** The "PRINTS TO" strip above the preview is gone. A "⚙ Print settings" button in the header, between Save as PDF and Print, opens the print box. One quiet line at the bottom left of the page area shows the printer by a short name and how it prints: "Brother printer · Colour · Both sides · 1 copy" (the full Windows name when the mouse rests on it; `PrintSettings.ShortName`, `Details`). Concepts N1-N3 and C1-C3 were shown; owner chose N3's bottom line with C1's button. | Not yet built | The header button opens the print box; the bottom line names the printer |
+| **The Team Scorecard opens in the same preview as the Daily Briefing**, instead of as a PDF in the browser. The page is the same web page (P1 / W1 design), shown inside the preview window (a WebView2 with its own separate data, as before, so Flooid's sign-in is never touched) as a white A4 sheet fitted into the window; screen-only styling, so print is unchanged. Print goes through the kept settings (`CoreWebView2.PrintAsync`: printer, copies, colour, both sides on the long edge, A4 portrait); Save as PDF asks where to save (`PrintToPdfAsync`). No zoom switch or page arrows for it. `ReportPdf` is no longer used. | Not yet built | Menu → Team Scorecard opens in the preview; Print prints it; Save as PDF saves it |
+| **Both sides: portrait pages flip on the long edge.** 1.0.8 always flipped on the short edge, which is right for the landscape Daily Briefing but turns page 2 of a portrait page (Print summary) upside down. Now landscape → short edge, portrait → long edge (`PrintSettings.BothSidesFor`); the print box says "Both sides (short edge)" or "(long edge)" to match. | Not yet built | A two-page Print summary on both sides: page 2 the right way up |
+
+Main build 42356831757 green; Publish release 42356977821; release build 42356988277 green; zip SHA-256 4447834b…7080 matches; exe 1.0.8+068a417. Branch idle-sign-in removed (42357128162).
+
 ## Released - v1.0.8 (7 Nov 2026, owner's say-so), from branch `idle-sign-in` (two changes)
 
 Test build 41880854330 (version 1.0.7 at the time) green; tests passed.

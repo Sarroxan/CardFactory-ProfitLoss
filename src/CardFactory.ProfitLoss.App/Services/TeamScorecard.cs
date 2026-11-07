@@ -9,7 +9,8 @@ namespace CardFactory.ProfitLoss.App.Services;
 
 /// <summary>
 /// The Team Scorecard (owner, 21 Oct 2026): the day - or the week, when the calendar is
-/// on a date range - on one A4 page in the app's look, opened as a PDF (ReportPdf).
+/// on a date range - on one A4 page in the app's look, opened in the same preview as the Daily Briefing (7 Nov 2026;
+/// before that as a PDF in the browser, ReportPdf - no longer used).
 /// Concept P1 for a day: the brand band; Sales / ABV / AUB / P&amp;L against target; Top
 /// Performers; Team with red/green ABV, AUB and P&amp;L; Branch by hour beside Reports; Notes
 /// filling the rest of the page. Concept W1 for a week: the same, with the hours replaced by

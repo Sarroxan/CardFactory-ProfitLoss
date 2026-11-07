@@ -1,10 +1,13 @@
+using System.IO;
 using System.Printing;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using CardFactory.ProfitLoss.App.Services;
+using Microsoft.Web.WebView2.Core;
 
 namespace CardFactory.ProfitLoss.App.Views;
 
@@ -19,8 +22,16 @@ public partial class DailyBriefingPreviewWindow : Window
 
     /// <summary>Builds the pages. Given the printer's printable area when printing; null
     /// for the preview on screen.</summary>
-    private readonly Func<Size?, DocumentPaginator> _build;
-    private readonly DocumentPaginator _paginator;
+    private readonly Func<Size?, DocumentPaginator>? _build;
+    private readonly DocumentPaginator? _paginator;
+
+    // Owner, 7 Nov 2026: the Team Scorecard opens in this same window. It is a web page (the
+    // P1 / W1 design), so it is shown and printed by a browser inside the window rather than
+    // drawn as pages: _html is set for it, and the zoom switch and page arrows are hidden.
+    private readonly string? _html;
+    private readonly string? _fileStem;
+    private CoreWebView2Environment? _htmlEnvironment;
+    private bool IsWebPage => _html is not null;
     private readonly PageOrientation _orientation;
     private readonly string _what;      // "Daily Briefing for 21/10/2026", for the status line
     private readonly string _jobName;   // the print queue's job name
@@ -73,10 +84,133 @@ public partial class DailyBriefingPreviewWindow : Window
         PreviewKeyDown += Window_PreviewKeyDown;
     }
 
-    private int PageCount => Math.Max(1, _paginator.PageCount);
+    /// <summary>A web page (the Team Scorecard), A4 portrait.</summary>
+    public DailyBriefingPreviewWindow(string title, string what, string fileStem, string html)
+    {
+        InitializeComponent();
+        Title = title;
+        TitleText.Text = title;
+        _what = what;
+        _jobName = fileStem;
+        _fileStem = fileStem;
+        _orientation = PageOrientation.Portrait;
+        _html = html;
+
+        ZoomBar.Visibility = Visibility.Collapsed;
+        PagerBar.Visibility = Visibility.Collapsed;
+        PageScroller.Visibility = Visibility.Collapsed;
+        HtmlView.Visibility = Visibility.Visible;
+
+        var area = SystemParameters.WorkArea;
+        Width = Math.Min(Math.Round(area.Width * 0.9), 1600);
+        Height = Math.Min(Math.Round(area.Height * 0.9), 1100);
+        _printChoices = PrintSettings.Load();
+        ShowPrintChoices();
+        Loaded += async (_, _) => await ShowWebPageAsync();
+    }
+
+    // On screen only: the page as a white A4 sheet on the grey, fitted into the window. None of
+    // this applies when it is printed or saved (print uses the page's own @page A4 settings).
+    private const string ScreenOnly =
+        "<style>@media screen{html{background:#EDF1F6}body{width:210mm;min-height:297mm;margin:18px auto;padding:9mm;" +
+        "background:#fff;box-shadow:0 2px 12px rgba(12,40,80,.25);zoom:var(--fit,1)}}</style>" +
+        "<script>function cfFit(){var r=document.documentElement,b=document.body;if(!b)return;r.style.setProperty('--fit','1');" +
+        "var f=Math.min(1,innerHeight/(b.offsetHeight+36),innerWidth/(b.offsetWidth+36));r.style.setProperty('--fit',String(f));}" +
+        "addEventListener('load',cfFit);addEventListener('resize',cfFit);</script>";
+
+    private async Task ShowWebPageAsync()
+    {
+        try
+        {
+            // The same separate browser data as "Open as a PDF" used: Flooid's sign-in is never touched.
+            var folder = Path.Combine(Path.GetTempPath(), "CardFactory-ProfitLoss");
+            Directory.CreateDirectory(folder);
+            var page = Path.Combine(folder, $"{_fileStem}-{DateTime.Now:HHmmss}.html");
+            var html = _html!.Contains("</head>", StringComparison.OrdinalIgnoreCase)
+                ? _html.Replace("</head>", ScreenOnly + "</head>", StringComparison.OrdinalIgnoreCase)
+                : ScreenOnly + _html;
+            await File.WriteAllTextAsync(page, html, Encoding.UTF8);
+
+            var data = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "CardFactory", "ProfitLoss", "WebView2-Pdf");
+            Directory.CreateDirectory(data);
+            _htmlEnvironment = await CoreWebView2Environment.CreateAsync(null, data);
+            await HtmlView.EnsureCoreWebView2Async(_htmlEnvironment);
+            HtmlView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+            HtmlView.CoreWebView2.Settings.AreDevToolsEnabled = false;
+            HtmlView.CoreWebView2.Settings.IsZoomControlEnabled = false;
+            HtmlView.CoreWebView2.Navigate(new Uri(page).AbsoluteUri);
+        }
+        catch (Exception ex)
+        {
+            ShowProblem($"The {_what.Split(" for ")[0]} could not be shown.", ex.Message);
+        }
+    }
+
+    private CoreWebView2PrintSettings WebPrintSettings()
+    {
+        var settings = _htmlEnvironment!.CreatePrintSettings();
+        settings.ShouldPrintBackgrounds = true;       // keep the blue header and tinted rows
+        settings.ShouldPrintHeaderAndFooter = false;  // no file path or date in the margins
+        settings.Orientation = CoreWebView2PrintOrientation.Portrait;
+        settings.PageWidth = 8.27;                     // A4, in inches
+        settings.PageHeight = 11.69;
+        return settings;
+    }
+
+    private async Task PrintWebPageAsync(PrintChoices choices, bool firstPageOnly)
+    {
+        if (_htmlEnvironment is null || HtmlView.CoreWebView2 is null)
+        {
+            ShowProblem("The page is still opening.", "Wait a moment and press Print again.");
+            return;
+        }
+        var queue = PrintSettings.OpenQueue(choices.Printer);
+        if (queue is null)
+        {
+            ShowProblem("No printer was found on this till.", "Add a printer in Windows Settings, or press Save as PDF instead.");
+            return;
+        }
+        var abilities = PrintSettings.Abilities(queue);
+        var settings = WebPrintSettings();
+        settings.PrinterName = queue.FullName;
+        settings.Copies = Math.Clamp(choices.Copies, 1, 20);
+        settings.ColorMode = choices.Colour && abilities.Colour ? CoreWebView2PrintColorMode.Color : CoreWebView2PrintColorMode.Grayscale;
+        settings.Duplex = choices.BothSides && abilities.BothSidesShortEdge
+            ? CoreWebView2PrintDuplex.TwoSidedLongEdge   // portrait: long edge keeps page 2 the right way up
+            : CoreWebView2PrintDuplex.OneSided;
+        if (firstPageOnly) settings.PageRanges = "1";
+        var status = await HtmlView.CoreWebView2.PrintAsync(settings);
+        if (status != CoreWebView2PrintStatus.Succeeded)
+            throw new InvalidOperationException(status == CoreWebView2PrintStatus.PrinterUnavailable
+                ? "The printer isn't available - check it is on and connected."
+                : "The printer did not take it.");
+        Outcome = $"{_what} sent to {queue.Name}";
+        Close();
+    }
+
+    private async Task SaveWebPageAsPdfAsync()
+    {
+        if (_htmlEnvironment is null || HtmlView.CoreWebView2 is null) return;
+        var save = new Microsoft.Win32.SaveFileDialog
+        {
+            FileName = _fileStem + ".pdf",
+            DefaultExt = ".pdf",
+            Filter = "PDF (*.pdf)|*.pdf",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+        };
+        if (save.ShowDialog(this) != true) return;
+        if (!await HtmlView.CoreWebView2.PrintToPdfAsync(save.FileName, WebPrintSettings()))
+            throw new InvalidOperationException("The PDF could not be made.");
+        Outcome = $"{_what} saved as {Path.GetFileName(save.FileName)}";
+        Close();
+    }
+
+    private int PageCount => _paginator is null ? 1 : Math.Max(1, _paginator.PageCount);
 
     private void ShowPage(int index)
     {
+        if (_paginator is null) return;
         _page = Math.Clamp(index, 0, Math.Max(0, PageCount - 1));
         PageView.PageNumber = _page;
         PageText.Text = $"Page {_page + 1} of {PageCount}";
@@ -113,6 +247,7 @@ public partial class DailyBriefingPreviewWindow : Window
     /// <summary>The size Fit page is showing now, so − and + step on from what is on screen.</summary>
     private double CurrentFitScale()
     {
+        if (_paginator is null) return 1.0;
         var page = _paginator.PageSize;   // 1 = 100%
         var width = Math.Max(1, PageScroller.ActualWidth - PageFrame.Margin.Left - PageFrame.Margin.Right);
         var height = Math.Max(1, PageScroller.ActualHeight - PageFrame.Margin.Top - PageFrame.Margin.Bottom);
@@ -185,8 +320,15 @@ public partial class DailyBriefingPreviewWindow : Window
     // Windows' grey print box is no longer used.
     private PrintChoices _printChoices = new();
 
-    private void ShowPrintChoices() =>
-        PrintChips.ItemsSource = PrintSettings.Describe(PrintSettings.OpenQueue(_printChoices.Printer), _printChoices, _orientation);
+    // Owner, 7 Nov 2026 (concept C1): one quiet line at the bottom - "Brother printer · Colour ·
+    // Both sides · 1 copy" - with the printer's full name when the mouse rests on it.
+    private void ShowPrintChoices()
+    {
+        var queue = PrintSettings.OpenQueue(_printChoices.Printer);
+        PrinterShortText.Text = PrintSettings.ShortName(queue);
+        PrinterDetailText.Text = PrintSettings.Details(queue, _printChoices);
+        PrinterPill.ToolTip = queue?.FullName;
+    }
 
     private void Print_Click(object sender, RoutedEventArgs e) => PrintWith(_printChoices, firstPageOnly: false);
 
@@ -200,10 +342,15 @@ public partial class DailyBriefingPreviewWindow : Window
         PrintWith(_printChoices, box.FirstPageOnly);
     }
 
-    private void PrintWith(PrintChoices choices, bool firstPageOnly)
+    private async void PrintWith(PrintChoices choices, bool firstPageOnly)
     {
         try
         {
+            if (IsWebPage)
+            {
+                await PrintWebPageAsync(choices, firstPageOnly);
+                return;
+            }
             var queue = PrintSettings.OpenQueue(choices.Printer);
             if (queue is null)
             {
@@ -222,10 +369,15 @@ public partial class DailyBriefingPreviewWindow : Window
     }
 
     // WPF cannot write a PDF itself; Windows' own PDF printer can, and asks where to save it.
-    private void SavePdf_Click(object sender, RoutedEventArgs e)
+    private async void SavePdf_Click(object sender, RoutedEventArgs e)
     {
         try
         {
+            if (IsWebPage)
+            {
+                await SaveWebPageAsPdfAsync();
+                return;
+            }
             using var server = new LocalPrintServer();
             var queue = server.GetPrintQueues(new[] { EnumeratedPrintQueueTypes.Local })
                 .FirstOrDefault(q => string.Equals(q.Name, PdfPrinterName, StringComparison.OrdinalIgnoreCase));
@@ -253,7 +405,7 @@ public partial class DailyBriefingPreviewWindow : Window
     private void Send(PrintDialog dialog, bool firstPageOnly = false)
     {
         dialog.PrintTicket.PageOrientation = _orientation;
-        var paginator = _build(new Size(dialog.PrintableAreaWidth, dialog.PrintableAreaHeight));
+        var paginator = _build!(new Size(dialog.PrintableAreaWidth, dialog.PrintableAreaHeight));
         if (firstPageOnly) paginator = new FirstPageOnly(paginator);
         dialog.PrintDocument(paginator, _jobName);
     }

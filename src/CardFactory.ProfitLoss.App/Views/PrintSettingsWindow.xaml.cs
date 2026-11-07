@@ -34,6 +34,8 @@ public partial class PrintSettingsWindow : Window
             .ToList();
         PaperRun.Text = "A4 · " + (orientation == PageOrientation.Landscape ? "landscape" : "portrait") + " · fit to page";
         PagesRow.Visibility = pageCount > 1 ? Visibility.Visible : Visibility.Collapsed;
+        // Flipped so the back reads the right way up: short edge for landscape, long for portrait.
+        BothSidesChoice.Content = orientation == PageOrientation.Landscape ? "Both sides (short edge)" : "Both sides (long edge)";
 
         ColourChoice.IsChecked = _choices.Colour;
         BlackWhiteChoice.IsChecked = !_choices.Colour;

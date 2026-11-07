@@ -1196,9 +1196,15 @@ public partial class MainWindow : Window
         if (DataContext is not MainViewModel viewModel) return;
         try
         {
-            viewModel.SetStatus("Opening the " + TeamScorecard.Title(viewModel) + "…", notify: false);
-            await ReportPdf.OpenAsync(this, TeamScorecard.Build(viewModel), TeamScorecard.FileStem(viewModel));
-            viewModel.SetStatus(TeamScorecard.Title(viewModel) + " opened as a PDF");
+            // Owner, 7 Nov 2026: opens in the same preview as the Daily Briefing - Save as PDF,
+            // Print settings and Print there - instead of as a PDF in the browser.
+            var title = TeamScorecard.Title(viewModel);
+            var day = viewModel.SelectedDate ?? DateTime.Today;
+            var preview = new DailyBriefingPreviewWindow($"{title} · {day:ddd dd/MM/yyyy}", $"{title} for {day:dd/MM/yyyy}",
+                TeamScorecard.FileStem(viewModel), TeamScorecard.Build(viewModel)) { Owner = this };
+            preview.ShowDialog();
+            viewModel.SetStatus(preview.Outcome ?? title + " closed without printing");
+            await Task.CompletedTask;
         }
         catch (Exception ex)
         {
