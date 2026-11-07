@@ -6,7 +6,9 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `idle-sign-in` (owner, 4 Nov 2026) - not built or released yet
+## Released - v1.0.8 (7 Nov 2026, owner's say-so), from branch `idle-sign-in` (two changes)
+
+Test build 41880854330 (version 1.0.7 at the time) green; tests passed.
 
 | Change | Proven | Check |
 |--------|--------|-------|
