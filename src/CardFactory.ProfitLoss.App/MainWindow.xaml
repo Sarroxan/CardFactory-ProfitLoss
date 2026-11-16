@@ -532,18 +532,22 @@
                                      pill. -->
                                 <!-- Stage 6B.59 (layout B): grouped with the pill - 24px from it, as drawn
                                      - and 250 wide so its box ends clear of the centred tabs. -->
-                                <StackPanel Canvas.Left="760"
-                                            Canvas.Top="26"
-                                            Width="250"
-                                            HorizontalAlignment="Right">
+                                <!-- Owner, 16 Nov 2026 (concept H3): with the fourth tab (Add-on Sales) the
+                                     centred tabs ran into the store name, so the store and "updated" now sit on
+                                     one line under the Connected pill, right edge with the pill's (1206). -->
+                                <StackPanel Canvas.Left="606"
+                                            Canvas.Top="67"
+                                            Width="600">
+                                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                     <TextBlock Text="{Binding HeaderStoreText}"
-                                               HorizontalAlignment="Right"
-                                               FontFamily="Arial" FontSize="12" FontWeight="Bold"
+                                               VerticalAlignment="Center"
+                                               FontFamily="Arial" FontSize="11" FontWeight="Bold"
                                                Foreground="White"
+                                               MaxWidth="300"
                                                TextTrimming="CharacterEllipsis" />
                                     <!-- Freshness (design 1A): green dot and "updated 12 min ago"; after an hour
                                          the dot and the words turn amber. -->
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
                                         <Ellipse Width="7" Height="7" Margin="0,0,5,0" VerticalAlignment="Center">
                                             <Ellipse.Style>
                                                 <Style TargetType="Ellipse">
@@ -572,6 +576,7 @@
                                             <Run Text="{Binding HeaderUpdatedText, Mode=OneWay}" />
                                         </TextBlock>
                                     </StackPanel>
+                                  </StackPanel>
                                 </StackPanel>
 
                                 <!-- Stage 6B.27: concept MA. Opens from the pill when signed in, in place
