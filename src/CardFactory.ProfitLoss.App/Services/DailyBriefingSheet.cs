@@ -17,8 +17,9 @@ namespace CardFactory.ProfitLoss.App.Services;
 /// Every box position below is in PDF points, taken from that form's PDF.
 ///
 /// Filled by the app: Day, Date, Sales/ABV/AUB target and actual, the hourly rows, Voids,
-/// Refunds and Staff discounts (Qty and £ Value), and Team Performance (up to 8 people).
-/// Left for the team: the checklist, every Initials box, and all of page 2.
+/// Refunds and Staff discounts (Qty and £ Value), Team Performance (up to 8 people), and on
+/// page 2 the Add-on Sales box (owner, 16 Nov 2026, concept G1).
+/// Left for the team: the checklist, every Initials box, and the rest of page 2.
 ///
 /// Design (chosen 14 Oct 2026, "C1 + D1"): figures in Fredoka SemiBold, CfDeepBlue; boxes the
 /// app filled are tinted CfBlueSoft so printed and handwritten boxes are told apart; Actual
@@ -58,12 +59,20 @@ public static class DailyBriefingSheet
     public sealed record Data(DateTime Date, Measure Sales, Measure Abv, Measure Aub, IReadOnlyList<Hour> Hours,
         Reports? Reports, IReadOnlyList<Person> Team, int TeamNotShown)
     {
-        /// <summary>Stamps sold for page 2's Stamp Count; null when not retrieved (left blank).</summary>
+        /// <summary>Stamps sold, for the 1st / 2nd / Large note beside Add-on Sales; null when not retrieved.</summary>
         public StampsSold? Stamps { get; init; }
+
+        /// <summary>Page 2's Add-on Sales: the top four tracked add-ons and everyone who sold
+        /// them; null when not retrieved (the box is left empty).</summary>
+        public AddOnSalesSummary? AddOns { get; init; }
     }
 
+    /// <summary>Add-ons on page 2 (owner, 16 Nov 2026): the four that sold the most.</summary>
+    public const int AddOnColumns = 4, AddOnPeople = 4;
+
     /// <summary>The day's figures as the app holds them. Call only in single-day mode.</summary>
-    public static Data FromViewModel(MainViewModel vm)
+    /// <param name="addOns">The add-ons tracked in the Add-on Sales tab.</param>
+    public static Data FromViewModel(MainViewModel vm, IReadOnlyList<AddOnItem>? addOns = null)
     {
         var date = (vm.SelectedDate ?? DateTime.Today).Date;
         var hasTeam = vm.TotalTransactions > 0;
@@ -98,6 +107,7 @@ public static class DailyBriefingSheet
             hours, reports, team, Math.Max(0, people.Count - TeamSlots))
         {
             Stamps = vm.ReportStamps,
+            AddOns = addOns is null ? null : vm.AddOnSummary(addOns)?.Top(AddOnColumns),
         };
     }
 
@@ -125,7 +135,7 @@ public static class DailyBriefingSheet
         var doc = new FixedDocument();
         doc.DocumentPaginator.PageSize = new Size(PageWidthPt * Pt, PageHeightPt * Pt);
         doc.Pages.Add(Page("DailyBriefing-1.png", canvas => FillPageOne(canvas, data)));
-        doc.Pages.Add(Page("DailyBriefing-2.png", canvas => FillPageTwo(canvas, data)));   // page 2 is the team's, apart from Stamps Sold
+        doc.Pages.Add(Page("DailyBriefing-2.png", canvas => FillPageTwo(canvas, data)));   // page 2 is the team's, apart from Add-on Sales
         return doc;
     }
 
@@ -221,15 +231,89 @@ public static class DailyBriefingSheet
     public static bool BeatsTarget(decimal hourly, Measure measure) =>
         measure.Target is { } target && hourly > target;
 
-    // Page 2, Stamp Count (owner, 21 Oct 2026, concept B1): only the Sold column - Start and
-    // Finish are counted and written by the team. Box positions measured on the 300 dpi form
-    // (px x 765-978; rows 1761-1861, 1911-2012, 2062-2163; pt = px x 0.24), corners about 4.7pt.
+    // Page 2, Add-on Sales (owner, 16 Nov 2026, concept G1). The Stamp Count is gone - stamps are
+    // one of the add-ons now - and page 2 was drawn again (Assets/DailyBriefing-2.png): Sales &
+    // Customer and Operations, Add-on Sales and Handover all the same height. In the Add-on Sales
+    // box (x 54.0-810.4, y 258.0-364.4 pt) the app writes a small table: one row per person,
+    // most add-ons first (four people, then the Team row), one column for each of the four
+    // add-ons that sold the most, then Total and £ Value. Green = whoever sold the most of that
+    // add-on (the Branch marks' green), the Team row yellow. Room for more is noted at the side.
+    private const double AddOnNameX = 65.0, AddOnNameWidth = 130.0, AddOnFirstX = 199.0, AddOnStep = 58.0,
+        AddOnWidth = 55.0, AddOnRowsTop = 294.5, AddOnRowHeight = 11.5, AddOnRowStep = 13.5, AddOnNoteX = 575.0;
+
     private static void FillPageTwo(Canvas c, Data d)
     {
-        if (d.Stamps is not { } stamps) return;
-        Box(c, 183.6, 422.6, 234.7, 446.6, stamps.FirstClass.ToString(), 11, cornerPt: 4.7);
-        Box(c, 183.6, 458.6, 234.7, 482.9, stamps.SecondClass.ToString(), 11, cornerPt: 4.7);
-        Box(c, 183.6, 494.9, 234.7, 519.1, stamps.Large.ToString(), 11, cornerPt: 4.7);
+        if (d.AddOns is not { } addOns || addOns.Columns.Count == 0) return;
+        var uk = CultureInfo.GetCultureInfo("en-GB");
+
+        var columns = addOns.Columns.Count;
+        double ColumnX(int i) => AddOnFirstX + AddOnStep * i;
+        var totalX = ColumnX(columns);
+        var valueX = ColumnX(columns + 1);
+
+        // Headings: the add-on's name, up to two lines, sitting just above the rows.
+        for (var i = 0; i < columns; i++)
+            Heading(c, ColumnX(i), AddOnWidth, addOns.Columns[i].Item.Name);
+        Heading(c, totalX, AddOnWidth, "Total");
+        Heading(c, valueX, AddOnWidth + 11, "£ Value");
+
+        var people = addOns.People.Take(AddOnPeople).ToList();
+        for (var p = 0; p < people.Count; p++)
+        {
+            var y = AddOnRowsTop + AddOnRowStep * p;
+            var person = people[p];
+            Box(c, AddOnNameX, y, AddOnNameX + AddOnNameWidth, y + AddOnRowHeight, person.Name, 7.6, left: true, cornerPt: 4.5);
+            for (var i = 0; i < columns; i++)
+            {
+                var quantity = person.Quantities[i];
+                var best = quantity > 0 && quantity == addOns.Columns[i].TopQuantity;
+                Box(c, ColumnX(i), y, ColumnX(i) + AddOnWidth, y + AddOnRowHeight, quantity.ToString(uk), 8.5,
+                    fill: best ? Green : null, ink: best ? Brushes.White : null, cornerPt: 4.5);
+            }
+            Box(c, totalX, y, totalX + AddOnWidth, y + AddOnRowHeight, person.Total.ToString(uk), 8.5, cornerPt: 4.5);
+            Box(c, valueX, y, valueX + AddOnWidth + 11, y + AddOnRowHeight, Money(person.Value), 8, cornerPt: 4.5);
+        }
+
+        var teamY = AddOnRowsTop + AddOnRowStep * people.Count;
+        Box(c, AddOnNameX, teamY, AddOnNameX + AddOnNameWidth, teamY + AddOnRowHeight, "Team", 7.6, left: true, fill: Yellow, cornerPt: 4.5);
+        for (var i = 0; i < columns; i++)
+            Box(c, ColumnX(i), teamY, ColumnX(i) + AddOnWidth, teamY + AddOnRowHeight, addOns.Columns[i].Quantity.ToString(uk), 8.5, fill: Yellow, cornerPt: 4.5);
+        Box(c, totalX, teamY, totalX + AddOnWidth, teamY + AddOnRowHeight, addOns.TotalQuantity.ToString(uk), 8.5, fill: Yellow, cornerPt: 4.5);
+        Box(c, valueX, teamY, valueX + AddOnWidth + 11, teamY + AddOnRowHeight, Money(addOns.TotalValue), 8, fill: Yellow, cornerPt: 4.5);
+
+        var notes = new List<string> { "Green = most sold of that add-on" };
+        if (addOns.Columns.Any(col => col.Item.IsStamps) && d.Stamps is { } stamps)
+            notes.Add($"Stamps: 1st {stamps.FirstClass} · 2nd {stamps.SecondClass} · Large {stamps.Large}");
+        var notShown = addOns.People.Count - people.Count;
+        if (notShown > 0)
+            notes.Add($"+{notShown} more {(notShown == 1 ? "person" : "people")} not shown - top {AddOnPeople} by add-ons");
+        for (var n = 0; n < notes.Count; n++)
+            PlaceText(c, AddOnNoteX, 272 + 9.5 * n, notes[n], Figures, 7.5, Navy);
+    }
+
+    /// <summary>A column heading in the sheet's lettering, centred, up to two lines, its last
+    /// line sitting just above the first row.</summary>
+    private static void Heading(Canvas c, double xPt, double widthPt, string text)
+    {
+        var block = new TextBlock
+        {
+            Text = text,
+            FontFamily = Chewy,
+            FontSize = 8 * Pt,
+            Foreground = Navy,
+            Width = widthPt * Pt,
+            TextAlignment = TextAlignment.Center,
+            TextWrapping = TextWrapping.Wrap,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            MaxHeight = 2 * 8 * 1.2 * Pt,
+            LineHeight = 8 * 1.15 * Pt,
+            LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
+        };
+        block.Measure(new Size(widthPt * Pt, double.PositiveInfinity));
+        var height = Math.Min(block.DesiredSize.Height, block.MaxHeight);
+        Canvas.SetLeft(block, xPt * Pt);
+        Canvas.SetTop(block, (AddOnRowsTop - 2.0) * Pt - height);
+        c.Children.Add(block);
     }
 
     // Target box tinted; Actual box green or red with the difference inside (D1), or tinted

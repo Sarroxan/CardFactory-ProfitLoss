@@ -312,6 +312,7 @@ public partial class DailyBriefingPreviewWindow : Window
         if (data.Hours.Count == 0) missing.Add("hourly figures");
         if (data.Reports is null) missing.Add("voids and refunds");
         if (data.Team.Count == 0) missing.Add("team figures");
+        if (data.AddOns is null) missing.Add("add-on sales");
         return missing;
     }
 

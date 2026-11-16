@@ -1405,6 +1405,18 @@ public partial class FlooidView : UserControl
     public Task<string> FetchStampsHtmlAsync(DateTime fromDate, DateTime toDate) =>
         FetchItemSalesHtmlAsync(StampsGroup, fromDate, toDate);
 
+    /// <summary>
+    /// Add-on Sales (owner, 16 Nov 2026): the same report with every item in it - Product Group
+    /// and Product left blank, as on the owner's save (page 19: "Product: All", "Product Groups:
+    /// All", under 2 s on the till). No picker, no level; the report's own Product Groups line is
+    /// checked when it is read (AllItemSalesReportParser), so a group left over in Flooid's
+    /// session can never pass as every item.
+    /// </summary>
+    public Task<string> FetchAllItemSalesHtmlAsync(DateTime fromDate, DateTime toDate) =>
+        FetchItemSalesHtmlAsync(AllItemsGroup, fromDate, toDate);
+
+    private static readonly ItemSalesGroup AllItemsGroup = new("All items", "", "", "");
+
     private async Task<string> FetchItemSalesHtmlAsync(ItemSalesGroup group, DateTime fromDate, DateTime toDate)
     {
         var timing = new PhaseLog(LogPrefix + group.Name);
@@ -1452,6 +1464,7 @@ public partial class FlooidView : UserControl
         ResetReportPopupContext();
         ResetGeneratedReportCapture();
         timing.Mark("browser ready");
+        var allItems = ReferenceEquals(group, AllItemsGroup);
 
         var from = fromDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
         var to = toDate.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
@@ -1557,7 +1570,8 @@ public partial class FlooidView : UserControl
               return 'NO_LEVEL_CONTROL';
             })()
             """;
-        var levelResult = await ExecuteStringScriptAsync(levelScript);
+        // Add-on Sales: every item, so no level and no product group are chosen.
+        var levelResult = allItems ? "OK" : await ExecuteStringScriptAsync(levelScript);
         if (levelResult.StartsWith("ERROR:", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException(levelResult[6..].Trim());
         if (!string.Equals(levelResult, "OK", StringComparison.OrdinalIgnoreCase))
@@ -1573,16 +1587,20 @@ public partial class FlooidView : UserControl
         // level 5 issues no XHR and this is a blind sleep waiting for something that
         // does not happen. The per-level picker caps are left unscaled because those
         // genuinely settle, in about 80ms.
-        var levelSettle = await WaitForRpcQuietAsync(
-            GetAutomationCoreWebView2(), "item sales",
-            TimeSpan.FromMilliseconds(1200 * FlooidTimings.Scale));
-        timing.Mark("product group level 5 selected · " + levelSettle);
+        if (!allItems)
+        {
+            var levelSettle = await WaitForRpcQuietAsync(
+                GetAutomationCoreWebView2(), "item sales",
+                TimeSpan.FromMilliseconds(1200 * FlooidTimings.Scale));
+            timing.Mark("product group level 5 selected · " + levelSettle);
+        }
 
         // Stage 6A.55: pick the Gift Cards product group through Flooid's own picker
         // before configuring the rest of the form. This must happen before the configure
         // script runs, because the configure script's submit would otherwise fire while
         // no product group had been chosen.
-        await SelectGiftCardProductGroupAsync(group, TimeSpan.FromSeconds(90), timing);
+        if (!allItems)
+            await SelectGiftCardProductGroupAsync(group, TimeSpan.FromSeconds(90), timing);
 
         var configure = """
             (() => {
@@ -1590,6 +1608,7 @@ public partial class FlooidView : UserControl
               const to = __TO__;
               const year = __YEAR__;
               const skipDates = __SKIP_DATES__;
+              const allItems = __ALL_ITEMS__;
               const text = (document.body?.innerText || '').toLowerCase();
               const forms = [...document.forms];
               const form = forms.find(f => {
@@ -1987,7 +2006,7 @@ public partial class FlooidView : UserControl
                   if (level) { select.value = level.value; fire(select); levelSet = true; }
                 }
 
-                if (surrounding.includes('product group') && !surrounding.includes('level')) {
+                if (!allItems && surrounding.includes('product group') && !surrounding.includes('level')) {
                   // If this installation exposes product group as a <select> rather than
                   // the picker popup, choosing the gift-card option here is still valid.
                   const gift = options.find(o => (o.value || '').includes(__LEAF__) || (o.textContent || '').toLowerCase().includes(__GROUP_LOWER__));
@@ -2012,6 +2031,23 @@ public partial class FlooidView : UserControl
                   fire(input);
                   itemDetailSet = input.checked;
                 }
+              }
+
+              // Add-on Sales (16 Nov 2026): every item. Nothing may narrow the report, so the
+              // product group field and the Product box are emptied (the Product box is only
+              // given an empty value - no events, since it fires Flooid's item Search). The
+              // report's own "Product Groups: All" line is what is checked afterwards.
+              if (allItems) {
+                const multiples = document.getElementById('components.productGroup.productGroupMultiples')
+                               || form.querySelector('[name="components.productGroup.productGroupMultiples"]');
+                if (multiples && String(multiples.value || '').trim()) multiples.value = '';
+                const shown = document.getElementById('components.productGroup.productGroupMultiplesOutput');
+                if (shown) shown.textContent = '';
+                const product = document.getElementById('components.product.productCode')
+                             || form.querySelector('[name="components.product.productCode"]');
+                if (product && String(product.value || '').trim()) product.value = '';
+                giftGroupSet = true;
+                levelSet = true;
               }
 
               // Stage 6A.61: the real field is the hidden input
@@ -2086,6 +2122,7 @@ public partial class FlooidView : UserControl
             .Replace("__TO__", JsonSerializer.Serialize(to), StringComparison.Ordinal)
             .Replace("__YEAR__", JsonSerializer.Serialize(year), StringComparison.Ordinal)
             .Replace("__SKIP_DATES__", skipDateEntry ? "true" : "false", StringComparison.Ordinal)
+            .Replace("__ALL_ITEMS__", allItems ? "true" : "false", StringComparison.Ordinal)
             .Replace("__LEAF__", JsonSerializer.Serialize(group.Leaf), StringComparison.Ordinal)
             .Replace("__GROUP_LOWER__", JsonSerializer.Serialize(group.Name.ToLowerInvariant()), StringComparison.Ordinal)
             .Replace("__GROUP__", JsonSerializer.Serialize(group.Name), StringComparison.Ordinal);

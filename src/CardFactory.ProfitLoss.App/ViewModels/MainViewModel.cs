@@ -876,12 +876,43 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>For the Daily Briefing's Stamp Count; null when not retrieved.</summary>
     public StampsSold? ReportStamps => _reportStamps;
 
-    public void ApplyStampsSold(StampsSold? stamps)
+    /// <param name="items">The Stamps report's lines, for the Stamps column in Add-on Sales
+    /// (who sold them); null when not retrieved.</param>
+    public void ApplyStampsSold(StampsSold? stamps, IReadOnlyList<GiftCardItemRecord>? items = null)
     {
         _reportStamps = stamps;
+        _reportStampItems = stamps is null ? null : items;
         if (stamps is not null) _reportPeriod = CurrentPeriod();
         ShowStamps();
+        AddOnDataChanged?.Invoke(this, EventArgs.Empty);
     }
+
+    // Add-on Sales (owner, 16 Nov 2026): every item line from Item Sales By Operator with all
+    // product groups, and the Stamps lines. Null = not retrieved. They travel with Stamps (the
+    // Reports pull, the Daily Briefing and the quiet fetch after signing in) and are cleared with
+    // the other Reports figures when the day or range changes.
+    private IReadOnlyList<GiftCardItemRecord>? _reportStampItems;
+    private IReadOnlyList<GiftCardItemRecord>? _reportAllItems;
+
+    /// <summary>Raised whenever the add-on figures change, so the Add-on Sales tab can redraw.</summary>
+    public event EventHandler? AddOnDataChanged;
+
+    public bool HasAddOnData => _reportAllItems is not null;
+
+    /// <summary>Every item line pulled for add-ons; null when not retrieved.</summary>
+    public IReadOnlyList<GiftCardItemRecord>? ReportAllItems => _reportAllItems;
+
+    public void ApplyAllItemSales(IReadOnlyList<GiftCardItemRecord>? items)
+    {
+        _reportAllItems = items;
+        if (items is not null) _reportPeriod = CurrentPeriod();
+        OnPropertyChanged(nameof(HasAddOnData));
+        AddOnDataChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>The tracked add-ons' figures, or null when the items have not been retrieved.</summary>
+    public AddOnSalesSummary? AddOnSummary(IReadOnlyList<AddOnItem> tracked) =>
+        _reportAllItems is null ? null : AddOnSalesSummary.Build(tracked, _reportAllItems, _reportStampItems);
 
     private void ShowStamps()
     {
@@ -961,9 +992,13 @@ public sealed class MainViewModel : ObservableObject
         _reportActivity = Array.Empty<OperatorActivityRecord>();
         _reportStaffDiscounts = null;
         _reportStamps = null;
+        _reportStampItems = null;
+        _reportAllItems = null;
         _reportPeriod = null;
         RebuildReportRows();
         ShowStamps();
+        OnPropertyChanged(nameof(HasAddOnData));
+        AddOnDataChanged?.Invoke(this, EventArgs.Empty);
     }
 
     // Reports have no date line of their own, so figures for one day must never sit on

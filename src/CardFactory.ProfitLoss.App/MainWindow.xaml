@@ -489,6 +489,8 @@
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="20" />
                                         <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="20" />
+                                        <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <Button x:Name="TeamSectionSegment"
@@ -512,6 +514,14 @@
                                             Click="ReportsSection_Click"
                                             ToolTip="Show voids, returns and no sales by person">
                                         <TextBlock Text="Reports" />
+                                    </Button>
+                                    <!-- Add-on Sales (owner, 16 Nov 2026, concept T1): the fourth header tab. -->
+                                    <Button x:Name="AddOnsSectionSegment"
+                                            Grid.Column="7"
+                                            Style="{StaticResource SectionTabButtonStyle}"
+                                            Click="AddOnsSection_Click"
+                                            ToolTip="Show add-on sales by SKU and by person">
+                                        <TextBlock Text="Add-on Sales" />
                                     </Button>
                                 </Grid>
 
@@ -1274,6 +1284,188 @@
                                                 <TextBlock Text="highlighted to look into · voids include transaction and line voids" Margin="6,0,0,0"
                                                            Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9.5" VerticalAlignment="Center"/>
                                             </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Add-on Sales (owner, 16 Nov 2026, concept T1). Add-ons are added by SKU on the
+                                     left (the box offers names from items Flooid has listed on this till); the right
+                                     shows what each sold and a table by person. Filled in code (MainWindow.AddOns.cs),
+                                     since the columns are whatever the store tracks. -->
+                                <Grid x:Name="AddOnsModePanel" Height="474" Visibility="Collapsed">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="42"/>
+                                        <RowDefinition Height="432"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Canvas Grid.Row="0" Height="42" Width="1212" ClipToBounds="False">
+                                        <Border Canvas.Left="28" Canvas.Top="0" Width="1184" Height="42"
+                                                Background="{StaticResource CfBlue}" BorderBrush="{StaticResource CfYellow}"
+                                                BorderThickness="3,3,3,0" CornerRadius="16,16,0,0">
+                                            <TextBlock Text="Add-on Sales" Style="{StaticResource SectionTitleTextStyle}" />
+                                        </Border>
+                                        <Image Canvas.Left="-4" Canvas.Top="-12" Width="66" Height="66"
+                                               Source="Assets/SectionSmiley.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    </Canvas>
+
+                                    <Border Grid.Row="1" Width="1184" Height="432" Margin="28,0,0,0" HorizontalAlignment="Left"
+                                            Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1"
+                                            CornerRadius="0,0,13,13" ClipToBounds="True">
+                                        <Grid Margin="14">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="320"/>
+                                                <ColumnDefinition Width="14"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Items to track -->
+                                            <Border Grid.Column="0" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="13" ClipToBounds="True">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="36"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+                                                    <Border Background="{StaticResource CfDeepBlue}" CornerRadius="12,12,0,0">
+                                                        <TextBlock Text="Items to track" Margin="14,0,0,0" VerticalAlignment="Center" Foreground="White"
+                                                                   FontFamily="{StaticResource CfTitleFont}" FontSize="18" />
+                                                    </Border>
+                                                    <StackPanel Grid.Row="1" Margin="14,10,14,0">
+                                                        <TextBlock Text="Type a SKU or a name, then pick it or press Enter" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10.5" Margin="0,0,0,6"/>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Border BorderBrush="{StaticResource CfBlue}" BorderThickness="2" CornerRadius="9" Background="White" Height="34">
+                                                                <TextBox x:Name="AddOnSearchBox" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center"
+                                                                         Margin="8,0" FontFamily="Arial" FontSize="13" Foreground="{StaticResource CfInk}"
+                                                                         TextChanged="AddOnSearchBox_TextChanged" PreviewKeyDown="AddOnSearchBox_PreviewKeyDown"
+                                                                         LostKeyboardFocus="AddOnSearchBox_LostKeyboardFocus" />
+                                                            </Border>
+                                                            <Button Grid.Column="1" Content="+ Add" Height="34" Margin="8,0,0,0" Padding="12,0" FontSize="12"
+                                                                    Style="{StaticResource FlooidActionButtonStyle}" Click="AddOnAdd_Click" ToolTip="Add the SKU in the box" />
+                                                        </Grid>
+                                                        <Popup x:Name="AddOnSuggestPopup" PlacementTarget="{Binding ElementName=AddOnSearchBox}" Placement="Bottom"
+                                                               StaysOpen="True" AllowsTransparency="True" Width="292" VerticalOffset="6">
+                                                            <Border Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="10" Padding="0,4">
+                                                                <ListBox x:Name="AddOnSuggestList" BorderThickness="0" MaxHeight="230" FontFamily="Arial"
+                                                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                                                         PreviewMouseLeftButtonUp="AddOnSuggestList_PreviewMouseLeftButtonUp">
+                                                                    <ListBox.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <Grid Margin="4,3" Width="250">
+                                                                                <Grid.ColumnDefinitions>
+                                                                                    <ColumnDefinition Width="*"/>
+                                                                                    <ColumnDefinition Width="Auto"/>
+                                                                                </Grid.ColumnDefinitions>
+                                                                                <StackPanel>
+                                                                                    <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" TextTrimming="CharacterEllipsis"/>
+                                                                                    <TextBlock Text="{Binding Detail}" FontSize="10.5" Foreground="{StaticResource CfMuted}"/>
+                                                                                </StackPanel>
+                                                                                <Border Grid.Column="1" Background="{StaticResource CfYellow}" CornerRadius="7" Padding="7,2" VerticalAlignment="Center" Margin="6,0,0,0">
+                                                                                    <TextBlock Text="+ Add" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}"/>
+                                                                                </Border>
+                                                                            </Grid>
+                                                                        </DataTemplate>
+                                                                    </ListBox.ItemTemplate>
+                                                                </ListBox>
+                                                            </Border>
+                                                        </Popup>
+                                                        <TextBlock x:Name="AddOnSearchNote" Margin="0,5,0,0" FontFamily="Arial" FontSize="10.5" Foreground="{StaticResource CfMuted}" TextWrapping="Wrap" Visibility="Collapsed"/>
+                                                    </StackPanel>
+                                                    <TextBlock x:Name="AddOnTrackingTitle" Grid.Row="2" Text="Tracking" Margin="14,12,14,2" FontFamily="Arial" FontSize="12" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}"/>
+                                                    <ScrollViewer Grid.Row="3" Margin="14,0,8,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                                        <ScrollViewer.Resources>
+                                                            <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
+                                                        </ScrollViewer.Resources>
+                                                        <ItemsControl x:Name="AddOnTrackedList" Margin="0,0,6,0">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Border Background="{StaticResource CfBlueSoft}" CornerRadius="9" Padding="12,6,6,6" Margin="0,5,0,0">
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <StackPanel>
+                                                                                <TextBlock Text="{Binding Name}" FontFamily="Arial" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}" TextTrimming="CharacterEllipsis"/>
+                                                                                <TextBlock Text="{Binding Detail}" FontFamily="Arial" FontSize="10.5" Foreground="{StaticResource CfMuted}"/>
+                                                                            </StackPanel>
+                                                                            <Button Grid.Column="1" Content="✕" Tag="{Binding Key}" Click="AddOnRemove_Click" ToolTip="Stop tracking this add-on"
+                                                                                    Width="26" Height="26" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                                                    Foreground="{StaticResource CfMuted}" FontSize="13" VerticalAlignment="Center"/>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </ScrollViewer>
+                                                    <TextBlock Grid.Row="4" Margin="14,8,14,10" FontFamily="Arial" FontSize="10.5" Foreground="{StaticResource CfMuted}" TextWrapping="Wrap"
+                                                               Text="Kept on this till. The Daily Briefing shows the four that sold the most."/>
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- Sold and by person -->
+                                            <Grid Grid.Column="2">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="14"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="13" ClipToBounds="True">
+                                                    <StackPanel>
+                                                        <Border Background="{StaticResource CfDeepBlue}" Height="36" CornerRadius="12,12,0,0">
+                                                            <Grid Margin="14,0">
+                                                                <TextBlock Text="Sold" VerticalAlignment="Center" Foreground="White" FontFamily="{StaticResource CfTitleFont}" FontSize="18"/>
+                                                                <TextBlock x:Name="AddOnPeriodText" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#D6E4F5" FontFamily="Arial" FontSize="11"/>
+                                                            </Grid>
+                                                        </Border>
+                                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="12,12,12,10">
+                                                            <ScrollViewer.Resources>
+                                                                <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
+                                                            </ScrollViewer.Resources>
+                                                            <StackPanel x:Name="AddOnCardsPanel" Orientation="Horizontal" Height="92"/>
+                                                        </ScrollViewer>
+                                                    </StackPanel>
+                                                </Border>
+                                                <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="13" ClipToBounds="True">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="36"/>
+                                                            <RowDefinition Height="*"/>
+                                                        </Grid.RowDefinitions>
+                                                        <Border Background="{StaticResource CfDeepBlue}" CornerRadius="12,12,0,0">
+                                                            <Grid Margin="14,0">
+                                                                <TextBlock Text="By person" VerticalAlignment="Center" Foreground="White" FontFamily="{StaticResource CfTitleFont}" FontSize="18"/>
+                                                                <TextBlock Text="green = most sold of that add-on" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#D6E4F5" FontFamily="Arial" FontSize="11"/>
+                                                            </Grid>
+                                                        </Border>
+                                                        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                                            <ScrollViewer.Resources>
+                                                                <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
+                                                            </ScrollViewer.Resources>
+                                                            <Grid x:Name="AddOnTable" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                                        </ScrollViewer>
+                                                    </Grid>
+                                                </Border>
+                                                <!-- Nothing pulled yet: the same friendly empty state as Reports. -->
+                                                <Border x:Name="AddOnEmptyState" Grid.Row="0" Grid.RowSpan="3" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="13">
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <Image Width="52" Height="52" Source="Assets/HeaderSmileyFace.png" VerticalAlignment="Center" Opacity="0.9"
+                                                               RenderOptions.BitmapScalingMode="HighQuality" />
+                                                        <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                                            <TextBlock Text="No add-on sales yet" FontFamily="{StaticResource CfTitleFont}" FontSize="20" Foreground="{StaticResource CfDeepBlue}" />
+                                                            <TextBlock x:Name="AddOnEmptyText" FontFamily="Arial" FontSize="11" Foreground="{StaticResource CfMuted}" Margin="0,3,0,9" TextWrapping="Wrap" MaxWidth="420"
+                                                                       Text="They come with the reports. Press Generate reports to fetch them."/>
+                                                            <Button Content="Generate reports" Tag="Reports" Height="28" FontSize="11" HorizontalAlignment="Left" Padding="14,0"
+                                                                    Style="{StaticResource FlooidActionButtonStyle}" Click="GrabFromFlooid_Click" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
                                         </Grid>
                                     </Border>
                                 </Grid>

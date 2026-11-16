@@ -6,7 +6,17 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `print-tidy` (owner, 7 Nov 2026) - not built or released yet
+## On branch `add-on-sales` (owner, 16 Nov 2026) - not built or released yet
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Add-on Sales tab (concept T1).** A fourth header tab. Left, "Items to track": type a SKU (or a name) and pick from a drop-down of items Flooid has listed on this till, or press Enter / + Add; tracked add-ons are listed with ✕ to remove, kept in `%APPDATA%\CardFactory-ProfitLoss\add-ons.json` (`Services/AddOnSettings`; names seen in `add-on-items-seen.json`, at most 20,000). **Stamps** is one ready-made add-on covering every stamp (from the Stamps report, Christmas stamps left out as on the old Stamp Count); it is there to start with. Right: a card per add-on (number sold, £, "★ Most: name · n") and a table by person (one column per add-on, Items, £ Value, Team row; green = most of that add-on). The tab's button is Generate reports, as on Reports. | Not yet built | Add a SKU; Generate reports; the cards and table fill in; the list is still there after a restart |
+| **Add-on figures from Item Sales By Operator with every item** - Product Group and Product left blank (owner's save 16 Nov, page 19: "Product: All", "Product Groups: All", under 2 s on the till). `FlooidView.FetchAllItemSalesHtmlAsync`: the Item Sales criteria with no level and no picker; the product group field and Product box are emptied. Read by `AllItemSalesReportParser` (the Gift Cards reading, the item lines being the same; refuses anything but "Product Groups: All" / "Product: All", so a group left over in Flooid's session can't pass as every item). `AddOnSalesSummary` adds up each tracked SKU per person (SKUs matched ignoring case, spaces and leading zeros). Pulled with Stamps: Generate reports, the Daily Briefing and the quiet fetch after signing in, on either sign-in ("AllItems" in the plan). Tests `AddOnSalesTests` with an anonymised cut of the real save (`ItemSalesAllItems_2026-11-16.html`). The criteria script was run on the owner's saved criteria page (Gift Cards group put in first): returns OK, group field emptied, Show Item Detail on, Next clicked. | Not yet built. Not known: whether Flooid keeps a product group chosen earlier in the same sign-in (the Gift Cards / Stamps pulls) - if so the report says so and add-ons show "not read" with the reason | Generate reports after a Refresh: add-ons come through; log "Item Sales By Operator — All items" |
+| **Daily Briefing page 2 drawn again (concept G1).** The Stamp Count is gone (stamps are an add-on now; the handwritten Start / Finish goes with it - owner told). Sales & Customer and Operations (4 lines each), a full-width **Add-on Sales** box and Handover (5 lines) are all the same height; new `Assets/DailyBriefing-2.png` drawn from the old one at 300 dpi. In the box the app writes the **four add-ons that sold the most** (owner: "no lower than four" = top 4; ties: the one added first), one row per person (four, most add-ons first, then the Team row in yellow), Total and £ Value; green = most of that add-on; at the side "Stamps: 1st · 2nd · Large" and "+N more people not shown". Nothing when add-ons weren't read (and "add-on sales" in the preview's missing note). | Not yet built | Concept G1 matched; print page 2 |
+
+## Released - v1.0.9 (16 Nov 2026, owner's say-so), from branch `print-tidy`
+
+Branch build 43840909854 green (first compile); main build 43841308153 green; Publish release 43841628545; release build 43841669506 green; zip SHA-256 7bca9011…8924 matches; exe 1.0.9+d1d85a9. Branch print-tidy removed.
 
 | Change | Proven | Check |
 |--------|--------|-------|
@@ -14,9 +24,9 @@ or released without the owner's say-so. A push to `main` starts a build.
 | **The Team Scorecard opens in the same preview as the Daily Briefing**, instead of as a PDF in the browser. The page is the same web page (P1 / W1 design), shown inside the preview window (a WebView2 with its own separate data, as before, so Flooid's sign-in is never touched) as a white A4 sheet fitted into the window; screen-only styling, so print is unchanged. Print goes through the kept settings (`CoreWebView2.PrintAsync`: printer, copies, colour, both sides on the long edge, A4 portrait); Save as PDF asks where to save (`PrintToPdfAsync`). No zoom switch or page arrows for it. `ReportPdf` is no longer used. | Not yet built | Menu → Team Scorecard opens in the preview; Print prints it; Save as PDF saves it |
 | **Both sides: portrait pages flip on the long edge.** 1.0.8 always flipped on the short edge, which is right for the landscape Daily Briefing but turns page 2 of a portrait page (Print summary) upside down. Now landscape → short edge, portrait → long edge (`PrintSettings.BothSidesFor`); the print box says "Both sides (short edge)" or "(long edge)" to match. | Not yet built | A two-page Print summary on both sides: page 2 the right way up |
 
-Main build 42356831757 green; Publish release 42356977821; release build 42356988277 green; zip SHA-256 4447834b…7080 matches; exe 1.0.8+068a417. Branch idle-sign-in removed (42357128162).
-
 ## Released - v1.0.8 (7 Nov 2026, owner's say-so), from branch `idle-sign-in` (two changes)
+
+Main build 42356831757 green; Publish release 42356977821; release build 42356988277 green; zip SHA-256 4447834b…7080 matches; exe 1.0.8+068a417. Branch idle-sign-in removed (42357128162).
 
 Test build 41880854330 (version 1.0.7 at the time) green; tests passed.
 

@@ -127,6 +127,7 @@ public partial class MainWindow : Window
         }
         SetBranchPerformanceView(false);
         SetBranchDetailView(false);
+        InitialiseAddOns();
 
         FitToWorkArea();
         CaptureOneRowWindowGeometry();
@@ -673,24 +674,38 @@ public partial class MainWindow : Window
     // and hides the same Team-only chrome; Team and Branch figures are untouched.
     private void ReportsSection_Click(object sender, RoutedEventArgs e) => SetBranchPerformanceView(false, reports: true);
 
+    // Add-on Sales (owner, 16 Nov 2026): the fourth header tab. Its figures come with the
+    // reports, so on this tab the button is Generate reports, as on Reports.
+    private void AddOnsSection_Click(object sender, RoutedEventArgs e) => SetBranchPerformanceView(false, addOns: true);
+
     private void BranchHourlyTab_Click(object sender, RoutedEventArgs e) => SetBranchDetailView(false);
 
     private void BranchGiftCardsTab_Click(object sender, RoutedEventArgs e) => SetBranchDetailView(true);
 
-    private void SetBranchPerformanceView(bool branchActive, bool reports = false)
+    private void SetBranchPerformanceView(bool branchActive, bool reports = false, bool addOns = false)
     {
         if (TeamModePanel is null || BranchModePanel is null) return;
 
+        if (addOns) { branchActive = false; reports = false; }
         _branchPerformanceActive = branchActive;
-        _reportsActive = reports;
-        var teamActive = !branchActive && !reports;
+        _addOnsActive = addOns;
+        // Add-on Sales pulls the same way as Reports (Generate reports), so it counts as Reports
+        // for the button and the pulls; only the panel shown differs.
+        _reportsActive = reports || addOns;
+        var teamActive = !branchActive && !reports && !addOns;
         TeamModePanel.Visibility = teamActive ? Visibility.Visible : Visibility.Collapsed;
         BranchModePanel.Visibility = branchActive ? Visibility.Visible : Visibility.Collapsed;
         if (ReportsModePanel is not null)
             ReportsModePanel.Visibility = reports ? Visibility.Visible : Visibility.Collapsed;
         if (ReportsSectionSegment is not null)
             ReportsSectionSegment.Tag = reports ? "Active" : null;
-        var otherThanTeam = branchActive || reports;
+        if (AddOnsModePanel is not null)
+            AddOnsModePanel.Visibility = addOns ? Visibility.Visible : Visibility.Collapsed;
+        if (AddOnsSectionSegment is not null)
+            AddOnsSectionSegment.Tag = addOns ? "Active" : null;
+        if (addOns) RedrawAddOns();
+        var otherThanTeam = branchActive || reports || addOns;
+        reports = reports || addOns;
 
         // Stage 6A.35 gives Branch Performance the vertical space normally used by
         // Team-only summary/formula chrome. This keeps the whole application fixed
@@ -719,7 +734,8 @@ public partial class MainWindow : Window
 
         if (DataContext is MainViewModel viewModel)
         {
-            viewModel.SetStatus(reports ? "Reports · voids, returns and no sales"
+            viewModel.SetStatus(addOns ? "Add-on Sales · by SKU and by person"
+                : reports ? "Reports · voids, returns and no sales"
                 : branchActive ? "Branch Performance · team figures preserved"
                 : "Team Performance · branch figures preserved", notify: false);
         }
@@ -992,6 +1008,8 @@ public partial class MainWindow : Window
             () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate));
         var stampsPull = AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
             () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate));
+        var addOnsPull = AddToPlan(pulls, "AllItems", startDate, endDate, 2.0,
+            () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate), v => v.FetchAllItemSalesHtmlAsync(startDate, endDate));
         // Only a real stop stops it: the sign-in state reads "not signed in" for a moment on every
         // page change, which stopped the second sign-in from ever taking part (till log, 2 Nov 12:18).
         var plan = NewPlan("Quiet fetch", pulls, () => _quietFetchStop);
@@ -1005,6 +1023,8 @@ public partial class MainWindow : Window
 
             if (_quietFetchStop || !loginWindow.IsSignedIn) return;
             await PullStampsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, planned: stampsPull);
+            if (_quietFetchStop) return;
+            await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, planned: addOnsPull);
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch finished{Environment.NewLine}");
         }
         catch (Exception ex)
@@ -1043,7 +1063,7 @@ public partial class MainWindow : Window
                 ? await TakeAsync(planned)
                 : await PullAsync("Stamps", startDate, endDate, () => loginWindow.FetchStampsHtmlAsync(startDate, endDate));
             var report = new GiftCardReportParser("Stamps").Parse(html);
-            viewModel.ApplyStampsSold(StampsSold.From(report.Items));
+            viewModel.ApplyStampsSold(StampsSold.From(report.Items), report.Items);
             return null;
         }
         catch (Exception ex)
@@ -1051,6 +1071,30 @@ public partial class MainWindow : Window
             viewModel.ApplyStampsSold(null);
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Stamps ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) failed: {ex}{Environment.NewLine}");
             return "Stamps not read: " + ex.Message;
+        }
+    }
+
+    /// <summary>Add-on Sales (owner, 16 Nov 2026): Item Sales By Operator with every item, for the
+    /// SKUs tracked in the Add-on Sales tab. Travels with Stamps and, like it, never stops a pull: a
+    /// problem leaves the add-ons "not retrieved" and returns a note for the status line.</summary>
+    private async Task<string?> PullAddOnsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate, bool quiet = false, PlannedPull? planned = null)
+    {
+        try
+        {
+            if (!quiet) viewModel.SetFlooidStatus("Retrieving add-on sales…", "Working");
+            var html = planned is not null
+                ? await TakeAsync(planned)
+                : await PullAsync("AllItems", startDate, endDate, () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate));
+            var report = new AllItemSalesReportParser().Parse(html);
+            _addOnSeen = AddOnSettings.RememberSeen(_addOnSeen ?? AddOnSettings.LoadSeen(), report.Items);
+            viewModel.ApplyAllItemSales(report.Items);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            viewModel.ApplyAllItemSales(null);
+            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Add-on sales ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) failed: {ex}{Environment.NewLine}");
+            return "Add-ons not read: " + ex.Message;
         }
     }
 
@@ -1294,7 +1338,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var data = DailyBriefingSheet.FromViewModel(viewModel);
+            var data = DailyBriefingSheet.FromViewModel(viewModel, TrackedAddOns);
             var preview = new DailyBriefingPreviewWindow(data) { Owner = this };
             preview.ShowDialog();
             var missing = DailyBriefingPreviewWindow.Missing(data);
@@ -1679,6 +1723,7 @@ public partial class MainWindow : Window
         // Performance every time you refreshed from there.
         var wasBranchView = _branchPerformanceActive;
         var wasReportsView = _reportsActive;
+        var wasAddOnsView = _addOnsActive;
         var wasGiftCardsView = _branchGiftCardsActive;
         // Staff discounts come with the full pull from Reports, and always for the Daily Briefing.
         var includeDiscounts = wasReportsView || forBriefing;
@@ -1722,6 +1767,10 @@ public partial class MainWindow : Window
             var stampsPull = includeDiscounts
                 ? AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
                     () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate))
+                : null;
+            var addOnsPull = includeDiscounts
+                ? AddToPlan(pulls, "AllItems", startDate, endDate, 2.0,
+                    () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate), v => v.FetchAllItemSalesHtmlAsync(startDate, endDate))
                 : null;
             var (lastYearRefunds, lastYearGift) = fillFromLastYear
                 ? AddLastYearToPlan(pulls, viewModel, loginWindow, startDate, endDate)
@@ -1841,12 +1890,14 @@ public partial class MainWindow : Window
                 // Not pulled this time, and what is held is for another day or range.
                 viewModel.ApplyStaffDiscounts(null);
                 viewModel.ApplyStampsSold(null);
+                viewModel.ApplyAllItemSales(null);
                 _staffDiscountPeriod = null;
             }
             var discountsOk = !includeDiscounts || discountsUpdated;
 
             // Stamps sold travel with Staff Discounts: Reports and the Daily Briefing.
             var stampsNote = includeDiscounts ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull) : null;
+            var addOnsNote = includeDiscounts ? await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, planned: addOnsPull) : null;
 
             // Targets from last year. Last, after everything the screen shows, so it can never
             // get in the way of today's figures; a problem only leaves the targets as they were.
@@ -1902,6 +1953,7 @@ public partial class MainWindow : Window
                 viewModel.SetStatus("Flooid retrieval failed · " + string.Join(" | ", errors));
             }
             if (stampsNote is not null) viewModel.SetStatus(viewModel.StatusText + " · " + stampsNote);
+            if (addOnsNote is not null) viewModel.SetStatus(viewModel.StatusText + " · " + addOnsNote);
         }
         catch (Exception ex)
         {
@@ -1919,7 +1971,7 @@ public partial class MainWindow : Window
             _flooidGrabBusy = false;
             _pullFresh = false;
             // Stage 6A.93: back to whichever section was showing when this started.
-            SetBranchPerformanceView(wasBranchView, wasReportsView);
+            SetBranchPerformanceView(wasBranchView, wasReportsView && !wasAddOnsView, wasAddOnsView);
             SetBranchDetailView(wasGiftCardsView);
         }
         if (quietFrom is DateTime qFrom && quietTo is DateTime qTo)
@@ -1939,6 +1991,7 @@ public partial class MainWindow : Window
         var planRun = Task.CompletedTask;
         var wasBranchView = _branchPerformanceActive;
         var wasReportsView = _reportsActive;
+        var wasAddOnsView = _addOnsActive;
         var wasGiftCardsView = _branchGiftCardsActive;
         try
         {
@@ -1958,6 +2011,8 @@ public partial class MainWindow : Window
                 () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate));
             var stampsPull = AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
                 () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate));
+            var addOnsPull = AddToPlan(pulls, "AllItems", startDate, endDate, 2.0,
+                () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate), v => v.FetchAllItemSalesHtmlAsync(startDate, endDate));
             plan = NewPlan("Generate reports", pulls);
             planRun = RunPlan(plan, loginWindow);
 
@@ -1999,6 +2054,7 @@ public partial class MainWindow : Window
             }
 
             var stampsNote = await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull);
+            var addOnsNote = await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, planned: addOnsPull);
 
             var errors = new List<string>();
             if (!activityUpdated && !string.IsNullOrWhiteSpace(activityError)) errors.Add("Voids, returns and no sales: " + activityError);
@@ -2018,6 +2074,7 @@ public partial class MainWindow : Window
                     + string.Join(" | ", errors));
             }
             if (stampsNote is not null) viewModel.SetStatus(viewModel.StatusText + " · " + stampsNote);
+            if (addOnsNote is not null) viewModel.SetStatus(viewModel.StatusText + " · " + addOnsNote);
         }
         catch (Exception ex)
         {
@@ -2031,7 +2088,7 @@ public partial class MainWindow : Window
             await WaitQuietly(planRun);
             _flooidGrabBusy = false;
             _pullFresh = false;
-            SetBranchPerformanceView(wasBranchView, wasReportsView);
+            SetBranchPerformanceView(wasBranchView, wasReportsView && !wasAddOnsView, wasAddOnsView);
             SetBranchDetailView(wasGiftCardsView);
         }
     }
