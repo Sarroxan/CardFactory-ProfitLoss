@@ -1006,8 +1006,11 @@ public partial class MainWindow : Window
         var pulls = new List<PlannedPull>();
         var discountsPull = AddToPlan(pulls, "Discounts", startDate, endDate, 2.2,
             () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate));
-        var stampsPull = AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
-            () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate));
+        // Stamps only while Stamps is tracked in Add-on Sales (owner, 16 Nov 2026).
+        var stampsPull = StampsTracked
+            ? AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
+                () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate))
+            : null;
         var addOnsPull = AddToPlan(pulls, "AllItems", startDate, endDate, 2.0,
             () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate), v => v.FetchAllItemSalesHtmlAsync(startDate, endDate));
         // Only a real stop stops it: the sign-in state reads "not signed in" for a moment on every
@@ -1022,7 +1025,8 @@ public partial class MainWindow : Window
             _staffDiscountPeriod = (startDate, endDate);
 
             if (_quietFetchStop || !loginWindow.IsSignedIn) return;
-            await PullStampsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, planned: stampsPull);
+            if (stampsPull is not null) await PullStampsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, planned: stampsPull);
+            else viewModel.ApplyStampsSold(null);
             if (_quietFetchStop) return;
             await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, planned: addOnsPull);
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch finished{Environment.NewLine}");
@@ -1081,7 +1085,11 @@ public partial class MainWindow : Window
     {
         try
         {
-            if (!quiet) viewModel.SetFlooidStatus("Retrieving add-on sales…", "Working");
+            if (!quiet)
+            {
+                viewModel.SetFlooidStatus("Retrieving add-on sales…", "Working");
+                SetRetrievalStep(5);
+            }
             var html = planned is not null
                 ? await TakeAsync(planned)
                 : await PullAsync("AllItems", startDate, endDate, () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate));
@@ -1764,7 +1772,7 @@ public partial class MainWindow : Window
                 ? AddToPlan(pulls, "Discounts", startDate, endDate, 2.2,
                     () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate))
                 : null;
-            var stampsPull = includeDiscounts
+            var stampsPull = includeDiscounts && StampsTracked
                 ? AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
                     () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate))
                 : null;
@@ -1897,7 +1905,8 @@ public partial class MainWindow : Window
 
             // Stamps travel with Staff Discounts: Reports and the Daily Briefing. Since 16 Nov 2026 they are
             // the Stamps add-on (Add-on Sales tab and Daily Briefing page 2) and the Team Scorecard tile.
-            var stampsNote = includeDiscounts ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull) : null;
+            var stampsNote = stampsPull is not null ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull) : null;
+            if (includeDiscounts && stampsPull is null) viewModel.ApplyStampsSold(null);
             var addOnsNote = includeDiscounts ? await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, planned: addOnsPull) : null;
 
             // Targets from last year. Last, after everything the screen shows, so it can never
@@ -2010,8 +2019,10 @@ public partial class MainWindow : Window
                 () => loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate), v => v.FetchRefundsVoidsHtmlAsync(startDate, endDate));
             var discountsPull = AddToPlan(pulls, "Discounts", startDate, endDate, 2.2,
                 () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate));
-            var stampsPull = AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
-                () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate));
+            var stampsPull = StampsTracked
+                ? AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
+                    () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate))
+                : null;
             var addOnsPull = AddToPlan(pulls, "AllItems", startDate, endDate, 2.0,
                 () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate), v => v.FetchAllItemSalesHtmlAsync(startDate, endDate));
             plan = NewPlan("Generate reports", pulls);
@@ -2054,7 +2065,8 @@ public partial class MainWindow : Window
                 _staffDiscountPeriod = null;
             }
 
-            var stampsNote = await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull);
+            var stampsNote = stampsPull is not null ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull) : null;
+            if (stampsPull is null) viewModel.ApplyStampsSold(null);
             var addOnsNote = await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, planned: addOnsPull);
 
             var errors = new List<string>();

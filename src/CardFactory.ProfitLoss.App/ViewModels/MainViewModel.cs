@@ -911,8 +911,12 @@ public sealed class MainViewModel : ObservableObject
     }
 
     /// <summary>The tracked add-ons' figures, or null when the items have not been retrieved.</summary>
+    /// Stamps is left out until the Stamps report has been fetched (it is only fetched while Stamps
+    /// is tracked), so it never shows a 0 that only means "not fetched".
     public AddOnSalesSummary? AddOnSummary(IReadOnlyList<AddOnItem> tracked) =>
-        _reportAllItems is null ? null : AddOnSalesSummary.Build(tracked, _reportAllItems, _reportStampItems);
+        _reportAllItems is null
+            ? null
+            : AddOnSalesSummary.Build(tracked.Where(i => !i.IsStamps || _reportStampItems is not null).ToList(), _reportAllItems, _reportStampItems);
 
     private void ShowStamps()
     {

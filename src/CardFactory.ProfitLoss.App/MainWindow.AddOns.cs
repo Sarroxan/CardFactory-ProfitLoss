@@ -54,6 +54,9 @@ public partial class MainWindow
     /// <summary>The tracked add-ons, for the Daily Briefing.</summary>
     public IReadOnlyList<AddOnItem> TrackedAddOns => _addOnTracked;
 
+    /// <summary>The Stamps report is only fetched while Stamps is tracked (owner, 16 Nov 2026).</summary>
+    private bool StampsTracked => _addOnTracked.Any(i => i.IsStamps);
+
     // ---- Adding and removing ------------------------------------------------------------
 
     private void AddOnSearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -180,6 +183,8 @@ public partial class MainWindow
         AddOnSettings.SaveTracked(_addOnTracked);
         AddOnSearchBox.Text = string.Empty;
         RedrawAddOns();
+        if (item.IsStamps && (DataContext as MainViewModel)?.HasAddOnData == true)
+            ShowAddOnNote("Stamps added. Press Generate reports to fetch them.");
     }
 
     private void AddOnRemove_Click(object sender, RoutedEventArgs e)
@@ -226,7 +231,8 @@ public partial class MainWindow
         {
             var item = _addOnTracked[i];
             var where = item.IsStamps ? "every stamp" : "SKU " + item.Key;
-            var sold = summary is null ? string.Empty : $" · {summary.Columns[i].Quantity} sold";
+            var column = summary?.Columns.FirstOrDefault(c => string.Equals(c.Item.Key, item.Key, StringComparison.OrdinalIgnoreCase));
+            var sold = summary is null ? string.Empty : column is null ? " · not fetched yet" : $" · {column.Quantity} sold";
             _addOnTrackedRows.Add(new AddOnListRow(item.Key, item.Name, where + sold));
         }
         AddOnTrackingTitle.Text = $"Tracking ({_addOnTracked.Count})";

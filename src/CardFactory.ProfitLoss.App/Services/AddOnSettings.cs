@@ -8,7 +8,9 @@ namespace CardFactory.ProfitLoss.App.Services;
 /// <summary>
 /// Add-on Sales (owner, 16 Nov 2026): the add-ons this till tracks, added by SKU in the Add-on
 /// Sales tab, and every item seen in Flooid's reports so the SKU box can offer names as you type.
-/// Both kept in the app's own folder; a missing or unreadable file means Stamps only and no names.
+/// Both kept in the app's own folder; a missing or unreadable file means nothing tracked and no names.
+/// Stamps is offered in the SKU box but not tracked until added (owner, 16 Nov 2026: "it can be there
+/// to add if needed so you don't need to automatically grab them").
 /// </summary>
 public static class AddOnSettings
 {
@@ -28,7 +30,7 @@ public static class AddOnSettings
     {
         try
         {
-            if (!File.Exists(TrackedPath)) return new List<AddOnItem> { AddOnItem.Stamps };
+            if (!File.Exists(TrackedPath)) return new List<AddOnItem>();
             var entries = JsonSerializer.Deserialize<List<TrackedEntry>>(File.ReadAllText(TrackedPath)) ?? new();
             return entries
                 .Where(e => !string.IsNullOrWhiteSpace(e.Key))
@@ -39,7 +41,7 @@ public static class AddOnSettings
         }
         catch
         {
-            return new List<AddOnItem> { AddOnItem.Stamps };
+            return new List<AddOnItem>();
         }
     }
 
