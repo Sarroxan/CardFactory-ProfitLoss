@@ -1253,7 +1253,7 @@ public partial class MainWindow : Window
             var title = TeamScorecard.Title(viewModel);
             var day = viewModel.SelectedDate ?? DateTime.Today;
             var preview = new DailyBriefingPreviewWindow($"{title} · {day:ddd dd/MM/yyyy}", $"{title} for {day:dd/MM/yyyy}",
-                TeamScorecard.FileStem(viewModel), TeamScorecard.Build(viewModel)) { Owner = this };
+                TeamScorecard.FileStem(viewModel), TeamScorecard.Build(viewModel, TrackedAddOns)) { Owner = this };
             preview.ShowDialog();
             viewModel.SetStatus(preview.Outcome ?? title + " closed without printing");
             await Task.CompletedTask;
