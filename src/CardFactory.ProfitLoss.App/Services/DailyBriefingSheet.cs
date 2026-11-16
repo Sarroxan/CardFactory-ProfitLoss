@@ -59,10 +59,6 @@ public static class DailyBriefingSheet
     public sealed record Data(DateTime Date, Measure Sales, Measure Abv, Measure Aub, IReadOnlyList<Hour> Hours,
         Reports? Reports, IReadOnlyList<Person> Team, int TeamNotShown)
     {
-        /// <summary>Stamps sold (1st / 2nd / Large); null when not retrieved. No longer printed - stamps
-        /// are an add-on on page 2 now.</summary>
-        public StampsSold? Stamps { get; init; }
-
         /// <summary>Page 2's Add-on Sales: the four tracked add-ons that sold the most (totals only
         /// are printed); null when not retrieved (left empty).</summary>
         public AddOnSalesSummary? AddOns { get; init; }
@@ -107,7 +103,6 @@ public static class DailyBriefingSheet
             new Measure(Target(vm.AubTarget), Actual(vm.ActualAub), false),
             hours, reports, team, Math.Max(0, people.Count - TeamSlots))
         {
-            Stamps = vm.ReportStamps,
             AddOns = addOns is null ? null : vm.AddOnSummary(addOns)?.Top(AddOnColumns),
         };
     }

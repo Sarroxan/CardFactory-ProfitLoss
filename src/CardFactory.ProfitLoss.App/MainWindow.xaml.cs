@@ -1895,7 +1895,8 @@ public partial class MainWindow : Window
             }
             var discountsOk = !includeDiscounts || discountsUpdated;
 
-            // Stamps sold travel with Staff Discounts: Reports and the Daily Briefing.
+            // Stamps travel with Staff Discounts: Reports and the Daily Briefing. Since 16 Nov 2026 they are
+            // the Stamps add-on (Add-on Sales tab and Daily Briefing page 2) and the Team Scorecard tile.
             var stampsNote = includeDiscounts ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull) : null;
             var addOnsNote = includeDiscounts ? await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, planned: addOnsPull) : null;
 
