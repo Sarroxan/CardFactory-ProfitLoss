@@ -6,7 +6,9 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `add-on-sales` (owner, 16 Nov 2026) - not built or released yet
+## Released - v1.1.0 (16 Nov 2026, owner's say-so), from branch `add-on-sales`
+
+Test builds 43884986713 (first version, tried on the till 16 Nov 14:35: add-on figures came through) and 43895611512 (all of the below) green; tests passed. With this release the owner asked for every earlier release except v1.0.0 to be removed (v1.0.5-v1.0.9) and all branches cleared; their notes are carried in 1.1.0's.
 
 | Change | Proven | Check |
 |--------|--------|-------|
