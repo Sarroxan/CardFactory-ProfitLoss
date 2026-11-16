@@ -866,24 +866,14 @@ public sealed class MainViewModel : ObservableObject
     public decimal? ReportStaffDiscountValue => _reportStaffDiscounts?.Sum(line => line.DiscountValue);
     public decimal? ReportStaffDiscountQuantity => _reportStaffDiscounts?.Sum(line => line.Quantity);
 
-    // Stamps sold (owner, 21 Oct 2026, concept R1): from Item Sales By Operator with the Stamps
-    // group. Null = not retrieved, shown as a dash, never as 0.
-    private StampsSold? _reportStamps;
-    private string _reportStampsText = "—";
-    private string _reportStampsDetail = string.Empty;
-    public string ReportStampsText { get => _reportStampsText; private set => SetProperty(ref _reportStampsText, value); }
-    public string ReportStampsDetail { get => _reportStampsDetail; private set => SetProperty(ref _reportStampsDetail, value); }
-    /// <summary>For the Daily Briefing's Stamp Count; null when not retrieved.</summary>
-    public StampsSold? ReportStamps => _reportStamps;
-
-    /// <param name="items">The Stamps report's lines, for the Stamps column in Add-on Sales
-    /// (who sold them); null when not retrieved.</param>
-    public void ApplyStampsSold(StampsSold? stamps, IReadOnlyList<GiftCardItemRecord>? items = null)
+    // Stamps (owner, 16 Nov 2026): only the Stamps add-on uses them now - the Reports tile, the
+    // Stamp Count and the Team Scorecard tile are gone - so only the report's lines are kept.
+    /// <param name="items">The Stamps report's lines (Item Sales By Operator, Stamps group), for
+    /// the Stamps add-on; null when not retrieved.</param>
+    public void ApplyStampItems(IReadOnlyList<GiftCardItemRecord>? items)
     {
-        _reportStamps = stamps;
-        _reportStampItems = stamps is null ? null : items;
-        if (stamps is not null) _reportPeriod = CurrentPeriod();
-        ShowStamps();
+        _reportStampItems = items;
+        if (items is not null) _reportPeriod = CurrentPeriod();
         AddOnDataChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -917,15 +907,6 @@ public sealed class MainViewModel : ObservableObject
         _reportAllItems is null
             ? null
             : AddOnSalesSummary.Build(tracked.Where(i => !i.IsStamps || _reportStampItems is not null).ToList(), _reportAllItems, _reportStampItems);
-
-    private void ShowStamps()
-    {
-        var s = _reportStamps;
-        ReportStampsText = s is null ? "—" : s.Total.ToString();
-        ReportStampsDetail = s is null
-            ? "not retrieved"
-            : $"1st {s.FirstClass} · 2nd {s.SecondClass} · Large {s.Large}" + (s.Other > 0 ? $" · other {s.Other}" : string.Empty);
-    }
 
     public void ApplyActivityReport(IReadOnlyList<OperatorActivityRecord> activity)
     {
@@ -995,12 +976,10 @@ public sealed class MainViewModel : ObservableObject
     {
         _reportActivity = Array.Empty<OperatorActivityRecord>();
         _reportStaffDiscounts = null;
-        _reportStamps = null;
         _reportStampItems = null;
         _reportAllItems = null;
         _reportPeriod = null;
         RebuildReportRows();
-        ShowStamps();
         OnPropertyChanged(nameof(HasAddOnData));
         AddOnDataChanged?.Invoke(this, EventArgs.Empty);
     }

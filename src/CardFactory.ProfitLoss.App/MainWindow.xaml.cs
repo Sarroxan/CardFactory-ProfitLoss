@@ -1026,7 +1026,7 @@ public partial class MainWindow : Window
 
             if (_quietFetchStop || !loginWindow.IsSignedIn) return;
             if (stampsPull is not null) await PullStampsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, planned: stampsPull);
-            else viewModel.ApplyStampsSold(null);
+            else viewModel.ApplyStampItems(null);
             if (_quietFetchStop) return;
             await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, planned: addOnsPull);
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch finished{Environment.NewLine}");
@@ -1067,12 +1067,12 @@ public partial class MainWindow : Window
                 ? await TakeAsync(planned)
                 : await PullAsync("Stamps", startDate, endDate, () => loginWindow.FetchStampsHtmlAsync(startDate, endDate));
             var report = new GiftCardReportParser("Stamps").Parse(html);
-            viewModel.ApplyStampsSold(StampsSold.From(report.Items), report.Items);
+            viewModel.ApplyStampItems(report.Items);
             return null;
         }
         catch (Exception ex)
         {
-            viewModel.ApplyStampsSold(null);
+            viewModel.ApplyStampItems(null);
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Stamps ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) failed: {ex}{Environment.NewLine}");
             return "Stamps not read: " + ex.Message;
         }
@@ -1897,7 +1897,7 @@ public partial class MainWindow : Window
             {
                 // Not pulled this time, and what is held is for another day or range.
                 viewModel.ApplyStaffDiscounts(null);
-                viewModel.ApplyStampsSold(null);
+                viewModel.ApplyStampItems(null);
                 viewModel.ApplyAllItemSales(null);
                 _staffDiscountPeriod = null;
             }
@@ -1906,7 +1906,7 @@ public partial class MainWindow : Window
             // Stamps travel with Staff Discounts: Reports and the Daily Briefing. Since 16 Nov 2026 they are
             // the Stamps add-on (Add-on Sales tab and Daily Briefing page 2) and the Team Scorecard tile.
             var stampsNote = stampsPull is not null ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull) : null;
-            if (includeDiscounts && stampsPull is null) viewModel.ApplyStampsSold(null);
+            if (includeDiscounts && stampsPull is null) viewModel.ApplyStampItems(null);
             var addOnsNote = includeDiscounts ? await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, planned: addOnsPull) : null;
 
             // Targets from last year. Last, after everything the screen shows, so it can never
@@ -2066,7 +2066,7 @@ public partial class MainWindow : Window
             }
 
             var stampsNote = stampsPull is not null ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull) : null;
-            if (stampsPull is null) viewModel.ApplyStampsSold(null);
+            if (stampsPull is null) viewModel.ApplyStampItems(null);
             var addOnsNote = await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, planned: addOnsPull);
 
             var errors = new List<string>();

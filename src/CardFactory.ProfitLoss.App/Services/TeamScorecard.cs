@@ -159,14 +159,14 @@ internal static class TeamScorecard
         }
         else
         {
-            string Tile(string label, string value, string detail, bool flagged = false, bool wide = false) =>
-                $"<div class='{(flagged ? "flag" : string.Empty)}'{(wide ? " style='grid-column:span 2'" : string.Empty)}><small>{label}</small><b>{H(value)}</b><i>{H(detail)}</i></div>";
+            // Stamps sold tile removed (owner, 16 Nov 2026): stamps are an add-on now.
+            string Tile(string label, string value, string detail, bool flagged = false) =>
+                $"<div class='{(flagged ? "flag" : string.Empty)}'><small>{label}</small><b>{H(value)}</b><i>{H(detail)}</i></div>";
             var r = new StringBuilder("<div class='rt'>");
             r.Append(Tile("VOIDS", M(vm.ReportVoidsValue), $"{vm.ReportVoidsQuantity} items", vm.ReportVoidsValue >= MainViewModel.VoidsFlagValue));
             r.Append(Tile("RETURNS", M(vm.ReportRefundsValue), $"{vm.ReportRefundsQuantity} refunds", vm.ReportRefundsValue >= MainViewModel.RefundsFlagValue));
             r.Append(Tile("NO SALES", vm.ReportNoSales.ToString(Uk), "drawer opens"));
             r.Append(Tile("STAFF DISCOUNT", vm.ReportStaffDiscountText, vm.ReportStaffDiscountDetail));
-            r.Append(Tile("STAMPS SOLD", vm.ReportStampsText, vm.ReportStampsDetail, wide: true));
             r.Append("</div>");
             var flagged = vm.ReportRows
                 .Where(p => p.VoidsFlagged || p.RefundsFlagged)
