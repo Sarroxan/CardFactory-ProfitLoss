@@ -25,10 +25,9 @@ browser and drives Flooid's real web UI.
 |---|---|---|---|
 | Refunds/Voids | Refunds, Voids & No Sales Report | `RefundsVoidsReportParser` | per-operator refunds, voids, no-sales |
 | Branch Performance | Branch Performance | `BranchPerformanceReportParser` | hourly/daily sales, transactions, units |
-| Gift Cards | Item Sales By Operator Report | `GiftCardReportParser` | gift card sales to exclude from ABV/AUB |
+| All items | Item Sales By Operator Report, no product group | `AllItemSalesReportParser` | **gift cards** (department `…/Gift Cards`, `AllItemSalesReportParser.GiftCards`) to exclude from ABV/AUB; **stamps** (department `…/Stamps`); add-on SKUs (Add-on Sales tab, Daily Briefing page 2, weekly scorecard) |
+| Gift Cards (fallback, last year) | Item Sales By Operator Report, group Gift Cards | `GiftCardReportParser` | only when the all-items report cannot be read, and for last year's targets |
 | Staff Discounts | Discounts and Price Overrides Report | `DiscountsReportParser` | staff discount per person in the Reports section |
-| Stamps (only while tracked) | Item Sales By Operator Report, group Stamps | `GiftCardReportParser("Stamps")` | the Stamps add-on |
-| All items | Item Sales By Operator Report, no product group | `AllItemSalesReportParser` | add-on SKUs (Add-on Sales tab, Daily Briefing page 2, weekly scorecard) |
 
 Team Performance = Refunds/Voids merged with Gift Cards
 (`OperatorReportMerger`).

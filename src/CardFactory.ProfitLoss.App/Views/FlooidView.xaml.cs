@@ -1379,10 +1379,11 @@ public partial class FlooidView : UserControl
     }
 
     /// <summary>
-    /// A product group pulled through Item Sales By Operator. Gift Cards since Stage 6A.55;
-    /// Stamps added 21 Oct 2026 (owner), codes from the saved pickers 16 and 17:
-    /// 200005 > 300017 > 400065 > 500300 > 600561. Each pull checks that ONLY its own leaf
-    /// reached the criteria form, so one group can never ride along with the other.
+    /// A product group pulled through Item Sales By Operator: Gift Cards (Stage 6A.55). Since
+    /// 16 Nov 2026 it is only the fallback - the Gift Cards and the stamps are read from the
+    /// all-items report - and last year's figures for the targets. The Stamps pull (21 Oct 2026,
+    /// 200005 > 300017 > 400065 > 500300 > 600561) went then. The pull still checks that ONLY the
+    /// Gift Cards leaf reached the criteria form, never the Stamps one (OtherLeaf).
     /// </summary>
     private sealed record ItemSalesGroup(string Name, string Level4, string Leaf, string OtherLeaf)
     {
@@ -1397,13 +1398,9 @@ public partial class FlooidView : UserControl
     }
 
     private static readonly ItemSalesGroup GiftCardsGroup = new("Gift Cards", "500303", "600527", "600561");
-    private static readonly ItemSalesGroup StampsGroup = new("Stamps", "500300", "600561", "600527");
 
     public Task<string> FetchGiftCardHtmlAsync(DateTime fromDate, DateTime toDate) =>
         FetchItemSalesHtmlAsync(GiftCardsGroup, fromDate, toDate);
-
-    public Task<string> FetchStampsHtmlAsync(DateTime fromDate, DateTime toDate) =>
-        FetchItemSalesHtmlAsync(StampsGroup, fromDate, toDate);
 
     /// <summary>
     /// Add-on Sales (owner, 16 Nov 2026): the same report with every item in it - Product Group
@@ -2683,7 +2680,11 @@ public partial class FlooidView : UserControl
 
         // Do not require a top-level NavigationCompleted event here. Flooid commonly submits
         // the report form inside a frame while the top WebView remains on /web/spring/redirect.
-        await Task.Delay(TimeSpan.FromMilliseconds(Math.Min(900, Math.Max(300, timeout.TotalMilliseconds / 10))));
+        // Speed (16 Nov 2026): this was a fixed 900 ms on every report. What follows already
+        // waits for the real thing - the date check polls until the criteria page has gone, and
+        // WaitForGeneratedReportHtmlAsync until the report is there - so it is now a scaled
+        // pause like the other fixed waits: none on Fast (the normal setting), 900 ms on Safe.
+        await FlooidTimings.PauseAsync((int)Math.Min(900, Math.Max(300, timeout.TotalMilliseconds / 10)));
     }
 
     /// <summary>

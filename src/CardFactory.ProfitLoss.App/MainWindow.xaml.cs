@@ -966,9 +966,9 @@ public partial class MainWindow : Window
         _lastYearCache.Clear();
     }
 
-    // Owner, 22 Oct 2026 (option B): after the sign-in pull, Staff Discounts and Stamps are
-    // fetched quietly - no progress panel, no status messages - so the Reports section and the
-    // Daily Briefing open almost at once. Anything that needs Flooid first calls
+    // Owner, 22 Oct 2026 (option B): after the sign-in pull, Staff Discounts (and the add-ons,
+    // normally from the copy that pull made) are fetched quietly - no progress panel, no status
+    // messages - so the Reports section and the Daily Briefing open almost at once. Anything that needs Flooid first calls
     // StopQuietFetchAsync: the report already being fetched is allowed to finish (stopping
     // Flooid half way through a page could leave its form in a muddle), nothing further is
     // started, and the button then carries on as normal.
@@ -990,15 +990,11 @@ public partial class MainWindow : Window
         AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch of Staff Discounts and add-ons ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) started{Environment.NewLine}");
 
         // Two sign-ins: both reports at once, one on each. On a stop nothing more is started;
-        // one already being pulled finishes and is kept for the next pull.
+        // one already being pulled finishes and is kept for the next pull. The all-items report
+        // normally comes from the copy the pull before has just made (it carries the Gift Cards).
         var pulls = new List<PlannedPull>();
         var discountsPull = AddToPlan(pulls, "Discounts", startDate, endDate, 2.2,
             () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate));
-        // Stamps only while Stamps is tracked in Add-on Sales (owner, 16 Nov 2026).
-        var stampsPull = StampsTracked
-            ? AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
-                () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate))
-            : null;
         var addOnsPull = AddToPlan(pulls, "AllItems", startDate, endDate, 2.0,
             () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate), v => v.FetchAllItemSalesHtmlAsync(startDate, endDate));
         // Only a real stop stops it: the sign-in state reads "not signed in" for a moment on every
@@ -1013,9 +1009,6 @@ public partial class MainWindow : Window
             _staffDiscountPeriod = (startDate, endDate);
 
             if (_quietFetchStop || !loginWindow.IsSignedIn) return;
-            if (stampsPull is not null) await PullStampsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, planned: stampsPull);
-            else viewModel.ApplyStampItems(null);
-            if (_quietFetchStop) return;
             await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, quiet: true, planned: addOnsPull);
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch finished{Environment.NewLine}");
         }
@@ -1040,37 +1033,12 @@ public partial class MainWindow : Window
         try { await running; } catch { }
     }
 
-    /// <summary>The Stamps report, for the Stamps add-on - pulled only while Stamps is tracked in
-    /// Add-on Sales (owner, 16 Nov 2026). Never stops a pull: a problem leaves Stamps out of the
-    /// add-on figures and returns a note for the status line.</summary>
-    private async Task<string?> PullStampsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate, bool quiet = false, PlannedPull? planned = null)
-    {
-        try
-        {
-            if (!quiet)
-            {
-                viewModel.SetFlooidStatus("Retrieving Stamps…", "Working");
-                SetRetrievalStep(5);
-            }
-            var html = planned is not null
-                ? await TakeAsync(planned)
-                : await PullAsync("Stamps", startDate, endDate, () => loginWindow.FetchStampsHtmlAsync(startDate, endDate));
-            var report = new GiftCardReportParser("Stamps").Parse(html);
-            viewModel.ApplyStampItems(report.Items);
-            return null;
-        }
-        catch (Exception ex)
-        {
-            viewModel.ApplyStampItems(null);
-            AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Stamps ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) failed: {ex}{Environment.NewLine}");
-            return "Stamps not read: " + ex.Message;
-        }
-    }
-
     /// <summary>Add-on Sales (owner, 16 Nov 2026): Item Sales By Operator with every item, for the
-    /// SKUs tracked in the Add-on Sales tab. Travels with Stamps and, like it, never stops a pull: a
-    /// problem leaves the add-ons "not retrieved" and returns a note for the status line.</summary>
-    private async Task<string?> PullAddOnsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate, bool quiet = false, PlannedPull? planned = null)
+    /// SKUs tracked in the Add-on Sales tab, and the Stamps add-on from its Stamps lines (speed,
+    /// 16 Nov 2026: no separate Stamps pull). Never stops a pull: a problem leaves the add-ons
+    /// "not retrieved" and returns a note for the status line.</summary>
+    /// <param name="parsed">The report already read by the pull (it carries the Gift Cards too).</param>
+    private async Task<string?> PullAddOnsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate, bool quiet = false, PlannedPull? planned = null, GiftCardReportParseResult? parsed = null)
     {
         try
         {
@@ -1079,16 +1047,22 @@ public partial class MainWindow : Window
                 viewModel.SetFlooidStatus("Retrieving add-on sales…", "Working");
                 SetRetrievalStep(5);
             }
-            var html = planned is not null
-                ? await TakeAsync(planned)
-                : await PullAsync("AllItems", startDate, endDate, () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate));
-            var report = new AllItemSalesReportParser().Parse(html);
+            var report = parsed;
+            if (report is null)
+            {
+                var html = planned is not null
+                    ? await TakeAsync(planned)
+                    : await PullAsync("AllItems", startDate, endDate, () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate));
+                report = new AllItemSalesReportParser().Parse(html);
+            }
             _addOnSeen = AddOnSettings.RememberSeen(_addOnSeen ?? AddOnSettings.LoadSeen(), report.Items);
+            viewModel.ApplyStampItems(AllItemSalesReportParser.Stamps(report));
             viewModel.ApplyAllItemSales(report.Items);
             return null;
         }
         catch (Exception ex)
         {
+            viewModel.ApplyStampItems(null);
             viewModel.ApplyAllItemSales(null);
             AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Add-on sales ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) failed: {ex}{Environment.NewLine}");
             return "Add-ons not read: " + ex.Message;
@@ -1734,22 +1708,17 @@ public partial class MainWindow : Window
             var pulls = new List<PlannedPull>();
             var refundsPull = AddToPlan(pulls, "Refunds", startDate, endDate, 2.4,
                 () => loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate), v => v.FetchRefundsVoidsHtmlAsync(startDate, endDate));
-            var giftPull = AddToPlan(pulls, "GiftCards", startDate, endDate, 6.4,
-                () => loginWindow.FetchGiftCardHtmlAsync(startDate, endDate), v => v.FetchGiftCardHtmlAsync(startDate, endDate));
             var branchPull = AddToPlan(pulls, "Branch", branchFrom, endDate, 2.3,
                 () => loginWindow.FetchBranchPerformanceHtmlAsync(branchFrom, endDate), v => v.FetchBranchPerformanceHtmlAsync(branchFrom, endDate));
             var discountsPull = includeDiscounts
                 ? AddToPlan(pulls, "Discounts", startDate, endDate, 2.2,
                     () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate))
                 : null;
-            var stampsPull = includeDiscounts && StampsTracked
-                ? AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
-                    () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate))
-                : null;
-            var addOnsPull = includeDiscounts
-                ? AddToPlan(pulls, "AllItems", startDate, endDate, 2.0,
-                    () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate), v => v.FetchAllItemSalesHtmlAsync(startDate, endDate))
-                : null;
+            // Speed (owner, 16 Nov 2026): the Gift Cards and the stamps are read from the all-items
+            // report (Item Sales By Operator, every item, about 2 s) rather than pulled on their own
+            // through the five-level product group picker (about 6.4 s each). Every pull has it now.
+            var addOnsPull = AddToPlan(pulls, "AllItems", startDate, endDate, 2.0,
+                () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate), v => v.FetchAllItemSalesHtmlAsync(startDate, endDate));
             var (lastYearRefunds, lastYearGift) = fillFromLastYear
                 ? AddLastYearToPlan(pulls, viewModel, loginWindow, startDate, endDate)
                 : ((PlannedPull?)null, (PlannedPull?)null);
@@ -1758,6 +1727,7 @@ public partial class MainWindow : Window
 
             RefundReportParseResult? refunds = null;
             GiftCardReportParseResult? giftCards = null;
+            GiftCardReportParseResult? allItems = null;
             string? teamError = null;
             string? giftError = null;
             string? branchError = null;
@@ -1783,12 +1753,26 @@ public partial class MainWindow : Window
             {
                 viewModel.SetFlooidStatus("Retrieving Gift Cards…", "Working");
                 SetRetrievalStep(2);
-                var giftHtml = await TakeAsync(giftPull);
-                giftCards = new GiftCardReportParser().Parse(giftHtml);
+                allItems = new AllItemSalesReportParser().Parse(await TakeAsync(addOnsPull));
+                giftCards = AllItemSalesReportParser.GiftCards(allItems);
+                AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Gift Cards from the all-items report: {giftCards.Items.Count} lines, "
+                    + $"{giftCards.Operators.Sum(o => o.Quantity)} / £{giftCards.Operators.Sum(o => o.Value):N2}{Environment.NewLine}");
             }
             catch (Exception ex)
             {
-                giftError = ex.Message;
+                // The Gift Cards report itself, as before, once the plan's other reports are in,
+                // so nothing else is using the app's own sign-in.
+                AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] All-items report not read ({ex.Message}); pulling the Gift Cards report{Environment.NewLine}");
+                try
+                {
+                    await WaitQuietly(planRun);
+                    var giftHtml = await PullAsync("GiftCards", startDate, endDate, () => loginWindow.FetchGiftCardHtmlAsync(startDate, endDate));
+                    giftCards = new GiftCardReportParser().Parse(giftHtml);
+                }
+                catch (Exception giftEx)
+                {
+                    giftError = giftEx.Message;
+                }
             }
 
             if (giftCards is not null)
@@ -1867,17 +1851,14 @@ public partial class MainWindow : Window
             {
                 // Not pulled this time, and what is held is for another day or range.
                 viewModel.ApplyStaffDiscounts(null);
-                viewModel.ApplyStampItems(null);
-                viewModel.ApplyAllItemSales(null);
                 _staffDiscountPeriod = null;
             }
             var discountsOk = !includeDiscounts || discountsUpdated;
 
-            // Stamps travel with Staff Discounts: Reports and the Daily Briefing. Since 16 Nov 2026 they are
-            // the Stamps add-on (Add-on Sales tab and Daily Briefing page 2) and the Team Scorecard tile.
-            var stampsNote = stampsPull is not null ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull) : null;
-            if (includeDiscounts && stampsPull is null) viewModel.ApplyStampItems(null);
-            var addOnsNote = includeDiscounts ? await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, planned: addOnsPull) : null;
+            // Add-on sales (and the Stamps add-on) from the same all-items report, on every pull;
+            // the step shows only on the Reports and Daily Briefing pulls, as before.
+            var addOnsNote = await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, quiet: !includeDiscounts, planned: addOnsPull, parsed: allItems);
+            if (!includeDiscounts) addOnsNote = null;
 
             // Targets from last year. Last, after everything the screen shows, so it can never
             // get in the way of today's figures; a problem only leaves the targets as they were.
@@ -1932,7 +1913,6 @@ public partial class MainWindow : Window
                 viewModel.SetFlooidStatus("Retrieval failed", "Bad");
                 viewModel.SetStatus("Flooid retrieval failed · " + string.Join(" | ", errors));
             }
-            if (stampsNote is not null) viewModel.SetStatus(viewModel.StatusText + " · " + stampsNote);
             if (addOnsNote is not null) viewModel.SetStatus(viewModel.StatusText + " · " + addOnsNote);
         }
         catch (Exception ex)
@@ -1989,10 +1969,6 @@ public partial class MainWindow : Window
                 () => loginWindow.FetchRefundsVoidsHtmlAsync(startDate, endDate), v => v.FetchRefundsVoidsHtmlAsync(startDate, endDate));
             var discountsPull = AddToPlan(pulls, "Discounts", startDate, endDate, 2.2,
                 () => loginWindow.FetchDiscountsHtmlAsync(startDate, endDate), v => v.FetchDiscountsHtmlAsync(startDate, endDate));
-            var stampsPull = StampsTracked
-                ? AddToPlan(pulls, "Stamps", startDate, endDate, 6.2,
-                    () => loginWindow.FetchStampsHtmlAsync(startDate, endDate), v => v.FetchStampsHtmlAsync(startDate, endDate))
-                : null;
             var addOnsPull = AddToPlan(pulls, "AllItems", startDate, endDate, 2.0,
                 () => loginWindow.FetchAllItemSalesHtmlAsync(startDate, endDate), v => v.FetchAllItemSalesHtmlAsync(startDate, endDate));
             plan = NewPlan("Generate reports", pulls);
@@ -2035,8 +2011,6 @@ public partial class MainWindow : Window
                 _staffDiscountPeriod = null;
             }
 
-            var stampsNote = stampsPull is not null ? await PullStampsAsync(viewModel, loginWindow, startDate, endDate, planned: stampsPull) : null;
-            if (stampsPull is null) viewModel.ApplyStampItems(null);
             var addOnsNote = await PullAddOnsAsync(viewModel, loginWindow, startDate, endDate, planned: addOnsPull);
 
             var errors = new List<string>();
@@ -2056,7 +2030,6 @@ public partial class MainWindow : Window
                 viewModel.SetStatus((activityUpdated || discountsUpdated ? "Reports partly generated · " : "Reports could not be generated · ")
                     + string.Join(" | ", errors));
             }
-            if (stampsNote is not null) viewModel.SetStatus(viewModel.StatusText + " · " + stampsNote);
             if (addOnsNote is not null) viewModel.SetStatus(viewModel.StatusText + " · " + addOnsNote);
         }
         catch (Exception ex)
@@ -2119,7 +2092,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>0 is nothing started, 1 to 6 mark that step running and earlier ones done
-    /// (5 is Stamps, 6 last year's figures).</summary>
+    /// (5 is add-on sales, 6 last year's figures).</summary>
     private void SetRetrievalStep(int running)
     {
         var rows = new[] { RetrievalStep1Row, RetrievalStep2Row, RetrievalStep3Row, RetrievalStep4Row, RetrievalStepStampsRow, RetrievalStep5Row };

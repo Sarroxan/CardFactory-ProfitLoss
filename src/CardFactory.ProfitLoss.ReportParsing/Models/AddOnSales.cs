@@ -26,7 +26,7 @@ public sealed record AddOnPerson(string OperatorId, string Name, IReadOnlyList<i
 
 /// <summary>
 /// Add-on sales for the day or range, from Item Sales By Operator with every item in it (SKUs)
-/// and the Stamps report (stamps, Christmas stamps left out as on the Stamp Count). People are
+/// and its Stamps department (stamps, Christmas stamps left out as on the Stamp Count). People are
 /// ordered by add-ons sold, most first; only people who sold at least one tracked add-on appear.
 /// </summary>
 public sealed record AddOnSalesSummary(IReadOnlyList<AddOnColumn> Columns, IReadOnlyList<AddOnPerson> People)
@@ -37,7 +37,7 @@ public sealed record AddOnSalesSummary(IReadOnlyList<AddOnColumn> Columns, IRead
 
     /// <param name="tracked">The add-ons, in the order they were added.</param>
     /// <param name="allItems">Every item line from Item Sales By Operator (all product groups).</param>
-    /// <param name="stampItems">The Stamps report's lines; null when it was not read (Stamps then shows 0).</param>
+    /// <param name="stampItems">The stamp lines; null when they were not read (Stamps then shows 0).</param>
     public static AddOnSalesSummary Build(
         IReadOnlyList<AddOnItem> tracked,
         IEnumerable<GiftCardItemRecord> allItems,

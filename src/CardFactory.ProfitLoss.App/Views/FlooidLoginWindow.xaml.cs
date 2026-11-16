@@ -378,9 +378,6 @@ public partial class FlooidLoginWindow : Window
     public Task<string> FetchGiftCardHtmlAsync(DateTime fromDate, DateTime toDate) =>
         FlooidView.FetchGiftCardHtmlAsync(fromDate, toDate);
 
-    public Task<string> FetchStampsHtmlAsync(DateTime fromDate, DateTime toDate) =>
-        FlooidView.FetchStampsHtmlAsync(fromDate, toDate);
-
     public Task<string> FetchAllItemSalesHtmlAsync(DateTime fromDate, DateTime toDate) =>
         FlooidView.FetchAllItemSalesHtmlAsync(fromDate, toDate);
 

@@ -734,8 +734,8 @@ public sealed class MainViewModel : ObservableObject
 
     // Stamps (owner, 16 Nov 2026): only the Stamps add-on uses them now - the Reports tile, the
     // Stamp Count and the Team Scorecard tile are gone - so only the report's lines are kept.
-    /// <param name="items">The Stamps report's lines (Item Sales By Operator, Stamps group), for
-    /// the Stamps add-on; null when not retrieved.</param>
+    /// <param name="items">The stamp lines (the Stamps department of the all-items report, since
+    /// 16 Nov 2026), for the Stamps add-on; null when not retrieved.</param>
     public void ApplyStampItems(IReadOnlyList<GiftCardItemRecord>? items)
     {
         _reportStampItems = items;
@@ -744,9 +744,9 @@ public sealed class MainViewModel : ObservableObject
     }
 
     // Add-on Sales (owner, 16 Nov 2026): every item line from Item Sales By Operator with all
-    // product groups, and the Stamps lines. Null = not retrieved. They travel with Stamps (the
-    // Reports pull, the Daily Briefing and the quiet fetch after signing in) and are cleared with
-    // the other Reports figures when the day or range changes.
+    // product groups, and the Stamps lines from it. Null = not retrieved. Pulled on every pull
+    // since 16 Nov 2026 (the Gift Cards come from the same report) and cleared with the other
+    // Reports figures when the day or range changes.
     private IReadOnlyList<GiftCardItemRecord>? _reportStampItems;
     private IReadOnlyList<GiftCardItemRecord>? _reportAllItems;
 
@@ -764,8 +764,8 @@ public sealed class MainViewModel : ObservableObject
     }
 
     /// <summary>The tracked add-ons' figures, or null when the items have not been retrieved.</summary>
-    /// Stamps is left out until the Stamps report has been fetched (it is only fetched while Stamps
-    /// is tracked), so it never shows a 0 that only means "not fetched".
+    /// Stamps is left out while its lines are not held, so it never shows a 0 that only means
+    /// "not fetched".
     public AddOnSalesSummary? AddOnSummary(IReadOnlyList<AddOnItem> tracked) =>
         _reportAllItems is null
             ? null

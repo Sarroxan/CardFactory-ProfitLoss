@@ -53,6 +53,11 @@ internal sealed class PlannedPull
 /// Staff Discounts 2.2. With both signed in, Refresh (three reports) ≈ 6.4 s - Gift Cards on one,
 /// Refunds and Branch on the other - against 11 s on one sign-in.
 ///
+/// Since 16 Nov 2026 the Gift Cards and the stamps come from the all-items report (Item Sales By
+/// Operator, every item, about 2.0 s), so Refresh is Refunds, Branch and that report - roughly
+/// 2.4 s on one sign-in and 4.3 s on the other. The Gift Cards report (6.4 s) is pulled only if
+/// the all-items report cannot be read, and for last year's targets.
+///
 /// Everything runs on the window's thread, as the pulls always have, so no locking is needed.
 /// </summary>
 internal sealed class PullPlan

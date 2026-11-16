@@ -13,8 +13,8 @@ namespace CardFactory.ProfitLoss.App;
 /// <summary>
 /// The Add-on Sales tab (owner, 16 Nov 2026, concept T1). Add-ons are added by SKU - the box
 /// offers names from every item Flooid has listed on this till - and kept on the till
-/// (Services/AddOnSettings). Stamps is one ready-made add-on covering every stamp, from the Stamps
-/// report. The figures come from Item Sales By Operator with every item, pulled with the reports.
+/// (Services/AddOnSettings). Stamps is one ready-made add-on covering every stamp (the Stamps
+/// department). The figures come from Item Sales By Operator with every item, pulled with the reports.
 /// </summary>
 public partial class MainWindow
 {
@@ -54,9 +54,6 @@ public partial class MainWindow
     /// <summary>The tracked add-ons, for the Daily Briefing.</summary>
     public IReadOnlyList<AddOnItem> TrackedAddOns => _addOnTracked;
 
-    /// <summary>The Stamps report is only fetched while Stamps is tracked (owner, 16 Nov 2026).</summary>
-    private bool StampsTracked => _addOnTracked.Any(i => i.IsStamps);
-
     // ---- Adding and removing ------------------------------------------------------------
 
     private void AddOnSearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -71,7 +68,7 @@ public partial class MainWindow
         }
 
         if ("stamps".Contains(query, StringComparison.OrdinalIgnoreCase) && query.Length >= 3 && !IsTracked(AddOnItem.StampsKey))
-            _addOnSuggestions.Add(new AddOnListRow(AddOnItem.StampsKey, "Stamps", "every stamp, from the Stamps report"));
+            _addOnSuggestions.Add(new AddOnListRow(AddOnItem.StampsKey, "Stamps", "every stamp"));
 
         foreach (var (code, name) in (_addOnSeen ?? new Dictionary<string, string>())
                      .Where(p => p.Key.StartsWith(query, StringComparison.OrdinalIgnoreCase)
@@ -183,8 +180,6 @@ public partial class MainWindow
         AddOnSettings.SaveTracked(_addOnTracked);
         AddOnSearchBox.Text = string.Empty;
         RedrawAddOns();
-        if (item.IsStamps && (DataContext as MainViewModel)?.HasAddOnData == true)
-            ShowAddOnNote("Stamps added. Press Generate reports to fetch them.");
     }
 
     private void AddOnRemove_Click(object sender, RoutedEventArgs e)

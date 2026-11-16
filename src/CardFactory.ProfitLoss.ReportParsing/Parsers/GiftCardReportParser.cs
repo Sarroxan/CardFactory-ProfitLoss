@@ -71,6 +71,7 @@ public sealed class GiftCardReportParser
         var items = new List<GiftCardItemRecord>();
         string currentOperatorId = string.Empty;
         string currentOperatorName = string.Empty;
+        string currentDepartment = string.Empty;
 
         foreach (var cell in document.QuerySelectorAll("td"))
         {
@@ -80,12 +81,20 @@ public sealed class GiftCardReportParser
                 if (LooksLikeOperatorIdentity(text))
                 {
                     (currentOperatorId, currentOperatorName) = ReportText.ParseOperatorIdentity(text, "Gift Card item operator");
+                    currentDepartment = string.Empty;
                 }
                 else if (text.StartsWith("Total ", StringComparison.OrdinalIgnoreCase) ||
                          text.Equals("Grand Total", StringComparison.OrdinalIgnoreCase))
                 {
                     currentOperatorId = string.Empty;
                     currentOperatorName = string.Empty;
+                    currentDepartment = string.Empty;
+                }
+                else if (!string.IsNullOrEmpty(currentOperatorId))
+                {
+                    // Inside a person's part, every other heading is a department path
+                    // (saved pages 10, 15 and 19).
+                    currentDepartment = text;
                 }
             }
 
@@ -101,7 +110,10 @@ public sealed class GiftCardReportParser
             var description = ReportText.NormalizeWhitespace(direct[1].TextContent);
             var quantity = ReportText.ParseQuantity(direct[2].TextContent, $"{currentOperatorName} {description} quantity");
             var value = ReportText.ParseDecimal(direct[3].TextContent, $"{currentOperatorName} {description} value");
-            items.Add(new GiftCardItemRecord(currentOperatorId, currentOperatorName, code, description, quantity, value));
+            items.Add(new GiftCardItemRecord(currentOperatorId, currentOperatorName, code, description, quantity, value)
+            {
+                Department = currentDepartment
+            });
         }
 
         return items;
