@@ -317,8 +317,8 @@ public partial class DailyBriefingPreviewWindow : Window
     }
 
     // Owner, 4 Nov 2026 (concept M2): Print goes straight out with the settings kept on this
-    // till (shown in the strip above the page); "Change…" opens the app's own print box (M1).
-    // Windows' grey print box is no longer used.
+    // till; "Print settings" (C1, 7 Nov) opens the app's own print box (M1). Windows' grey
+    // print box is no longer used.
     private PrintChoices _printChoices = new();
 
     // Owner, 7 Nov 2026 (concept C1): one quiet line at the bottom - "Brother printer · Colour ·

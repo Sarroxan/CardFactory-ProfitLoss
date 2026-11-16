@@ -21,14 +21,12 @@ using CardFactory.ProfitLoss.Flooid.Models;
 using CardFactory.ProfitLoss.ReportParsing.Matching;
 using CardFactory.ProfitLoss.ReportParsing.Models;
 using CardFactory.ProfitLoss.ReportParsing.Parsers;
-using CardFactory.ProfitLoss.Storage.Services;
 using Microsoft.Win32;
 
 namespace CardFactory.ProfitLoss.App;
 
 public partial class MainWindow : Window
 {
-    private readonly PortableStateService _stateService = new();
     private bool _loadedAutoState;
     private bool _isClosing;
     private bool _teamWindowResizeReady;
@@ -151,20 +149,16 @@ public partial class MainWindow : Window
 
         try
         {
-            // Stage 6A.92: nothing is carried over between sessions. The automatic state
-            // file is deleted on close, and it is deliberately not read here either -
-            // that way a crash, which never reaches the close handler, still cannot leak
-            // yesterday's figures into a fresh start. Save and Load remain for keeping a
-            // day's work on purpose.
-            _stateService.ClearAuto();
+            // Stage 6A.92: nothing is carried over between sessions (the old automatic state
+            // file and Save / Open a day are gone; the last of that code went 16 Nov 2026).
             // Stage 6A.92: the date reset that used to live here (6A.73) is gone with the
             // restore it existed to correct. MainViewModel already starts on today with a
             // seven day range, and nothing overwrites it before the window is shown.
-            viewModel.SetStatus("Ready · figures clear on exit, use Save to keep a copy", notify: false);
+            viewModel.SetStatus("Ready · figures clear on exit", notify: false);
         }
         catch
         {
-            viewModel.SetStatus("Ready · figures clear on exit, use Save to keep a copy", notify: false);
+            viewModel.SetStatus("Ready · figures clear on exit", notify: false);
         }
     }
 
@@ -459,11 +453,6 @@ public partial class MainWindow : Window
     {
         if (_isClosing) return;
         _isClosing = true;
-
-        // Stage 6A.92: was a SaveAuto of the whole calculator. The next start is meant
-        // to be completely fresh, so the working file is removed rather than written.
-        // ClearAuto swallows its own failures; nothing here may block shutdown.
-        _stateService.ClearAuto();
 
         try { _secondSignIn.Shutdown(); } catch { }
         try { _flooidLoginWindow?.ShutdownAndClose(); } catch { }
@@ -832,7 +821,6 @@ public partial class MainWindow : Window
 
         // Stage 6B.30: the same reset the Preferences dialog performs, one click away.
         viewModel.ResetAppSettings();
-        _stateService.ClearAuto();
         viewModel.SetStatus("Figures cleared");
     }
 
@@ -999,7 +987,7 @@ public partial class MainWindow : Window
         // Let the screen settle after the main pull before using Flooid again.
         await Task.Delay(500);
         if (_quietFetchStop || !loginWindow.IsSignedIn) return;
-        AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch of Staff Discounts and Stamps ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) started{Environment.NewLine}");
+        AppFiles.AppendDiagnostic($"[{DateTime.Now:HH:mm:ss}] Quiet fetch of Staff Discounts and add-ons ({startDate:dd/MM/yyyy} - {endDate:dd/MM/yyyy}) started{Environment.NewLine}");
 
         // Two sign-ins: both reports at once, one on each. On a stop nothing more is started;
         // one already being pulled finishes and is kept for the next pull.
@@ -1052,8 +1040,9 @@ public partial class MainWindow : Window
         try { await running; } catch { }
     }
 
-    /// <summary>Stamps sold (owner, 21 Oct 2026). Never stops a pull: a problem shows the tile
-    /// as "—", leaves the Daily Briefing's Sold boxes blank, and returns a note for the status line.</summary>
+    /// <summary>The Stamps report, for the Stamps add-on - pulled only while Stamps is tracked in
+    /// Add-on Sales (owner, 16 Nov 2026). Never stops a pull: a problem leaves Stamps out of the
+    /// add-on figures and returns a note for the status line.</summary>
     private async Task<string?> PullStampsAsync(MainViewModel viewModel, FlooidLoginWindow loginWindow, DateTime startDate, DateTime endDate, bool quiet = false, PlannedPull? planned = null)
     {
         try
@@ -1205,35 +1194,16 @@ public partial class MainWindow : Window
         if (preferences.ResetRequested)
         {
             viewModel.ResetAppSettings();
-            try
-            {
-                // Stage 6A.92: nothing is restored on startup now, so writing the file
-                // here would only leave data on disk that is never read. Clear instead.
-                _stateService.ClearAuto();
-                viewModel.SetStatus("App settings reset · team figures kept");
-            }
-            catch
-            {
-                viewModel.SetStatus("Settings reset · automatic save unavailable");
-            }
+            viewModel.SetStatus("App settings reset · team figures kept");
             return;
         }
 
+        // Stage 6A.92: the store location is not carried between sessions. It is read back
+        // out of each Flooid report's Outlet field, so the first grab repopulates it.
         viewModel.StoreLocation = preferences.StoreLocation.Trim();
-        try
-        {
-            // Stage 6A.92: the store location is not carried between sessions either. It
-            // is read back out of each Flooid report's Outlet field, so the first grab
-            // repopulates it without anyone typing it again.
-            _stateService.ClearAuto();
-            viewModel.SetStatus(string.IsNullOrWhiteSpace(viewModel.StoreLocation)
-                ? "Preferences saved"
-                : $"Preferences saved · {viewModel.StoreLocation}");
-        }
-        catch
-        {
-            viewModel.SetStatus("Preferences updated · automatic save unavailable");
-        }
+        viewModel.SetStatus(string.IsNullOrWhiteSpace(viewModel.StoreLocation)
+            ? "Preferences saved"
+            : $"Preferences saved · {viewModel.StoreLocation}");
     }
 
     // Deep check 5: the app's own message box instead of the grey Windows one.
@@ -2109,7 +2079,6 @@ public partial class MainWindow : Window
     // Stage 6B.11: the retrieval overlay. Three steps, marked pending, running or done,
     // so a twelve second grab shows progress rather than an undifferentiated spinner -
     // and a hang is visible as the step it hangs on.
-    private const string StepPending = "\u25CB";   // hollow circle
     private const string StepRunning = "\u25CF";   // filled circle
     private const string StepDone    = "\u2713";   // tick
 
@@ -2302,10 +2271,5 @@ viewModel.SetFlooidStatus(e.Snapshot.StatusText, state);
         }
     }
 
-    private static string MakeSafeFileName(string value)
-    {
-        var invalid = Path.GetInvalidFileNameChars();
-        return new string(value.Where(ch => !invalid.Contains(ch)).ToArray()).Trim();
-    }
 }
 

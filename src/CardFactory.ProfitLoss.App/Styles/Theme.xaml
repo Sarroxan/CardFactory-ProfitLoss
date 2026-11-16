@@ -8,18 +8,13 @@
     <SolidColorBrush x:Key="CfDeepBlue" Color="#004EA1" />
     <SolidColorBrush x:Key="CfBlueSoft" Color="#E3ECF7" />
     <SolidColorBrush x:Key="CfYellow" Color="#FFC907" />
-    <SolidColorBrush x:Key="CfPaper" Color="#FFFFFF" />
     <SolidColorBrush x:Key="CfInk" Color="#183153" />
     <SolidColorBrush x:Key="CfMuted" Color="#667891" />
     <SolidColorBrush x:Key="CfLine" Color="#A5C0DD" />
     <SolidColorBrush x:Key="CfLineSoft" Color="#EDF1F6" />
-    <SolidColorBrush x:Key="CfPanelSoft" Color="#F7F9FC" />
     <SolidColorBrush x:Key="CfGood" Color="#0B7A35" />
-    <SolidColorBrush x:Key="CfGoodBackground" Color="#EAF7EF" />
     <SolidColorBrush x:Key="CfBad" Color="#B3262D" />
     <SolidColorBrush x:Key="CfBadBackground" Color="#FDECEF" />
-    <SolidColorBrush x:Key="CfFormulaBackground" Color="#FFFDF4" />
-    <SolidColorBrush x:Key="CfFormulaLine" Color="#F0DE94" />
 
     <Style TargetType="Window">
         <Setter Property="FontFamily" Value="Arial" />
@@ -42,15 +37,6 @@
         <Setter Property="Foreground" Value="White" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-
-    <!-- HTML-like small labels. -->
-    <Style x:Key="HtmlFieldLabelStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="9.5" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
     </Style>
 
     <Style x:Key="HtmlWatermarkTextBoxStyle" TargetType="TextBox">
@@ -104,21 +90,6 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>
-
-    <!-- Stage 6B.09: the target labels were 268x40 palette PNGs drawn at 67x10 - a
-         quarter of their size - so the capitals landed at about 6px and there were not
-         enough pixels left to form the letters. That is why they were unreadable, and no
-         render setting fixes it. Live text instead. WPF has no letter-spacing on
-         TextBlock, so this is plain bold rather than the tracked small caps of the
-         artwork; at 10px it is sharp, which the artwork was not. -->
-    <Style x:Key="TargetLabelTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="10" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Foreground" Value="{StaticResource CfBlue}" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Margin" Value="11,0,0,0" />
     </Style>
 
     <Style x:Key="HtmlTargetTextBoxStyle" TargetType="TextBox">
@@ -251,7 +222,6 @@
         </Style.Triggers>
     </Style>
 
-
     <Style x:Key="HtmlTotalResultBoxStyle" TargetType="Border">
         <Setter Property="Width" Value="78" />
         <Setter Property="Height" Value="28" />
@@ -264,7 +234,6 @@
         <Setter Property="BorderThickness" Value="2" />
         <Setter Property="CornerRadius" Value="12" />
     </Style>
-
 
     <!-- Stage 6A.25: Team Performance scrollbar. Slim, rounded, yellow, and intentionally arrow-free. -->
     <Style x:Key="CfTeamScrollThumbStyle" TargetType="Thumb">
@@ -404,57 +373,6 @@
     </Style>
 
     <!-- Modern custom menu. All menu glyphs are vector Paths in MainWindow.xaml. -->
-    <Style x:Key="ModernMenuTileStyle" TargetType="Button">
-        <Setter Property="Background" Value="#FBFDFF" />
-        <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="10" />
-        <Setter Property="MinHeight" Value="62" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="B" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#F1F7FF" /><Setter TargetName="B" Property="BorderBrush" Value="#BBD0E9" /></Trigger>
-                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#E8F2FF" /></Trigger>
-                        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="B" Property="Opacity" Value="0.52" /></Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <Style x:Key="BranchMenuTileStyle" TargetType="Button" BasedOn="{StaticResource ModernMenuTileStyle}">
-        <Setter Property="Background" Value="#F6FAFF" />
-    </Style>
-
-    <Style x:Key="MenuIconBadgeStyle" TargetType="Border">
-        <Setter Property="Width" Value="34" />
-        <Setter Property="Height" Value="34" />
-        <Setter Property="Background" Value="#FFF6C9" />
-        <Setter Property="CornerRadius" Value="10" />
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-
-    <Style x:Key="MenuTileTitleStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="10.5" />
-        <Setter Property="FontWeight" Value="Bold" />
-    </Style>
-
-    <Style x:Key="MenuTileHintStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
-        <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="9.5" />
-        <Setter Property="Margin" Value="0,2,0,0" />
-    </Style>
-
 
     <Style x:Key="CalendarWeekHeaderStyle" TargetType="TextBlock">
         <Setter Property="HorizontalAlignment" Value="Center" />
@@ -520,73 +438,7 @@
         </Setter>
     </Style>
 
-    <Style x:Key="HtmlDatePickerStyle" TargetType="DatePicker">
-        <Setter Property="Height" Value="28" />
-        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="Background" Value="White" />
-        <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="11" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="DatePicker">
-                    <Border x:Name="B" Background="White" BorderBrush="#CFDBEA" BorderThickness="1" CornerRadius="10">
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="30"/></Grid.ColumnDefinitions>
-                            <DatePickerTextBox x:Name="PART_TextBox"
-                                               Grid.Column="0"
-                                               Background="Transparent"
-                                               BorderThickness="0"
-                                               Padding="8,2"
-                                               FontFamily="Arial"
-                                               FontSize="11"
-                                               FontWeight="SemiBold"
-                                               Foreground="{StaticResource CfDeepBlue}"
-                                               VerticalContentAlignment="Center" />
-                            <Button x:Name="PART_Button" Grid.Column="1" Focusable="False" Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand">
-                                <Grid Width="13" Height="13">
-                                    <Path Data="M2,3.5 L11,3.5 M3.5,1.5 L3.5,4.5 M9.5,1.5 L9.5,4.5 M2,3.5 L2,11 L11,11 L11,3.5 Z"
-                                          Stroke="{StaticResource CfMuted}" StrokeThickness="1.15" StrokeLineJoin="Round" Fill="Transparent" />
-                                </Grid>
-                            </Button>
-                            <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True" StaysOpen="False">
-                                <Border Margin="0,4,0,0" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="10" Padding="5">
-                                    <Border.Effect><DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.14" Color="#183153" /></Border.Effect>
-                                    <Calendar x:Name="PART_Calendar" />
-                                </Border>
-                            </Popup>
-                        </Grid>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="BorderBrush" Value="#AFC4DE" /></Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-
     <!-- Stage 6A.32: Branch Performance and compact themed navigation. -->
-    <Style x:Key="BranchHeaderButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="#F7FBFF" />
-        <Setter Property="BorderBrush" Value="#C9DAED" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="B" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="14">
-                        <ContentPresenter />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#EEF6FF" /><Setter TargetName="B" Property="BorderBrush" Value="#9CB9DA" /></Trigger>
-                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Background" Value="#E5F1FF" /></Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
 
     <!-- Stage 6B.67 (B1): Branch's Performance / Gift Cards as halves of a split card, like
          ModeCardSegmentStyle but for Buttons whose Tag="Active" is set in code. Outer
@@ -639,33 +491,6 @@
                             <Setter TargetName="Half" Property="Background" Value="{StaticResource CfYellow}" />
                             <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
                         </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <Style x:Key="BranchTabButtonStyle" TargetType="Button">
-        <Setter Property="Height" Value="22" />
-        <Setter Property="MinWidth" Value="86" />
-        <Setter Property="Padding" Value="10,0" />
-        <Setter Property="Background" Value="White" />
-        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="9.5" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="B" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Background" Value="#F2F7FD" /></Trigger>
-                        <Trigger Property="Tag" Value="Active"><Setter TargetName="B" Property="Background" Value="{StaticResource CfBlue}" /><Setter TargetName="B" Property="BorderBrush" Value="{StaticResource CfBlue}" /><Setter Property="Foreground" Value="White" /></Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -989,15 +814,6 @@
         </Setter>
     </Style>
 
-    <Style x:Key="BranchTableHeaderTextStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="9.5" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-
     <!-- Stage 6B.49 (concept A): Team Performance's value size - 12 bold, as
          HtmlMetricTextStyle - in the Branch hourly and Gift Cards tables. Row heights are
          unchanged. Used only by those two tables. -->
@@ -1009,23 +825,6 @@
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-
-    <Style x:Key="BranchSummaryLabelStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
-        <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="9.5" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-    </Style>
-
-    <Style x:Key="BranchSummaryValueStyle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-        <Setter Property="FontFamily" Value="Arial" />
-        <Setter Property="FontSize" Value="9.5" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-    </Style>
-
 
     <!-- Deep check 2: every tooltip in the app, navy like the header and menus, instead
          of the plain Windows box. Implicit, so it reaches every ToolTip="…" as it is. -->

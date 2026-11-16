@@ -2627,42 +2627,6 @@ public partial class FlooidView : UserControl
         catch { return GetAutomationSource()?.AbsolutePath ?? "Flooid page changing"; }
     }
 
-    private async Task NavigateForAutomationAsync(string url, TimeSpan timeout)
-    {
-        var core = GetAutomationCoreWebView2();
-        var absolute = ResolveAutomationUrl(url);
-        var completion = new TaskCompletionSource<CoreWebView2NavigationCompletedEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        void Completed(object? sender, CoreWebView2NavigationCompletedEventArgs e) => completion.TrySetResult(e);
-
-        core.NavigationCompleted += Completed;
-        try
-        {
-            core.Navigate(absolute);
-            var winner = await Task.WhenAny(completion.Task, Task.Delay(timeout));
-            if (winner != completion.Task)
-                throw new TimeoutException($"Flooid navigation timed out · {absolute}");
-
-            var result = await completion.Task;
-            if (!result.IsSuccess)
-                throw new InvalidOperationException($"Flooid navigation failed · {result.WebErrorStatus}");
-
-            await FlooidTimings.PauseAsync(180);
-        }
-        finally
-        {
-            core.NavigationCompleted -= Completed;
-        }
-    }
-
-    private string ResolveAutomationUrl(string url)
-    {
-        if (Uri.TryCreate(url, UriKind.Absolute, out var absolute)) return absolute.AbsoluteUri;
-        var current = GetAutomationSource();
-        var basis = current is { IsAbsoluteUri: true } ? current : FlooidSessionService.BackOfficeEntryUri;
-        return new Uri(basis, url).AbsoluteUri;
-    }
-
     private async Task SubmitCurrentCriteriaAsync(string configureAndSubmitScript, string label, TimeSpan timeout)
     {
         var core = GetAutomationCoreWebView2();
@@ -3603,31 +3567,6 @@ public partial class FlooidView : UserControl
     {
         if (Browser.CoreWebView2 is null) throw new InvalidOperationException("Flooid browser is not ready.");
         if (!IsCurrentlySignedIn) throw new InvalidOperationException("Sign in to Flooid before retrieving reports.");
-    }
-
-    private async Task<string> RunAutomationScriptAsync(string script, TimeSpan timeout)
-    {
-        if (Browser.CoreWebView2 is null) throw new InvalidOperationException("Flooid browser is not ready.");
-        await Browser.CoreWebView2.ExecuteScriptAsync(script);
-        var deadline = DateTime.UtcNow + timeout;
-        while (DateTime.UtcNow < deadline)
-        {
-            await FlooidTimings.PollAsync(250);
-            var raw = await Browser.CoreWebView2.ExecuteScriptAsync("window.__cfAutomationResult ?? null");
-            if (string.Equals(raw, "null", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(raw)) continue;
-            var json = JsonSerializer.Deserialize<string>(raw);
-            if (string.IsNullOrWhiteSpace(json)) continue;
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-            if (!root.TryGetProperty("ok", out var ok) || !ok.GetBoolean())
-            {
-                var message = root.TryGetProperty("error", out var error) ? error.GetString() : "Flooid report retrieval failed.";
-                throw new InvalidOperationException(message);
-            }
-            if (!root.TryGetProperty("html", out var html)) throw new InvalidOperationException("Flooid returned no report HTML.");
-            return html.GetString() ?? string.Empty;
-        }
-        throw new TimeoutException("Flooid report retrieval timed out.");
     }
 
     // ---------------------------------------------------------------- Stage 6B.50

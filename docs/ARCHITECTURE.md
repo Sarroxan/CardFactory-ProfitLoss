@@ -11,8 +11,7 @@ CardFactory.ProfitLoss.sln
 │   │   └── Views/FlooidView.xaml(.cs)       ★ embedded browser + all automation
 │   ├── CardFactory.ProfitLoss.Core          P&L and team performance maths
 │   ├── CardFactory.ProfitLoss.Flooid        session / sign-in state
-│   ├── CardFactory.ProfitLoss.ReportParsing strict HTML parsers + models
-│   └── CardFactory.ProfitLoss.Storage       local save/load
+│   └── CardFactory.ProfitLoss.ReportParsing strict HTML parsers + models
 └── tests/                                   unit tests for Core + ReportParsing
 ```
 
@@ -28,6 +27,8 @@ browser and drives Flooid's real web UI.
 | Branch Performance | Branch Performance | `BranchPerformanceReportParser` | hourly/daily sales, transactions, units |
 | Gift Cards | Item Sales By Operator Report | `GiftCardReportParser` | gift card sales to exclude from ABV/AUB |
 | Staff Discounts | Discounts and Price Overrides Report | `DiscountsReportParser` | staff discount per person in the Reports section |
+| Stamps (only while tracked) | Item Sales By Operator Report, group Stamps | `GiftCardReportParser("Stamps")` | the Stamps add-on |
+| All items | Item Sales By Operator Report, no product group | `AllItemSalesReportParser` | add-on SKUs (Add-on Sales tab, Daily Briefing page 2, weekly scorecard) |
 
 Team Performance = Refunds/Voids merged with Gift Cards
 (`OperatorReportMerger`).

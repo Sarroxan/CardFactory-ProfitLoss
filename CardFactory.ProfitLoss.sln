@@ -11,8 +11,6 @@ Project("{9A19103F-16F2-4668-BE54-9A1E7A4F7556}") = "CardFactory.ProfitLoss.Floo
 EndProject
 Project("{9A19103F-16F2-4668-BE54-9A1E7A4F7556}") = "CardFactory.ProfitLoss.ReportParsing", "src\CardFactory.ProfitLoss.ReportParsing\CardFactory.ProfitLoss.ReportParsing.csproj", "{B9AD5E1A-0A63-4E8E-A27F-DF03D311A78D}"
 EndProject
-Project("{9A19103F-16F2-4668-BE54-9A1E7A4F7556}") = "CardFactory.ProfitLoss.Storage", "src\CardFactory.ProfitLoss.Storage\CardFactory.ProfitLoss.Storage.csproj", "{573C8C0B-1DF4-4F3B-9BEA-03464593C713}"
-EndProject
 Project("{9A19103F-16F2-4668-BE54-9A1E7A4F7556}") = "CardFactory.ProfitLoss.Core.Tests", "tests\CardFactory.ProfitLoss.Core.Tests\CardFactory.ProfitLoss.Core.Tests.csproj", "{A5FC216A-D8CB-4EAE-8645-2B5F8D8FF5BD}"
 EndProject
 Project("{9A19103F-16F2-4668-BE54-9A1E7A4F7556}") = "CardFactory.ProfitLoss.ReportParsing.Tests", "tests\CardFactory.ProfitLoss.ReportParsing.Tests\CardFactory.ProfitLoss.ReportParsing.Tests.csproj", "{BAA76E46-9571-4307-8629-319ECE51CDF0}"
@@ -39,10 +37,6 @@ Global
 		{B9AD5E1A-0A63-4E8E-A27F-DF03D311A78D}.Debug|x64.Build.0 = Debug|x64
 		{B9AD5E1A-0A63-4E8E-A27F-DF03D311A78D}.Release|x64.ActiveCfg = Release|x64
 		{B9AD5E1A-0A63-4E8E-A27F-DF03D311A78D}.Release|x64.Build.0 = Release|x64
-		{573C8C0B-1DF4-4F3B-9BEA-03464593C713}.Debug|x64.ActiveCfg = Debug|x64
-		{573C8C0B-1DF4-4F3B-9BEA-03464593C713}.Debug|x64.Build.0 = Debug|x64
-		{573C8C0B-1DF4-4F3B-9BEA-03464593C713}.Release|x64.ActiveCfg = Release|x64
-		{573C8C0B-1DF4-4F3B-9BEA-03464593C713}.Release|x64.Build.0 = Release|x64
 		{A5FC216A-D8CB-4EAE-8645-2B5F8D8FF5BD}.Debug|x64.ActiveCfg = Debug|x64
 		{A5FC216A-D8CB-4EAE-8645-2B5F8D8FF5BD}.Debug|x64.Build.0 = Debug|x64
 		{A5FC216A-D8CB-4EAE-8645-2B5F8D8FF5BD}.Release|x64.ActiveCfg = Release|x64

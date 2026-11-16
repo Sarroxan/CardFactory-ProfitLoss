@@ -4,7 +4,6 @@ using System.ComponentModel;
 using CardFactory.ProfitLoss.Core.Models;
 using CardFactory.ProfitLoss.Core.Services;
 using CardFactory.ProfitLoss.ReportParsing.Models;
-using CardFactory.ProfitLoss.Storage.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -448,131 +447,6 @@ public sealed class MainViewModel : ObservableObject
         RecalculateBranch();
     }
 
-    public CalculatorStateDocument CaptureState()
-    {
-        return new CalculatorStateDocument
-        {
-            StoreLocation = StoreLocation,
-            SelectedDate = SelectedDate,
-            RangeStartDate = RangeStartDate,
-            HistoricalTargetMode = HistoricalTargetMode,
-            SalesTarget = SalesTarget,
-            AbvTarget = AbvTarget,
-            AubTarget = AubTarget,
-            Operators = Operators.Select(row =>
-            {
-                var input = row.ToInput();
-                return new OperatorStateDocument
-                {
-                    Name = input.Name,
-                    Sales = input.Sales,
-                    GiftCardValue = input.GiftCardValue,
-                    GiftCardQuantity = input.GiftCardQuantity,
-                    Transactions = input.Transactions,
-                    Units = input.Units
-                };
-            }).ToList(),
-            BranchHourlyRows = BranchHours.Select(row => new BranchHourlyStateDocument
-            {
-                TimeBand = row.TimeBand,
-                Sales = row.Sales,
-                Transactions = row.Transactions,
-                Units = row.Units,
-                Abv = row.Abv,
-                Aub = row.Aub,
-                PercentOfSales = row.PercentOfSales,
-                IsReportDriven = row.IsReportDriven
-            }).ToList(),
-            BranchGiftCards = BranchGiftCards.Select(row => new BranchGiftCardStateDocument
-            {
-                Item = row.Item,
-                OperatorName = row.OperatorName,
-                Quantity = row.Quantity,
-                Sales = row.Sales
-            }).ToList(),
-            BranchReportDriven = _branchReportDriven,
-            BranchReportedAbv = _branchReportedAbv,
-            BranchReportedAub = _branchReportedAub
-        };
-    }
-
-    public void ApplyState(CalculatorStateDocument state)
-    {
-        _suspendAutoCalculate = true;
-        try
-        {
-            StoreLocation = state.StoreLocation ?? string.Empty;
-            SelectedDate = state.SelectedDate ?? DateTime.Today;
-            // Stage 6A.76: the mode formerly called "Weekly" is now "Date Range".
-            // State files written before the rename carry the old name; map it across
-            // rather than letting it silently fall back to Daily.
-            var savedMode = state.HistoricalTargetMode ?? string.Empty;
-            if (string.Equals(savedMode, "Weekly", StringComparison.OrdinalIgnoreCase))
-                savedMode = "Date Range";
-            HistoricalTargetMode = HistoricalTargetModes.Contains(savedMode) ? savedMode : "Daily";
-            // After the mode, because switching into Date Range reseeds it.
-            RangeStartDate = state.RangeStartDate ?? (state.SelectedDate ?? DateTime.Today).Date.AddDays(-6);
-            SalesTarget = state.SalesTarget;
-            AbvTarget = state.AbvTarget;
-            AubTarget = state.AubTarget;
-            ClearLastYearTargets();
-
-            Operators.Clear();
-            foreach (var item in state.Operators ?? new List<OperatorStateDocument>())
-            {
-                var row = new OperatorRowViewModel();
-                row.LoadInput(new OperatorInput(
-                    item.Name ?? string.Empty,
-                    item.Sales,
-                    item.GiftCardValue,
-                    Math.Clamp(item.GiftCardQuantity, 0, 99),
-                    Math.Max(0, item.Transactions),
-                    Math.Max(0, item.Units)));
-                Operators.Add(row);
-            }
-
-            if (Operators.Count == 0)
-            {
-                Operators.Add(new OperatorRowViewModel());
-            }
-
-            BranchHours.Clear();
-            foreach (var item in state.BranchHourlyRows ?? new List<BranchHourlyStateDocument>())
-            {
-                if (string.IsNullOrWhiteSpace(item.TimeBand)) continue;
-                var row = new BranchHourlyRowViewModel(item.TimeBand);
-                if (item.IsReportDriven)
-                {
-                    row.LoadReport(item.Sales, Math.Max(0, item.Transactions), Math.Max(0, item.Units), item.Abv, item.Aub, item.PercentOfSales);
-                }
-                else
-                {
-                    row.Load(item.Sales, Math.Max(0, item.Transactions), Math.Max(0, item.Units));
-                }
-                BranchHours.Add(row);
-            }
-            BranchGiftCards.Clear();
-            foreach (var item in state.BranchGiftCards ?? new List<BranchGiftCardStateDocument>())
-            {
-                var row = new BranchGiftCardRowViewModel();
-                row.Load(item.Item, item.OperatorName, Math.Max(0, item.Quantity), item.Sales);
-                BranchGiftCards.Add(row);
-            }
-            if (BranchGiftCards.Count == 0) BranchGiftCards.Add(new BranchGiftCardRowViewModel());
-            _branchReportDriven = state.BranchReportDriven;
-            _branchReportedAbv = state.BranchReportedAbv;
-            _branchReportedAub = state.BranchReportedAub;
-        }
-        finally
-        {
-            _suspendAutoCalculate = false;
-        }
-
-        Calculate();
-        RecalculateBranch();
-        StatusText = "Saved calculator state loaded";
-    }
-
     /// <summary>Raised by <see cref="SetStatus"/>; the window shows it as a short note at the bottom.</summary>
     public event EventHandler<string>? Notice;
 
@@ -619,14 +493,6 @@ public sealed class MainViewModel : ObservableObject
         if (Operators.Count == 1) row.Reset();
         else Operators.Remove(row);
         StatusText = "Team member removed";
-    }
-
-    private void AddDefaultBranchHours()
-    {
-        for (var hour = 8; hour < 20; hour++)
-        {
-            BranchHours.Add(new BranchHourlyRowViewModel($"{hour:00}:00–{hour + 1:00}:00"));
-        }
     }
 
     private void AddBranchGiftCard()
@@ -888,9 +754,6 @@ public sealed class MainViewModel : ObservableObject
     public event EventHandler? AddOnDataChanged;
 
     public bool HasAddOnData => _reportAllItems is not null;
-
-    /// <summary>Every item line pulled for add-ons; null when not retrieved.</summary>
-    public IReadOnlyList<GiftCardItemRecord>? ReportAllItems => _reportAllItems;
 
     public void ApplyAllItemSales(IReadOnlyList<GiftCardItemRecord>? items)
     {

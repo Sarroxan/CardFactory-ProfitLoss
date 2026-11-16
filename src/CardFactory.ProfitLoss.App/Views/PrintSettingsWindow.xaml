@@ -10,8 +10,8 @@
         AllowsTransparency="True"
         Background="Transparent"
         ShowInTaskbar="False">
-    <!-- Owner, 4 Nov 2026 (concept M1): the app's own print box, opened from "Change…" above the
-         preview. Filled in with the settings kept on this till; what is chosen here is kept for
+    <!-- Owner, 4 Nov 2026 (concept M1): the app's own print box, opened from "Print settings" at the
+         top of the preview (C1, 7 Nov 2026). Filled in with the settings kept on this till; what is chosen here is kept for
          next time (apart from Pages, which always starts at All pages). -->
     <Window.Resources>
         <Style x:Key="RowLabelStyle" TargetType="TextBlock">

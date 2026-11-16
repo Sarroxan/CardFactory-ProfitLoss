@@ -7,8 +7,8 @@ using CardFactory.ProfitLoss.App.Services;
 namespace CardFactory.ProfitLoss.App.Views;
 
 /// <summary>
-/// The app's own print box (owner, 4 Nov 2026, concept M1), opened from "Change…" above the
-/// preview. Shows the settings kept on this till, offers only what the chosen printer can do
+/// The app's own print box (owner, 4 Nov 2026, concept M1), opened from "Print settings" at the
+/// top of the preview (C1, 7 Nov 2026). Shows the settings kept on this till, offers only what the chosen printer can do
 /// (no Colour choice on a black and white printer, no Both sides on a one-sided one), and on
 /// Print hands back the choices to print with and keep.
 /// </summary>

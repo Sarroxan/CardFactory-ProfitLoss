@@ -6,8 +6,8 @@ using CardFactory.ProfitLoss.App.Infrastructure;
 namespace CardFactory.ProfitLoss.App.Services;
 
 /// <summary>How the app prints, kept on this till (owner, 4 Nov 2026, concept M2 with M1 behind
-/// "Change…"). Starts at: the till's normal Windows printer, colour, both sides flipped on the
-/// short edge, one copy. Paper is always A4, fitted to the page.</summary>
+/// "Print settings"). Starts at: the till's normal Windows printer, colour, both sides (flipped on the
+/// short edge for landscape pages, the long edge for portrait), one copy. Paper is always A4, fitted to the page.</summary>
 public sealed class PrintChoices
 {
     /// <summary>The printer's name; null for the till's normal (default) Windows printer.</summary>

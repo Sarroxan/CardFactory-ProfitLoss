@@ -45,54 +45,10 @@
         <converters:ZeroBlankDecimalConverter x:Key="ZeroBlankDecimalConverter" />
         <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
 
-        <Style x:Key="HistoricalModeToggleStyle" TargetType="RadioButton">
-            <Setter Property="Height" Value="28" />
-            <Setter Property="MinWidth" Value="70" />
-            <Setter Property="Padding" Value="14,0" />
-            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="{StaticResource CfLine}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="FontFamily" Value="Arial" />
-            <Setter Property="FontSize" Value="10.5" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Segment"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="9"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Segment" Property="BorderBrush" Value="#AFC4DE" />
-                                <Setter TargetName="Segment" Property="Background" Value="#F5F9FF" />
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Segment" Property="Background" Value="{StaticResource CfBlue}" />
-                                <Setter TargetName="Segment" Property="BorderBrush" Value="{StaticResource CfBlue}" />
-                                <Setter Property="Foreground" Value="White" />
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Segment" Property="BorderBrush" Value="{StaticResource CfYellow}" />
-                                <Setter TargetName="Segment" Property="BorderThickness" Value="2" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- Stage 6B.48 (concept B): Day / Range as one card split in two, the same size,
              border and corners as the target cards beside it. Each half fills its side of
              the card; its outer corners come from Tag (13 = the card's 14 less its 1px
-             border), because ClipToBounds clips to a rectangle, not to rounded corners.
-             HistoricalModeToggleStyle is left as it is - Performance / Gift Cards uses it. -->
+             border), because ClipToBounds clips to a rectangle, not to rounded corners. -->
         <!-- Targets from last year: shows the yellow LY tab under a target. -->
         <BooleanToVisibilityConverter x:Key="LastYearChipVisibility" />
 
@@ -131,28 +87,6 @@
             </Setter>
         </Style>
 
-        <!-- Transparent hit-area style used over exact HTML-rendered Chewy button artwork. -->
-        <Style x:Key="ExactArtworkButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid x:Name="Root">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.96" /></Trigger>
-                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.82" /></Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        
         <Style x:Key="AppChromeButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="38" />
             <Setter Property="Height" Value="30" />
@@ -2333,7 +2267,7 @@
                                                VerticalAlignment="Center" Margin="10,0,0,0" />
                                 </StackPanel>
                             </Border>
-                            <!-- Stamps sold (owner, 21 Oct 2026): with Staff Discounts, for Reports and the Daily Briefing. -->
+                            <!-- Add-on sales (stamps when tracked, and the SKUs): with Staff Discounts, for Reports, the Daily Briefing and Add-on Sales. -->
                             <Border x:Name="RetrievalStepStampsRow" BorderBrush="#EDF1F6" BorderThickness="0,1,0,0" Padding="0,7" Visibility="Collapsed">
                                 <StackPanel Orientation="Horizontal">
                                     <Border x:Name="RetrievalStepStampsDot" Width="20" Height="20" CornerRadius="10" Background="#E3ECF7">

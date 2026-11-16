@@ -195,12 +195,6 @@ internal static partial class ReportText
         params string[] createdAtLabels) =>
         BuildMetadataCore(document, expectedTitle, allowMissingTitle: false, allowMissingCommonFields: false, createdAtLabels);
 
-    public static ParsedReportMetadata BuildMetadataAllowingMissingTitle(
-        IDocument document,
-        string expectedTitle,
-        params string[] createdAtLabels) =>
-        BuildMetadataCore(document, expectedTitle, allowMissingTitle: true, allowMissingCommonFields: false, createdAtLabels);
-
     public static ParsedReportMetadata BuildGeneratedResponseMetadata(
         IDocument document,
         string expectedTitle,

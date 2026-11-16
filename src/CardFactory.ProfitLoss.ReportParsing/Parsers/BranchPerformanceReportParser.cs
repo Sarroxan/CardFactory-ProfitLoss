@@ -119,11 +119,6 @@ public sealed partial class BranchPerformanceReportParser
         return result;
     }
 
-    private static string Require(IReadOnlyDictionary<string, string> fields, string key) =>
-        fields.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value)
-            ? value
-            : throw new ReportParseException($"{ExpectedTitle}: header field '{key}' was not found.");
-
     private static (DateTime From, DateTime To) ParseDateRange(string value)
     {
         var parts = value.Split('-', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);

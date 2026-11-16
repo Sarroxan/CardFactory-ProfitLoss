@@ -10,8 +10,8 @@ namespace CardFactory.ProfitLoss.App.Services;
 
 /// <summary>
 /// The Team Scorecard (owner, 21 Oct 2026): the day - or the week, when the calendar is
-/// on a date range - on one A4 page in the app's look, opened in the same preview as the Daily Briefing (7 Nov 2026;
-/// before that as a PDF in the browser, ReportPdf - no longer used).
+/// on a date range - on one A4 page in the app's look, opened in the same preview as the Daily Briefing (7 Nov 2026).
+/// A week has its own layout since 16 Nov 2026 (concept X2, AppendWeek).
 /// Concept P1 for a day: the brand band; Sales / ABV / AUB / P&amp;L against target; Top
 /// Performers; Team with red/green ABV, AUB and P&amp;L; Branch by hour beside Reports; Notes
 /// filling the rest of the page. Concept W1 for a week: the same, with the hours replaced by
@@ -229,7 +229,7 @@ internal static class TeamScorecard
           .Append("</div>");
 
         // Add-ons for the week, by person (matched on the name, as the reports give it).
-        var summary = tracked is null ? null : vm.AddOnSummary(tracked);
+        var summary = tracked is null || tracked.Count == 0 ? null : vm.AddOnSummary(tracked);
         int? AddOnsFor(string name) => summary is null
             ? null
             : summary.People.Where(p => string.Equals(p.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase)).Sum(p => p.Total);

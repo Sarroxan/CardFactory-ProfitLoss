@@ -32,7 +32,7 @@ src/                      application source (5 projects)
 tests/                    unit tests for Core and ReportParsing
 docs/
   ARCHITECTURE.md         how the app works + verified Flooid facts
-tools/                    render-header-logo.py (header artwork)
+tools/                    artwork scripts (header logo, app icon, Daily Briefing pages)
 .github/workflows/        Windows CI build
 ```
 

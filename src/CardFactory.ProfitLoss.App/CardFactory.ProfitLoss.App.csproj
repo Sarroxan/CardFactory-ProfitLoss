@@ -53,6 +53,5 @@
     <ProjectReference Include="..\CardFactory.ProfitLoss.Core\CardFactory.ProfitLoss.Core.csproj" />
     <ProjectReference Include="..\CardFactory.ProfitLoss.Flooid\CardFactory.ProfitLoss.Flooid.csproj" />
     <ProjectReference Include="..\CardFactory.ProfitLoss.ReportParsing\CardFactory.ProfitLoss.ReportParsing.csproj" />
-    <ProjectReference Include="..\CardFactory.ProfitLoss.Storage\CardFactory.ProfitLoss.Storage.csproj" />
   </ItemGroup>
 </Project>
