@@ -941,7 +941,51 @@
                                                             <TextBlock Grid.Column="6" Text="{Binding CountedSales, StringFormat=£{0:N2}}" Style="{StaticResource HtmlMetricTextStyle}" />
                                                             <TextBlock Grid.Column="7" Text="{Binding Abv, StringFormat=£{0:N2}}" Tag="{Binding AbvState}" Style="{StaticResource HtmlMetricTextStyle}" />
                                                             <TextBlock Grid.Column="8" Text="{Binding Aub, StringFormat={}{0:N2}}" Tag="{Binding AubState}" Style="{StaticResource HtmlMetricTextStyle}" />
-                                                            <TextBlock Grid.Column="9" Text="{Binding ProfitLossText}" Tag="{Binding ProfitLossState}" Style="{StaticResource HtmlMetricTextStyle}" />
+                                                            <!-- Owner, 17 Nov 2026 (W2): hover P&L for what it takes to hit the ABV target. -->
+                                                            <TextBlock Grid.Column="9" Text="{Binding ProfitLossText}" Tag="{Binding ProfitLossState}" Style="{StaticResource HtmlMetricTextStyle}"
+                                                                       Background="Transparent" Padding="8,4"
+                                                                       ToolTipService.IsEnabled="{Binding HasWhatItTakes}" ToolTipService.InitialShowDelay="150"
+                                                                       ToolTipService.ShowDuration="20000" ToolTipService.Placement="Bottom">
+                                                                <TextBlock.ToolTip>
+                                                                    <ToolTip HasDropShadow="True">
+                                                                        <ToolTip.Template>
+                                                                            <ControlTemplate TargetType="ToolTip">
+                                                                                <Border Background="White" BorderBrush="{StaticResource CfDeepBlue}" BorderThickness="2" CornerRadius="10" Padding="12,9" Margin="0,4,8,8">
+                                                                                    <Border.Effect><DropShadowEffect BlurRadius="14" ShadowDepth="3" Opacity="0.18" Color="#00285A"/></Border.Effect>
+                                                                                    <ContentPresenter/>
+                                                                                </Border>
+                                                                            </ControlTemplate>
+                                                                        </ToolTip.Template>
+                                                                        <StackPanel MinWidth="250">
+                                                                            <TextBlock Text="{Binding WhatItTakesTitle}" FontFamily="Arial" FontSize="12" FontWeight="Bold" Foreground="{StaticResource CfDeepBlue}"/>
+                                                                            <TextBlock Margin="0,5,0,3" FontFamily="Arial" FontSize="12" Foreground="{StaticResource CfInk}">
+                                                                                <Run Text="{Binding WhatItTakesAmount, Mode=OneWay}" FontSize="20" FontWeight="Bold">
+                                                                                    <Run.Style>
+                                                                                        <Style TargetType="Run">
+                                                                                            <Setter Property="Foreground" Value="#C53D46"/>
+                                                                                            <Style.Triggers>
+                                                                                                <DataTrigger Binding="{Binding OnTarget}" Value="True"><Setter Property="Foreground" Value="{StaticResource CfGood}"/></DataTrigger>
+                                                                                            </Style.Triggers>
+                                                                                        </Style>
+                                                                                    </Run.Style>
+                                                                                </Run>
+                                                                                <Run>
+                                                                                    <Run.Style>
+                                                                                        <Style TargetType="Run">
+                                                                                            <Setter Property="Text" Value=" on each customer"/>
+                                                                                            <Style.Triggers>
+                                                                                                <DataTrigger Binding="{Binding OnTarget}" Value="True"><Setter Property="Text" Value=" over target on each customer"/></DataTrigger>
+                                                                                            </Style.Triggers>
+                                                                                        </Style>
+                                                                                    </Run.Style>
+                                                                                </Run>
+                                                                            </TextBlock>
+                                                                            <TextBlock Text="{Binding WhatItTakesDetail}" FontFamily="Arial" FontSize="11" Foreground="{StaticResource CfMuted}"/>
+                                                                            <TextBlock Text="{Binding WhatItTakesTotal}" FontFamily="Arial" FontSize="11" Foreground="{StaticResource CfMuted}" Margin="0,2,0,0"/>
+                                                                        </StackPanel>
+                                                                    </ToolTip>
+                                                                </TextBlock.ToolTip>
+                                                            </TextBlock>
                                                             <Button Grid.Column="10"
                                                                     Content="Remove"
                                                                     Style="{StaticResource HtmlRemoveButtonStyle}"

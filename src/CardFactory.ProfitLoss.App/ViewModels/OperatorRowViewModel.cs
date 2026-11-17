@@ -20,12 +20,35 @@ public sealed class OperatorRowViewModel : ObservableObject
     private string _abvState = "None";
     private string _aubState = "None";
     private string _profitLossState = "None";
+    private bool _hasWhatItTakes;
+    private bool _onTarget;
+    private string _whatItTakesAmount = string.Empty;
+    private string _whatItTakesDetail = string.Empty;
+    private string _whatItTakesTotal = string.Empty;
 
     public string Name
     {
         get => _name;
-        set => SetProperty(ref _name, value);
+        set
+        {
+            if (SetProperty(ref _name, value)) OnPropertyChanged(nameof(WhatItTakesTitle));
+        }
     }
+
+    // "What it takes" on hovering P&L (owner, 17 Nov 2026, concept W2): the gap between this
+    // person's ABV and the ABV target, in plain words. Wording only - the figures are the ABV,
+    // target, transactions and P&L already shown; nothing is calculated differently.
+    public bool HasWhatItTakes { get => _hasWhatItTakes; private set => SetProperty(ref _hasWhatItTakes, value); }
+    public bool OnTarget
+    {
+        get => _onTarget;
+        private set { if (SetProperty(ref _onTarget, value)) OnPropertyChanged(nameof(WhatItTakesTitle)); }
+    }
+    public string WhatItTakesTitle =>
+        (string.IsNullOrWhiteSpace(Name) ? "" : Name.Trim() + " · ") + (OnTarget ? "ABV target hit" : "to hit the ABV target");
+    public string WhatItTakesAmount { get => _whatItTakesAmount; private set => SetProperty(ref _whatItTakesAmount, value); }
+    public string WhatItTakesDetail { get => _whatItTakesDetail; private set => SetProperty(ref _whatItTakesDetail, value); }
+    public string WhatItTakesTotal { get => _whatItTakesTotal; private set => SetProperty(ref _whatItTakesTotal, value); }
 
     public string SalesEntry
     {
@@ -175,6 +198,18 @@ public sealed class OperatorRowViewModel : ObservableObject
         ProfitLossState = transactions > 0 && targets.AbvTarget > 0m
             ? (performance.ProfitLoss >= 0m ? "Good" : "Bad")
             : "None";
+
+        HasWhatItTakes = transactions > 0 && targets.AbvTarget > 0m;
+        if (HasWhatItTakes)
+        {
+            var gap = performance.Abv - targets.AbvTarget;
+            OnTarget = performance.ProfitLoss >= 0m;
+            WhatItTakesAmount = OnTarget ? $"£{Math.Max(0m, gap):N2}" : $"+£{-gap:N2}";
+            WhatItTakesDetail = $"£{performance.Abv:N2} now → £{targets.AbvTarget:N2} target · {transactions:N0} customer{(transactions == 1 ? "" : "s")}";
+            WhatItTakesTotal = OnTarget
+                ? $"£{performance.ProfitLoss:N2} above target in all"
+                : $"about £{-performance.ProfitLoss:N2} more in all";
+        }
     }
 
     public void Reset()
@@ -193,6 +228,7 @@ public sealed class OperatorRowViewModel : ObservableObject
         AbvState = "None";
         AubState = "None";
         ProfitLossState = "None";
+        HasWhatItTakes = false;
     }
 
     private static decimal ParseMoney(string? text)
