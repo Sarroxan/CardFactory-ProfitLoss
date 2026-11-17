@@ -44,6 +44,9 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
+        // Owner, 16 Nov 2026 (option 1): only once this is the only copy - another copy's
+        // browser folders must never be touched - and before any browser opens.
+        AppFiles.TidyAtStartup();
         AppFiles.MoveOffDesktop();
         base.OnStartup(e);
 

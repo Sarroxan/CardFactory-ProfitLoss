@@ -20,8 +20,19 @@ public sealed class LastYearFigureStore
     private const int MaxEntries = 2000;
 
     private readonly string _path;
+    private readonly Func<string, string?>? _read;
+    private readonly Action<string, string>? _write;
 
     public LastYearFigureStore(string path) => _path = path;
+
+    /// <summary>Owner, 16 Nov 2026: the app keeps this file encrypted. <paramref name="read"/>
+    /// returns the file's text (null when there is none) and <paramref name="write"/> writes it.</summary>
+    public LastYearFigureStore(string path, Func<string, string?> read, Action<string, string> write)
+    {
+        _path = path;
+        _read = read;
+        _write = write;
+    }
 
     public bool TryGet(string? store, DateTime from, DateTime to, out LastYearFigures figures)
     {
@@ -48,6 +59,11 @@ public sealed class LastYearFigureStore
                 foreach (var old in file.Entries.OrderBy(e => e.Value.Saved).Take(file.Entries.Count - MaxEntries).Select(e => e.Key).ToList())
                     file.Entries.Remove(old);
             }
+            if (_write is not null)
+            {
+                _write(_path, JsonSerializer.Serialize(file));
+                return;
+            }
             var folder = Path.GetDirectoryName(_path);
             if (!string.IsNullOrEmpty(folder)) Directory.CreateDirectory(folder);
             var temp = _path + ".tmp";
@@ -73,8 +89,11 @@ public sealed class LastYearFigureStore
     {
         try
         {
-            if (!File.Exists(_path)) return null;
-            var file = JsonSerializer.Deserialize<StoreFile>(File.ReadAllText(_path));
+            string? text;
+            if (_read is not null) text = _read(_path);
+            else text = File.Exists(_path) ? File.ReadAllText(_path) : null;
+            if (text is null) return null;
+            var file = JsonSerializer.Deserialize<StoreFile>(text);
             return file is { Version: FormatVersion } ? file : null;
         }
         catch

@@ -814,6 +814,33 @@ public partial class MainWindow : Window
         viewModel.SetStatus("Retrieval speed set to " + (fast ? "Fast" : "Safe"));
     }
 
+    // Owner, 16 Nov 2026 (concept L1): the log on disk is encrypted; this writes a readable
+    // copy where the person chooses (the desktop to start with), to attach and send.
+    private void SaveDiagnosticLog_Click(object sender, RoutedEventArgs e)
+    {
+        MainMenuPopup.IsOpen = false;
+        var viewModel = DataContext as MainViewModel;
+        var dialog = new SaveFileDialog
+        {
+            Title = "Save a readable copy of the diagnostic log",
+            FileName = $"CardFactory-PL-diagnostic-{DateTime.Now:yyyy-MM-dd-HHmm}.txt",
+            DefaultExt = ".txt",
+            Filter = "Text file (*.txt)|*.txt",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+            OverwritePrompt = true
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            File.WriteAllText(dialog.FileName, AppFiles.ReadDiagnostic(), Encoding.UTF8);
+            viewModel?.SetStatus("Diagnostic log saved · " + Path.GetFileName(dialog.FileName));
+        }
+        catch (Exception ex)
+        {
+            viewModel?.SetStatus("The diagnostic log could not be saved · " + ex.Message);
+        }
+    }
+
     private void ClearFigures_Click(object sender, RoutedEventArgs e)
     {
         MainMenuPopup.IsOpen = false;
@@ -1089,7 +1116,7 @@ public partial class MainWindow : Window
         bool Needed() =>
             !_lastYearCache.ContainsKey((lyFrom, lyTo))
             && !string.IsNullOrWhiteSpace(viewModel.StoreLocation)
-            && !new LastYearFigureStore(Path.Combine(AppFiles.Folder, "last-year-figures.json")).TryGet(viewModel.StoreLocation, lyFrom, lyTo, out _);
+            && !KeptLastYearFigures().TryGet(viewModel.StoreLocation, lyFrom, lyTo, out _);
 
         var refunds = new PlannedPull("Last year Refunds", 2.4, 1,
             () => loginWindow.FetchRefundsVoidsHtmlAsync(lyFrom, lyTo), v => v.FetchRefundsVoidsHtmlAsync(lyFrom, lyTo), Needed);
@@ -1115,7 +1142,7 @@ public partial class MainWindow : Window
         {
             // Owner, 22 Oct 2026 (option A): last year can't change, so once pulled it is kept on
             // the till for this store (LastYearFigureStore) and not pulled again on the next run.
-            var savedStore = new LastYearFigureStore(Path.Combine(AppFiles.Folder, "last-year-figures.json"));
+            var savedStore = KeptLastYearFigures();
             if (!_lastYearCache.TryGetValue((lyFrom, lyTo), out var held))
             {
                 if (savedStore.TryGet(viewModel.StoreLocation, lyFrom, lyTo, out var saved))
@@ -1153,7 +1180,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void PreferencesMenu_Click(object sender, RoutedEventArgs e)
+    private async void PreferencesMenu_Click(object sender, RoutedEventArgs e)
     {
         MainMenuPopup.IsOpen = false;
         if (DataContext is not MainViewModel viewModel) return;
@@ -1167,8 +1194,7 @@ public partial class MainWindow : Window
 
         if (preferences.ResetRequested)
         {
-            viewModel.ResetAppSettings();
-            viewModel.SetStatus("App settings reset · team figures kept");
+            await ResetEverythingAsync(viewModel);
             return;
         }
 
@@ -1179,6 +1205,35 @@ public partial class MainWindow : Window
             ? "Preferences saved"
             : $"Preferences saved · {viewModel.StoreLocation}");
     }
+
+    // Owner, 16 Nov 2026 (concept R1): Reset everything. Signs out of Flooid (both sign-ins, each
+    // given at most 10 s - the files go whether or not Flooid answers), deletes every file the
+    // app keeps on this PC, and closes; what is still in use is removed just after it has
+    // closed (AppFiles.RemoveEverything). The next start is like the first.
+    private async Task ResetEverythingAsync(MainViewModel viewModel)
+    {
+        viewModel.SetStatus("Removing everything this app keeps on this PC…");
+        try
+        {
+            await StopQuietFetchAsync(viewModel);
+            ForgetPulledReports();
+            await Task.WhenAny(_secondSignIn.SignOutAsync(), Task.Delay(TimeSpan.FromSeconds(10)));
+            if (_flooidLoginWindow is not null)
+                await Task.WhenAny(_flooidLoginWindow.SignOutAsync(), Task.Delay(TimeSpan.FromSeconds(10)));
+        }
+        catch
+        {
+            // Carry on: the files are removed either way.
+        }
+
+        FlooidLoginWindow.ForgetSavedSignIn();
+        AppFiles.RemoveEverything();
+        Application.Current.Shutdown();
+    }
+
+    // Owner, 16 Nov 2026 (option 1): last year's figures are kept encrypted, like every file.
+    private static LastYearFigureStore KeptLastYearFigures() => new(
+        Path.Combine(AppFiles.Folder, "last-year-figures.json"), ProtectedFiles.ReadAllText, ProtectedFiles.WriteAllText);
 
     // Deep check 5: the app's own message box instead of the grey Windows one.
     private void ShowProblem(string title, string question, string detail) =>

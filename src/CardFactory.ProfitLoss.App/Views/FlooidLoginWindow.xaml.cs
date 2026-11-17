@@ -105,9 +105,7 @@ public partial class FlooidLoginWindow : Window
         {
             try
             {
-                return File.Exists(RememberedUsernamePath)
-                    ? File.ReadAllText(RememberedUsernamePath).Trim()
-                    : null;
+                return ProtectedFiles.ReadAllText(RememberedUsernamePath)?.Trim();
             }
             catch { return null; }
         }
@@ -151,8 +149,7 @@ public partial class FlooidLoginWindow : Window
             catch { }
             try
             {
-                if (!File.Exists(RememberedStorePath)) return null;
-                var code = File.ReadAllText(RememberedStorePath).Trim();
+                var code = ProtectedFiles.ReadAllText(RememberedStorePath)?.Trim() ?? string.Empty;
                 return code.Length == 0 ? null : code;
             }
             catch { return null; }
@@ -161,8 +158,7 @@ public partial class FlooidLoginWindow : Window
         {
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(RememberedStorePath)!);
-                File.WriteAllText(RememberedStorePath, value ?? string.Empty);
+                ProtectedFiles.WriteAllText(RememberedStorePath, value ?? string.Empty);
             }
             catch { }
         }
@@ -753,8 +749,7 @@ public partial class FlooidLoginWindow : Window
 
         try
         {
-            if (!File.Exists(RememberedUsernamePath)) return;
-            var saved = File.ReadAllText(RememberedUsernamePath).Trim();
+            var saved = ProtectedFiles.ReadAllText(RememberedUsernamePath)?.Trim() ?? string.Empty;
             if (saved.Length == 0) return;
             LoginUsernameBox.Text = saved;
             RememberUsernameCheck.IsChecked = true;
@@ -772,8 +767,7 @@ public partial class FlooidLoginWindow : Window
             var path = RememberedUsernamePath;
             if (RememberUsernameCheck.IsChecked == true)
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                File.WriteAllText(path, username);
+                ProtectedFiles.WriteAllText(path, username);
             }
             else if (File.Exists(path))
             {

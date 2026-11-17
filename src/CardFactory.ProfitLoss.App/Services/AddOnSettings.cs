@@ -31,7 +31,7 @@ public static class AddOnSettings
         try
         {
             if (!File.Exists(TrackedPath)) return new List<AddOnItem>();
-            var entries = JsonSerializer.Deserialize<List<TrackedEntry>>(File.ReadAllText(TrackedPath)) ?? new();
+            var entries = JsonSerializer.Deserialize<List<TrackedEntry>>(ProtectedFiles.ReadAllText(TrackedPath) ?? "null") ?? new();
             return entries
                 .Where(e => !string.IsNullOrWhiteSpace(e.Key))
                 .Select(e => new AddOnItem(e.Key.Trim(), string.IsNullOrWhiteSpace(e.Name) ? e.Key.Trim() : e.Name.Trim()))
@@ -51,7 +51,7 @@ public static class AddOnSettings
         {
             Directory.CreateDirectory(AppFiles.Folder);
             var entries = items.Select(i => new TrackedEntry { Key = i.Key, Name = i.Name }).ToList();
-            File.WriteAllText(TrackedPath, JsonSerializer.Serialize(entries, new JsonSerializerOptions { WriteIndented = true }));
+            ProtectedFiles.WriteAllText(TrackedPath, JsonSerializer.Serialize(entries, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch
         {
@@ -65,7 +65,7 @@ public static class AddOnSettings
         try
         {
             if (!File.Exists(SeenPath)) return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            var loaded = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(SeenPath));
+            var loaded = JsonSerializer.Deserialize<Dictionary<string, string>>(ProtectedFiles.ReadAllText(SeenPath) ?? "null");
             return loaded is null
                 ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, string>(loaded, StringComparer.OrdinalIgnoreCase);
@@ -103,7 +103,7 @@ public static class AddOnSettings
         try
         {
             Directory.CreateDirectory(AppFiles.Folder);
-            File.WriteAllText(SeenPath, JsonSerializer.Serialize(seen));
+            ProtectedFiles.WriteAllText(SeenPath, JsonSerializer.Serialize(seen));
         }
         catch
         {

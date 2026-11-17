@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using CardFactory.ProfitLoss.App.Services;
 using Microsoft.Web.WebView2.Core;
+using CardFactory.ProfitLoss.App.Infrastructure;
 
 namespace CardFactory.ProfitLoss.App.Views;
 
@@ -123,7 +124,9 @@ public partial class DailyBriefingPreviewWindow : Window
         try
         {
             // The same separate browser data as "Open as a PDF" used: Flooid's sign-in is never touched.
-            var folder = Path.Combine(Path.GetTempPath(), "CardFactory-ProfitLoss");
+            // Owner, 16 Nov 2026 (option 1): the page file is deleted as soon as it has been
+            // shown (and when the window closes), and the browser keeps nothing on disk.
+            var folder = AppFiles.TempFolder;
             Directory.CreateDirectory(folder);
             var page = Path.Combine(folder, $"{_fileStem}-{DateTime.Now:HHmmss}.html");
             var html = _html!.Contains("</head>", StringComparison.OrdinalIgnoreCase)
@@ -135,7 +138,12 @@ public partial class DailyBriefingPreviewWindow : Window
                 "CardFactory", "ProfitLoss", "WebView2-Pdf");
             Directory.CreateDirectory(data);
             _htmlEnvironment = await CoreWebView2Environment.CreateAsync(null, data);
-            await HtmlView.EnsureCoreWebView2Async(_htmlEnvironment);
+            var options = _htmlEnvironment.CreateCoreWebView2ControllerOptions();
+            options.ProfileName = "Preview";
+            options.IsInPrivateModeEnabled = true;
+            await HtmlView.EnsureCoreWebView2Async(_htmlEnvironment, options);
+            HtmlView.CoreWebView2.NavigationCompleted += (_, _) => DeletePage(page);
+            Closed += (_, _) => DeletePage(page);
             HtmlView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             HtmlView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             HtmlView.CoreWebView2.Settings.IsZoomControlEnabled = false;
@@ -145,6 +153,11 @@ public partial class DailyBriefingPreviewWindow : Window
         {
             ShowProblem($"The {_what.Split(" for ")[0]} could not be shown.", ex.Message);
         }
+    }
+
+    private static void DeletePage(string page)
+    {
+        try { if (File.Exists(page)) File.Delete(page); } catch { }
     }
 
     private CoreWebView2PrintSettings WebPrintSettings()

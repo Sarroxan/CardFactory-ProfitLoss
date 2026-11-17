@@ -31,7 +31,7 @@ public static class PrintSettings
         try
         {
             if (!File.Exists(FilePath)) return new PrintChoices();
-            var loaded = JsonSerializer.Deserialize<PrintChoices>(File.ReadAllText(FilePath)) ?? new PrintChoices();
+            var loaded = JsonSerializer.Deserialize<PrintChoices>(ProtectedFiles.ReadAllText(FilePath) ?? "null") ?? new PrintChoices();
             loaded.Copies = Math.Clamp(loaded.Copies, 1, 20);
             return loaded;
         }
@@ -46,7 +46,7 @@ public static class PrintSettings
         try
         {
             Directory.CreateDirectory(AppFiles.Folder);
-            File.WriteAllText(FilePath, JsonSerializer.Serialize(choices, new JsonSerializerOptions { WriteIndented = true }));
+            ProtectedFiles.WriteAllText(FilePath, JsonSerializer.Serialize(choices, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch
         {

@@ -2091,7 +2091,7 @@
                                         <Path Data="M3,9 L10,3 L17,9 L17,17 L3,17 Z M8,17 L8,12 L12,12 L12,17" Style="{StaticResource MenuItemIconStyle}" />
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock Text="Store &amp; defaults" Style="{StaticResource MenuItemNameStyle}" />
-                                            <TextBlock Text="Store name, and reset the app's settings" Style="{StaticResource MenuItemNoteStyle}" />
+                                            <TextBlock Text="Store name, and reset everything" Style="{StaticResource MenuItemNoteStyle}" />
                                         </StackPanel>
                                         <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
                                     </Grid>
@@ -2105,6 +2105,20 @@
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock Text="Check for updates" Style="{StaticResource MenuItemNameStyle}" />
                                             <TextBlock x:Name="CheckForUpdatesDetail" Style="{StaticResource MenuItemNoteStyle}" />
+                                        </StackPanel>
+                                        <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
+                                    </Grid>
+                                </Button>
+                            </Border>
+                            <!-- Owner, 16 Nov 2026 (concept L1): the log is encrypted, so this saves a readable copy to send. -->
+                            <Border Style="{StaticResource MenuItemRowStyle}">
+                                <Button Style="{StaticResource MenuRowButtonStyle}" Height="42" Click="SaveDiagnosticLog_Click">
+                                    <Grid Width="300">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <Path Data="M5,2 L12,2 L16,6 L16,18 L5,18 Z M12,2 L12,6 L16,6 M8,10 L13,10 M8,13 L13,13" Style="{StaticResource MenuItemIconStyle}" />
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Diagnostic log" Style="{StaticResource MenuItemNameStyle}" />
+                                            <TextBlock Text="Save a readable copy to send for help" Style="{StaticResource MenuItemNoteStyle}" />
                                         </StackPanel>
                                         <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
                                     </Grid>

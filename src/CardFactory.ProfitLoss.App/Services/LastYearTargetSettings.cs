@@ -34,7 +34,7 @@ public static class LastYearTargetSettings
         try
         {
             if (!File.Exists(FilePath)) return;
-            foreach (var raw in File.ReadAllLines(FilePath))
+            foreach (var raw in (ProtectedFiles.ReadAllText(FilePath) ?? string.Empty).Split('\n'))
             {
                 var parts = raw.Split('=', 2, StringSplitOptions.TrimEntries);
                 if (parts.Length != 2) continue;
@@ -63,12 +63,12 @@ public static class LastYearTargetSettings
         try
         {
             Directory.CreateDirectory(AppFiles.Folder);
-            File.WriteAllLines(FilePath, new[]
+            ProtectedFiles.WriteAllText(FilePath, string.Join(Environment.NewLine, new[]
             {
                 "enabled=" + (enabled ? "true" : "false"),
                 "abv=" + abvPercent.ToString("0.##", CultureInfo.InvariantCulture),
                 "aub=" + aubPercent.ToString("0.##", CultureInfo.InvariantCulture)
-            });
+            }));
             Enabled = enabled;
             AbvPercent = abvPercent;
             AubPercent = aubPercent;

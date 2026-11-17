@@ -24,6 +24,25 @@ public sealed class LastYearFigureStoreTests : IDisposable
     }
 
     [Fact]
+    public void WithReadAndWrite_TheFileGoesThroughThem_AndFiguresComeBack()
+    {
+        // The app passes encrypting read/write (owner, 16 Nov 2026); here a stand-in that
+        // reverses the text, so nothing readable as JSON reaches the disk.
+        static string Flip(string text) => new(text.Reverse().ToArray());
+        var writes = 0;
+        LastYearFigureStore Make() => new(FilePath,
+            path => File.Exists(path) ? Flip(File.ReadAllText(path)) : null,
+            (path, text) => { writes++; Directory.CreateDirectory(_folder); File.WriteAllText(path, Flip(text)); });
+
+        Make().Save("0001 Sample Store", Day, Day, new LastYearFigures(1402, 4.86m, 2.91m));
+
+        Assert.Equal(1, writes);
+        Assert.DoesNotContain("Entries", File.ReadAllText(FilePath));
+        Assert.True(Make().TryGet("0001 Sample Store", Day, Day, out var figures));
+        Assert.Equal(new LastYearFigures(1402, 4.86m, 2.91m), figures);
+    }
+
+    [Fact]
     public void AnotherStoreOrOtherDays_AreNotUsed()
     {
         var store = new LastYearFigureStore(FilePath);

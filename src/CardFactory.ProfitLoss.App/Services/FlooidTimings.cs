@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IO;
+using CardFactory.ProfitLoss.App.Infrastructure;
 
 namespace CardFactory.ProfitLoss.App.Services;
 
@@ -93,7 +94,7 @@ public static class FlooidTimings
 
             // Stage 6B.55: the template older builds wrote (6A.99) is nobody's choice - the
             // menu writes its own format. Left at its 1.0, it is replaced with Fast.
-            var text0 = File.ReadAllText(path);
+            var text0 = ProtectedFiles.ReadAllText(path) ?? string.Empty;   // encrypted since 16 Nov 2026
             if (text0.Contains("# Every fixed wait in the Flooid automation is multiplied by this number.", StringComparison.Ordinal)
                 && !text0.Contains("# Written by the application.", StringComparison.Ordinal)
                 && System.Text.RegularExpressions.Regex.IsMatch(text0, @"(?m)^\s*scale\s*=\s*1(\.0+)?\s*$"))
@@ -114,7 +115,7 @@ public static class FlooidTimings
                 }
             }
 
-            foreach (var rawLine in File.ReadAllLines(path))
+            foreach (var rawLine in (ProtectedFiles.ReadAllText(path) ?? string.Empty).Split('\n'))
             {
                 var line = rawLine.Trim();
                 if (line.Length == 0 || line.StartsWith("#", StringComparison.Ordinal)) continue;
@@ -186,7 +187,7 @@ public static class FlooidTimings
                 ""
             };
 
-            File.WriteAllText(path, string.Join(Environment.NewLine, lines));
+            ProtectedFiles.WriteAllText(path, string.Join(Environment.NewLine, lines));
             Scale = clamped;
             Source = SettingsFileName;
             return true;

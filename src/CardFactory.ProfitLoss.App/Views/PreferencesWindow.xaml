@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Preferences"
         Width="430"
-        Height="375"
+        Height="392"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
@@ -74,12 +74,12 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
-                        <TextBlock Text="RESET APP SETTINGS"
+                        <TextBlock Text="RESET EVERYTHING"
                                    Foreground="{StaticResource CfBad}"
                                    FontFamily="Arial"
                                    FontSize="9.5"
                                    FontWeight="Bold" />
-                        <TextBlock Text="Restores Store / Location, targets and period settings to their defaults. Team figures and exported or manually saved files are kept."
+                        <TextBlock Text="Removes everything this app keeps on this PC - saved sign-in, settings, add-ons, last year's figures and the log - then closes the app. PDFs you saved yourself are kept."
                                    Foreground="{StaticResource CfMuted}"
                                    FontFamily="Arial"
                                    FontSize="9.5"
@@ -87,8 +87,8 @@
                                    Margin="0,4,0,0" />
                     </StackPanel>
                     <Button Grid.Column="1"
-                            Content="Reset settings"
-                            Width="112"
+                            Content="Reset everything"
+                            Width="120"
                             Height="34"
                             VerticalAlignment="Center"
                             Style="{StaticResource DangerOutlineButtonStyle}"
