@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using CardFactory.ProfitLoss.App.Infrastructure;
 using CardFactory.ProfitLoss.App.Services;
+using CardFactory.ProfitLoss.App.Views;
 using CardFactory.ProfitLoss.ReportParsing.Models;
 using CardFactory.ProfitLoss.ReportParsing.Parsers;
 
