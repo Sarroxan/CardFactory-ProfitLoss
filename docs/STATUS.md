@@ -13,6 +13,7 @@ Owner: gather more features before building.
 | Change | State |
 |---|---|
 | Top sellers instant: after each sign-in's quiet fetch the 4-week report is pulled in the background on the second sign-in (`PrefetchTopSellersAsync`); opening Top sellers then shows it at once. No second sign-in, or it fails: nothing shown, opening Top sellers pulls it as before. The same pull fills the add-on list once per till (FillAddOnListOnceAsync removed). A pull started before Sign out / Change store is thrown away. | Written, not built |
+| By hour tab in Branch Performance (concepts H2 + G3): each hour's P&L against the ABV target (Flooid's hour figures, gift cards in - Flooid has no hour for them), then a Gift cards row (the Reports tab's gift card total), then DAY P&L = the Reports tab's P&L itself. A note shows if the hours minus gift cards don't land on it. Display only (MainWindow.ByHour.cs); no calculation changed. | Written, not built |
 
 ## Released - v1.1.3 (17 Nov 2026, owner's say-so), from branch `top-sellers`
 

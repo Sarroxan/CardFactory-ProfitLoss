@@ -45,7 +45,7 @@ public partial class MainWindow : Window
     private readonly ReportCache _reportCache = new();
     private bool _pullFresh;                 // set for the length of a Refresh
     private DateTime? _oldestPullUsed;       // the oldest copy a pull used, for "updated … ago"
-    private bool _branchGiftCardsActive;
+    private BranchDetail _branchDetail;
     private FlooidLoginWindow? _flooidLoginWindow;
     private bool _grabAfterFlooidSignIn;
     private bool _grabReportsOnlyAfterSignIn;   // the button pressed before sign-in was Generate reports
@@ -113,6 +113,7 @@ public partial class MainWindow : Window
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MainViewModel.HasTopPerformers)) UpdateTeamSpacer();
+        ByHour_ViewModelChanged(e.PropertyName);
     }
 
     private void Window_SourceInitialized(object? sender, EventArgs e) => WindowAppearance.PreferRoundedCorners(this);
@@ -124,7 +125,7 @@ public partial class MainWindow : Window
             ApplyTeamLayout(initialViewModel.Operators.Count);
         }
         SetBranchPerformanceView(false);
-        SetBranchDetailView(false);
+        SetBranchDetailView(BranchDetail.Performance);
         InitialiseAddOns();
 
         FitToWorkArea();
@@ -667,9 +668,9 @@ public partial class MainWindow : Window
     // reports, so on this tab the button is Generate reports, as on Reports.
     private void AddOnsSection_Click(object sender, RoutedEventArgs e) => SetBranchPerformanceView(false, addOns: true);
 
-    private void BranchHourlyTab_Click(object sender, RoutedEventArgs e) => SetBranchDetailView(false);
+    private void BranchHourlyTab_Click(object sender, RoutedEventArgs e) => SetBranchDetailView(BranchDetail.Performance);
 
-    private void BranchGiftCardsTab_Click(object sender, RoutedEventArgs e) => SetBranchDetailView(true);
+    private void BranchGiftCardsTab_Click(object sender, RoutedEventArgs e) => SetBranchDetailView(BranchDetail.GiftCards);
 
     private void SetBranchPerformanceView(bool branchActive, bool reports = false, bool addOns = false)
     {
@@ -730,15 +731,18 @@ public partial class MainWindow : Window
         }
     }
 
-    private void SetBranchDetailView(bool giftCards)
+    private void SetBranchDetailView(BranchDetail detail)
     {
-        if (BranchHourlyPanel is null || BranchGiftCardsPanel is null) return;
+        if (BranchHourlyPanel is null || BranchGiftCardsPanel is null || BranchByHourPanel is null) return;
 
-        _branchGiftCardsActive = giftCards;
-        BranchHourlyPanel.Visibility = giftCards ? Visibility.Hidden : Visibility.Visible;
-        BranchGiftCardsPanel.Visibility = giftCards ? Visibility.Visible : Visibility.Hidden;
-        if (BranchHourlyTabButton is not null) BranchHourlyTabButton.Tag = giftCards ? null : "Active";
-        if (BranchGiftCardsTabButton is not null) BranchGiftCardsTabButton.Tag = giftCards ? "Active" : null;
+        _branchDetail = detail;
+        BranchHourlyPanel.Visibility = detail == BranchDetail.Performance ? Visibility.Visible : Visibility.Hidden;
+        BranchByHourPanel.Visibility = detail == BranchDetail.ByHour ? Visibility.Visible : Visibility.Hidden;
+        BranchGiftCardsPanel.Visibility = detail == BranchDetail.GiftCards ? Visibility.Visible : Visibility.Hidden;
+        if (BranchHourlyTabButton is not null) BranchHourlyTabButton.Tag = detail == BranchDetail.Performance ? "Active" : null;
+        if (BranchByHourTabButton is not null) BranchByHourTabButton.Tag = detail == BranchDetail.ByHour ? "Active" : null;
+        if (BranchGiftCardsTabButton is not null) BranchGiftCardsTabButton.Tag = detail == BranchDetail.GiftCards ? "Active" : null;
+        if (detail == BranchDetail.ByHour) DrawByHour();
     }
 
     // K1: one date button. Single day or date range is chosen inside the calendar, so the
@@ -1737,7 +1741,7 @@ public partial class MainWindow : Window
         var wasBranchView = _branchPerformanceActive;
         var wasReportsView = _reportsActive;
         var wasAddOnsView = _addOnsActive;
-        var wasGiftCardsView = _branchGiftCardsActive;
+        var wasBranchDetail = _branchDetail;
         // Staff discounts come with the full pull from Reports, and always for the Daily Briefing.
         var includeDiscounts = wasReportsView || forBriefing;
         try
@@ -1993,7 +1997,7 @@ public partial class MainWindow : Window
             _pullFresh = false;
             // Stage 6A.93: back to whichever section was showing when this started.
             SetBranchPerformanceView(wasBranchView, wasReportsView && !wasAddOnsView, wasAddOnsView);
-            SetBranchDetailView(wasGiftCardsView);
+            SetBranchDetailView(wasBranchDetail);
         }
         if (quietFrom is DateTime qFrom && quietTo is DateTime qTo)
             StartQuietFetch(viewModel, loginWindow, qFrom, qTo);
@@ -2013,7 +2017,7 @@ public partial class MainWindow : Window
         var wasBranchView = _branchPerformanceActive;
         var wasReportsView = _reportsActive;
         var wasAddOnsView = _addOnsActive;
-        var wasGiftCardsView = _branchGiftCardsActive;
+        var wasBranchDetail = _branchDetail;
         try
         {
             var endDate = (viewModel.SelectedDate ?? DateTime.Today).Date;
@@ -2106,7 +2110,7 @@ public partial class MainWindow : Window
             _flooidGrabBusy = false;
             _pullFresh = false;
             SetBranchPerformanceView(wasBranchView, wasReportsView && !wasAddOnsView, wasAddOnsView);
-            SetBranchDetailView(wasGiftCardsView);
+            SetBranchDetailView(wasBranchDetail);
         }
     }
 

@@ -1552,16 +1552,21 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <!-- Stage 6B.67 (B1): the split card used by Day / Range and Fast / Safe. -->
-                                                <Border Width="220" Height="30" VerticalAlignment="Center" Background="#F4F7FB"
+                                                <Border Width="320" Height="30" VerticalAlignment="Center" Background="#F4F7FB"
                                                         BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="10">
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/><ColumnDefinition Width="1"/><ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="1"/><ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
                                                         <Button x:Name="BranchHourlyTabButton" Grid.Column="0" Content="Performance" Tag="Active"
                                                                 Style="{StaticResource BranchSplitLeftStyle}" Click="BranchHourlyTab_Click"/>
                                                         <Border Grid.Column="1" Background="Transparent" />
-                                                        <Button x:Name="BranchGiftCardsTabButton" Grid.Column="2" Content="Gift Cards"
+                                                        <!-- Owner, 17 Nov 2026 (H2 + G3): P&L hour by hour. MainWindow.ByHour.cs. -->
+                                                        <Button x:Name="BranchByHourTabButton" Grid.Column="2" Content="By hour"
+                                                                Style="{StaticResource BranchSplitLeftStyle}" Click="BranchByHourTab_Click"/>
+                                                        <Border Grid.Column="3" Background="Transparent" />
+                                                        <Button x:Name="BranchGiftCardsTabButton" Grid.Column="4" Content="Gift Cards"
                                                                 Style="{StaticResource BranchSplitRightStyle}" Click="BranchGiftCardsTab_Click"/>
                                                     </Grid>
                                                 </Border>
@@ -1695,6 +1700,42 @@
                                                             Style="{StaticResource FlooidActionButtonStyle}" Click="GrabFromFlooid_Click" />
                                                 </StackPanel>
                                             </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- By hour (owner, 17 Nov 2026, H2 + G3): drawn in MainWindow.ByHour.cs. -->
+                                            <Grid x:Name="BranchByHourPanel" Grid.Row="2" Margin="12,0,12,0" Visibility="Hidden">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="29"/>
+                                                    <RowDefinition Height="316"/>
+                                                </Grid.RowDefinitions>
+                                                <Border Grid.Row="0" Background="{StaticResource CfBlueSoft}" BorderBrush="{StaticResource CfLine}" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="110"/><ColumnDefinition Width="130"/><ColumnDefinition Width="100"/>
+                                                            <ColumnDefinition Width="100"/><ColumnDefinition Width="*"/><ColumnDefinition Width="120"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="TIME" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="12,0,12,0"/>
+                                                        <TextBlock Grid.Column="1" Text="SALES" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,12,0"/>
+                                                        <TextBlock Grid.Column="2" Text="TRANS." Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,12,0"/>
+                                                        <TextBlock Grid.Column="3" Text="ABV" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,12,0"/>
+                                                        <TextBlock Grid.Column="4" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                            <Run Text="P&amp;L AGAINST THE ABV TARGET (£"/><Run Text="{Binding AbvTarget, Mode=OneWay, StringFormat={}{0:N2}}"/><Run Text=")"/>
+                                                        </TextBlock>
+                                                        <TextBlock Grid.Column="5" Text="P&amp;L" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="9.5" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,12,0"/>
+                                                    </Grid>
+                                                </Border>
+                                                <Border Grid.Row="1" BorderBrush="{StaticResource CfLine}" BorderThickness="1,0,1,1" CornerRadius="0,0,8,8" ClipToBounds="True">
+                                                    <Grid>
+                                                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                                            <ScrollViewer.Resources>
+                                                                <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}"/>
+                                                            </ScrollViewer.Resources>
+                                                            <Grid x:Name="BranchByHourTable"/>
+                                                        </ScrollViewer>
+                                                        <TextBlock x:Name="BranchByHourNote" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"
+                                                                   Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="12" FontWeight="Bold" IsHitTestVisible="False"/>
                                                     </Grid>
                                                 </Border>
                                             </Grid>
