@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using CardFactory.ProfitLoss.App.Infrastructure;
 using CardFactory.ProfitLoss.App.Services;
+using CardFactory.ProfitLoss.App.ViewModels;
 using CardFactory.ProfitLoss.App.Views;
 using CardFactory.ProfitLoss.ReportParsing.Models;
 using CardFactory.ProfitLoss.ReportParsing.Parsers;
@@ -14,10 +15,11 @@ namespace CardFactory.ProfitLoss.App;
 /// Add-on Sales › Top sellers (owner, 17 Nov 2026, concept T1; carrier bags left out). A switch
 /// under the first blue bar goes between the tracked add-ons (as before) and the top 25 items
 /// of the last 4 weeks (28 days to yesterday), by number sold or by £, for all items or one
-/// group, each with "+ Track". The 4-week all-items report is pulled the first time Top sellers
-/// is opened that day - on the second sign-in, so a Refresh never waits for it; the app's own
-/// sign-in only when there is no second sign-in and nothing else is pulling - and kept in memory
-/// until the next day, Sign out or Change store. Its items also fill the add-on list.
+/// group, each with "+ Track". The 4-week all-items report is pulled quietly after each sign-in
+/// (owner, 17 Nov 2026: "make Top sellers instant") on the second sign-in, so it is usually ready
+/// before Top sellers is opened. If it isn't, opening Top sellers pulls it as before - on the
+/// second sign-in, or the app's own when there is no second sign-in and nothing else is pulling.
+/// Kept in memory until the next day, Sign out or Change store. Its items also fill the add-on list.
 /// Ranking: <see cref="TopSellers"/>. No figure elsewhere is touched.
 /// </summary>
 public partial class MainWindow
@@ -31,6 +33,7 @@ public partial class MainWindow
     private DateTime _topSellersDay;
     private bool _topSellersLoading;
     private string? _topSellersProblem;
+    private int _topSellersGeneration;                    // a pull started before Sign out / Change store is thrown away
 
     // Progress while the 4 weeks come from Flooid (owner, 17 Nov 2026, concept P2): four steps,
     // each ticked when it has really happened, and a bar that fills over the usual time (till
@@ -89,14 +92,23 @@ public partial class MainWindow
     {
         _topSellersAll = null;
         _topSellersProblem = null;
+        _topSellersGeneration++;
     }
 
-    private async Task LoadTopSellersAsync()
+    /// <summary>
+    /// After each sign-in's quiet fetch: get the top sellers ready on the second sign-in, so
+    /// opening Top sellers is instant. Nothing waits for it and nothing is shown if it fails -
+    /// opening Top sellers then pulls it as before.
+    /// </summary>
+    private Task PrefetchTopSellersAsync() => LoadTopSellersAsync(quiet: true);
+
+    private async Task LoadTopSellersAsync(bool quiet = false)
     {
         if (_topSellersLoading) return;
         if (_topSellersAll is not null && _topSellersDay == DateTime.Today) { DrawTopSellers(); return; }
 
         var loginWindow = _flooidLoginWindow;
+        if (quiet && (loginWindow is null || !loginWindow.IsSignedIn || SecondSignInDetails(loginWindow) is null)) return;
         if (loginWindow is null || !loginWindow.IsSignedIn)
         {
             _topSellersProblem = "Sign in to Flooid to see the top sellers.";
@@ -113,32 +125,46 @@ public partial class MainWindow
         _topSellersTicker.Start();
         var from = TopSellersFrom;
         var to = TopSellersTo;
+        var generation = _topSellersGeneration;
         var clock = Stopwatch.StartNew();
         void Log(string text) => AppFiles.AppendDiagnostic(
-            $"[{DateTime.Now:HH:mm:ss}] Top sellers ({from:dd/MM/yyyy} - {to:dd/MM/yyyy}): {text}{Environment.NewLine}");
+            $"[{DateTime.Now:HH:mm:ss}] Top sellers{(quiet ? " ready in the background" : "")} ({from:dd/MM/yyyy} - {to:dd/MM/yyyy}): {text}{Environment.NewLine}");
         try
         {
-            var html = await PullTopSellersHtmlAsync(loginWindow, from, to, Log);
+            var html = await PullTopSellersHtmlAsync(loginWindow, from, to, Log, quiet);
             if (html is null)
             {
-                _topSellersProblem = "Flooid is busy with another report. Open Top sellers again in a moment.";
+                if (quiet) Log("the second sign-in is not available - pulled when Top sellers is opened");
+                if (!quiet || _addOnTopView) _topSellersProblem = "Flooid is busy with another report. Open Top sellers again in a moment.";
                 return;
             }
 
+            if (generation != _topSellersGeneration) { Log("thrown away - signed out or changed store meanwhile"); return; }
             TopSellersStage(3);
             var report = new AllItemSalesReportParser().Parse(html);
             _topSellersAll = TopSellers.Build(report.Items);
             _topSellersDay = DateTime.Today;
 
             // The same report fills the add-on list too.
-            _addOnSeen = AddOnSettings.RememberSeen(_addOnSeen ?? AddOnSettings.LoadSeen(), report.Items);
-            if (!AddOnSettings.ListFilled) AddOnSettings.MarkListFilled(from, to, _addOnSeen.Count);
+            var seen = _addOnSeen ?? AddOnSettings.LoadSeen();
+            var before = seen.Count;
+            _addOnSeen = AddOnSettings.RememberSeen(seen, report.Items);
+            if (!AddOnSettings.ListFilled)
+            {
+                // Once per till (owner, 17 Nov 2026): the add-on list filled from the last 4 weeks.
+                AddOnSettings.MarkListFilled(from, to, _addOnSeen.Count);
+                var added = Math.Max(0, _addOnSeen.Count - before);
+                if (RetrievalOverlay.Visibility != Visibility.Visible && DataContext is MainViewModel viewModel)
+                    viewModel.SetStatus($"Add-on list filled from the last 4 weeks · {added} items added", notify: false);
+            }
 
             Log($"{report.Items.Count} lines, {_topSellersAll.Count} items, {html.Length / 1024} KB, {clock.ElapsedMilliseconds} ms");
         }
         catch (Exception ex)
         {
-            _topSellersProblem = "The top sellers couldn't be fetched from Flooid. Open Top sellers again to try once more.";
+            // In the background nothing is shown: opening Top sellers simply pulls it again.
+            if ((!quiet || _addOnTopView) && generation == _topSellersGeneration)
+                _topSellersProblem = "The top sellers couldn't be fetched from Flooid. Open Top sellers again to try once more.";
             Log($"failed after {clock.ElapsedMilliseconds} ms: {ex.Message}");
         }
         finally
@@ -156,12 +182,13 @@ public partial class MainWindow
     }
 
     /// <summary>The 4-week report: on the second sign-in, or on the app's own when there is no
-    /// second sign-in and nothing else is pulling. Null when neither is free.</summary>
-    private async Task<string?> PullTopSellersHtmlAsync(FlooidLoginWindow loginWindow, DateTime from, DateTime to, Action<string> log)
+    /// second sign-in and nothing else is pulling. Null when neither is free. In the background
+    /// (<paramref name="quiet"/>) only the second sign-in is used.</summary>
+    private async Task<string?> PullTopSellersHtmlAsync(FlooidLoginWindow loginWindow, DateTime from, DateTime to, Action<string> log, bool quiet = false)
     {
         if (SecondSignInDetails(loginWindow) is { } details)
         {
-            using var lease = await _secondSignIn.AcquireAsync(details, () => _addOnTopView);
+            using var lease = await _secondSignIn.AcquireAsync(details, () => quiet || _addOnTopView);
             if (lease is not null)
             {
                 log("pulling on the second sign-in");
@@ -178,7 +205,7 @@ public partial class MainWindow
             }
         }
 
-        if (_flooidGrabBusy || _quietFetch is { IsCompleted: false }) return null;
+        if (quiet || _flooidGrabBusy || _quietFetch is { IsCompleted: false }) return null;
         log("pulling on the app's own sign-in");
         _flooidGrabBusy = true;
         TopSellersStage(1);

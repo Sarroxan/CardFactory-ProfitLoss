@@ -60,7 +60,7 @@ public static class AddOnSettings
     }
 
     // Owner, 17 Nov 2026: the list of names is filled once from the last 4 weeks of sales
-    // (MainWindow.FillAddOnListOnceAsync); this marks that it has been done on this till.
+    // (MainWindow.LoadTopSellersAsync); this marks that it has been done on this till.
     // Reset everything deletes it, so the list is filled again after that.
     private static string ListFilledPath => Path.Combine(AppFiles.Folder, "add-on-list-filled.txt");
 

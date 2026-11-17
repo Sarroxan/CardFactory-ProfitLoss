@@ -6,6 +6,14 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `next-features` (owner, 17 Nov 2026) - not built or released yet
+
+Owner: gather more features before building.
+
+| Change | State |
+|---|---|
+| Top sellers instant: after each sign-in's quiet fetch the 4-week report is pulled in the background on the second sign-in (`PrefetchTopSellersAsync`); opening Top sellers then shows it at once. No second sign-in, or it fails: nothing shown, opening Top sellers pulls it as before. The same pull fills the add-on list once per till (FillAddOnListOnceAsync removed). A pull started before Sign out / Change store is thrown away. | Written, not built |
+
 ## Released - v1.1.3 (17 Nov 2026, owner's say-so), from branch `top-sellers`
 
 | Change | Proven | Check |

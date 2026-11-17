@@ -1051,9 +1051,10 @@ public partial class MainWindow : Window
             await WaitQuietly(planRun);
         }
 
-        // Owner, 17 Nov 2026: once per till, the add-on list is filled from the last 4 weeks
-        // (second sign-in only - nothing waits for it).
-        if (!_quietFetchStop) _ = FillAddOnListOnceAsync(loginWindow);
+        // Owner, 17 Nov 2026: the top sellers of the last 4 weeks are got ready in the background
+        // (second sign-in only - nothing waits for it). The same report fills the add-on list
+        // once per till.
+        if (!_quietFetchStop) _ = PrefetchTopSellersAsync();
     }
 
     private async Task StopQuietFetchAsync(MainViewModel? viewModel = null)
