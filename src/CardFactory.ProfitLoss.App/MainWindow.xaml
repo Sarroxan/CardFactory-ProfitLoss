@@ -1221,6 +1221,47 @@
                                      shows what each sold and a table by person. Filled in code (MainWindow.AddOns.cs),
                                      since the columns are whatever the store tracks. -->
                                 <Grid x:Name="AddOnsModePanel" Height="474" Visibility="Collapsed">
+                                    <!-- Top sellers (owner, 17 Nov 2026, concept T1): the switch and the group buttons.
+                                         Which one is on is set from code (Background / Foreground). -->
+                                    <Grid.Resources>
+                                        <Style x:Key="AddOnSegmentButtonStyle" TargetType="Button">
+                                            <Setter Property="Background" Value="White"/>
+                                            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}"/>
+                                            <Setter Property="FontFamily" Value="Arial"/>
+                                            <Setter Property="FontSize" Value="11"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="Cursor" Value="Hand"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" Padding="12,0" Height="28">
+                                                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                        <Style x:Key="AddOnChipButtonStyle" TargetType="Button">
+                                            <Setter Property="Background" Value="White"/>
+                                            <Setter Property="BorderBrush" Value="{StaticResource CfLine}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}"/>
+                                            <Setter Property="FontFamily" Value="Arial"/>
+                                            <Setter Property="FontSize" Value="10.5"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="Margin" Value="0,0,6,0"/>
+                                            <Setter Property="Cursor" Value="Hand"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="1" CornerRadius="12" Padding="10,0" Height="24">
+                                                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Grid.Resources>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="42"/>
                                         <RowDefinition Height="432"/>
@@ -1351,6 +1392,14 @@
                                                                 <TextBlock x:Name="AddOnPeriodText" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#D6E4F5" FontFamily="Arial" FontSize="11"/>
                                                             </Grid>
                                                         </Border>
+                                                        <Grid Margin="14,10,14,0">
+                                                            <Border BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="9" HorizontalAlignment="Left" ClipToBounds="True">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <Button x:Name="AddOnSwitchTrackedA" Content="Tracked add-ons" Tag="tracked" Style="{StaticResource AddOnSegmentButtonStyle}" Click="AddOnViewSwitch_Click"/>
+                                                                    <Button x:Name="AddOnSwitchTopA" Content="Top sellers · 4 weeks" Tag="top" Style="{StaticResource AddOnSegmentButtonStyle}" Click="AddOnViewSwitch_Click"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </Grid>
                                                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="12,12,12,10">
                                                             <ScrollViewer.Resources>
                                                                 <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
@@ -1392,6 +1441,65 @@
                                                                     Style="{StaticResource FlooidActionButtonStyle}" Click="GrabFromFlooid_Click" />
                                                         </StackPanel>
                                                     </StackPanel>
+                                                </Border>
+                                                <!-- With nothing pulled yet, the switch still shows (top left of the empty state). -->
+                                                <Grid x:Name="AddOnEmptySwitch" Grid.Row="0" Grid.RowSpan="3" Margin="14,14,14,0" VerticalAlignment="Top"
+                                                      Visibility="{Binding Visibility, ElementName=AddOnEmptyState}">
+                                                    <Border BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="9" HorizontalAlignment="Left" ClipToBounds="True">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <Button x:Name="AddOnSwitchTrackedC" Content="Tracked add-ons" Tag="tracked" Style="{StaticResource AddOnSegmentButtonStyle}" Click="AddOnViewSwitch_Click"/>
+                                                                    <Button x:Name="AddOnSwitchTopC" Content="Top sellers · 4 weeks" Tag="top" Style="{StaticResource AddOnSegmentButtonStyle}" Click="AddOnViewSwitch_Click"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                </Grid>
+
+                                                <!-- Top sellers (owner, 17 Nov 2026, concept T1): every item over the last 4 weeks,
+                                                     gift cards and carrier bags left out (MainWindow.TopSellers.cs). -->
+                                                <Border x:Name="TopSellersPanel" Grid.Row="0" Grid.RowSpan="3" Visibility="Collapsed"
+                                                        Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="13" ClipToBounds="True">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="36"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="*"/>
+                                                        </Grid.RowDefinitions>
+                                                        <Border Background="{StaticResource CfDeepBlue}" CornerRadius="12,12,0,0">
+                                                            <Grid Margin="14,0">
+                                                                <TextBlock Text="Top sellers" VerticalAlignment="Center" Foreground="White" FontFamily="{StaticResource CfTitleFont}" FontSize="18"/>
+                                                                <TextBlock x:Name="TopSellersPeriodText" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#D6E4F5" FontFamily="Arial" FontSize="11"/>
+                                                            </Grid>
+                                                        </Border>
+                                                        <Grid Grid.Row="1" Margin="14,10,14,0">
+                                                            <Border BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="9" HorizontalAlignment="Left" ClipToBounds="True">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <Button x:Name="AddOnSwitchTrackedB" Content="Tracked add-ons" Tag="tracked" Style="{StaticResource AddOnSegmentButtonStyle}" Click="AddOnViewSwitch_Click"/>
+                                                                    <Button x:Name="AddOnSwitchTopB" Content="Top sellers · 4 weeks" Tag="top" Style="{StaticResource AddOnSegmentButtonStyle}" Click="AddOnViewSwitch_Click"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                            <Border BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="9" HorizontalAlignment="Right" ClipToBounds="True">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <Button x:Name="TopSellersByNumber" Content="By number sold" Tag="number" Style="{StaticResource AddOnSegmentButtonStyle}" Click="TopSellersSort_Click"/>
+                                                                    <Button x:Name="TopSellersByValue" Content="By £" Tag="value" Style="{StaticResource AddOnSegmentButtonStyle}" Click="TopSellersSort_Click"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </Grid>
+                                                        <StackPanel x:Name="TopSellersGroups" Grid.Row="2" Orientation="Horizontal" Margin="14,8,14,4">
+                                                            <Button Content="All" Tag="All" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
+                                                            <Button Content="Cards" Tag="Cards" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
+                                                            <Button Content="Party &amp; gifting" Tag="PartyAndGifting" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
+                                                            <Button Content="Wrap &amp; bags" Tag="WrapAndBags" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
+                                                            <Button Content="Stamps &amp; other" Tag="StampsAndOther" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
+                                                        </StackPanel>
+                                                        <ScrollViewer Grid.Row="3" Margin="0,0,0,8" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                                            <ScrollViewer.Resources>
+                                                                <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}" />
+                                                            </ScrollViewer.Resources>
+                                                            <Grid x:Name="TopSellersTable" Margin="10,0,10,0" VerticalAlignment="Top"/>
+                                                        </ScrollViewer>
+                                                        <TextBlock x:Name="TopSellersNote" Grid.Row="3" Margin="24,20,24,0" VerticalAlignment="Top"
+                                                                   FontFamily="Arial" FontSize="12" Foreground="{StaticResource CfMuted}" TextWrapping="Wrap" Visibility="Collapsed"/>
+                                                    </Grid>
                                                 </Border>
                                             </Grid>
                                         </Grid>

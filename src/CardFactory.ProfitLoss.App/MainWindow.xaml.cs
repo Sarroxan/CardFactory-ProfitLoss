@@ -991,6 +991,7 @@ public partial class MainWindow : Window
     {
         _reportCache.Clear();
         _lastYearCache.Clear();
+        ForgetTopSellers();
     }
 
     // Owner, 22 Oct 2026 (option B): after the sign-in pull, Staff Discounts (and the add-ons,

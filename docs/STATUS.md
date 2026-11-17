@@ -6,6 +6,12 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `top-sellers` (owner, 17 Nov 2026) - not released yet
+
+| Change | Proven | Check |
+|--------|--------|-------|
+| **Add-on Sales › Top sellers (concept T1; owner: "T1", switch placement as drawn in T1b, carrier bags left out).** A switch under the first blue bar - "Tracked add-ons" / "Top sellers · 4 weeks" - in the same place on both sides (and top left of the empty state). Top sellers: the top 25 items of the last 28 days (to yesterday), every person added together, gift cards and carrier bags left out; "By number sold" / "By £"; group buttons All · Cards · Party & gifting · Wrap & bags · Stamps & other (from the report's department path - level 1 "… Card", "… Party & Gifting" with level 3 "Wrap & Bags" apart, "Stamps & Carrier Bags"; the drawing said "Stamps & bags", renamed as carrier bags are out); each row "+ Track" (adds it to Items to track) or "✓ Tracking". The 4-week all-items report is pulled the first time Top sellers is opened that day, on the second sign-in (the app's own only when there is none and nothing else is pulling), kept in memory until the next day / Sign out / Change store; it also fills the add-on list. By person is about two rows shorter to make room for the switch. `TopSellers` (ReportParsing/Models), `MainWindow.TopSellers.cs`; tests `TopSellersTests`. No figure elsewhere touched. | Test build | Open Add-on Sales › Top sellers · 4 weeks: "Getting the last 4 weeks…", then the list; By £ re-orders; Cards shows only cards; + Track adds it to the left and turns into ✓ Tracking; Tracked add-ons shows the usual view |
+
 ## Released - v1.1.2 (17 Nov 2026, owner's say-so), from branch `add-on-list-fill`
 
 | Change | Proven | Check |

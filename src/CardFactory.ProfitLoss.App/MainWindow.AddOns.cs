@@ -298,13 +298,15 @@ public partial class MainWindow
         AddOnTrackingTitle.Text = $"Tracking ({_addOnTracked.Count})";
         AddOnPeriodText.Text = viewModel?.PeriodDisplayText ?? string.Empty;
 
-        AddOnEmptyState.Visibility = summary is null ? Visibility.Visible : Visibility.Collapsed;
+        // Top sellers (concept T1) covers the right side; the empty state only shows on Tracked add-ons.
+        AddOnEmptyState.Visibility = summary is null && !_addOnTopView ? Visibility.Visible : Visibility.Collapsed;
         AddOnEmptyText.Text = _addOnTracked.Count == 0
             ? "Add a SKU on the left, then press Generate reports to see how many sold."
             : "They come with the reports. Press Generate reports to fetch them.";
 
         DrawAddOnCards(summary);
         DrawAddOnTable(summary);
+        DrawTopSellers();   // the switches, and "+ Track" / "✓ Tracking" after a change
     }
 
     private void DrawAddOnCards(AddOnSalesSummary? summary)
