@@ -2164,10 +2164,17 @@ public partial class FlooidView : UserControl
         // a far bigger report than a day's. 40 s for one day as before, 4 s more for each extra
         // day, at most 3 minutes (only a failure waits that long).
         var days = Math.Max(1, (toDate.Date - fromDate.Date).Days + 1);
+        // Owner's till log, 17 Nov 2026: every all-items report of more than one day (2 days, and
+        // 28 days for Top sellers) was refused - "operator '…' did not have a matching total
+        // row", a different person each time for the same 28 days. The report was taken while
+        // the browser was still drawing it, cut off part-way; a day's report is small enough to
+        // be whole by then. So a report of more than one day is taken only once its last line,
+        // "**** End Of Report ****" (saved page 19 and every Item Sales fixture), has arrived.
         var reportHtml = await WaitForGeneratedReportHtmlAsync(
             new[] { "item sales by operator" },
             "Item Sales By Operator — " + group.Name,
-            TimeSpan.FromSeconds(Math.Min(180, 40 + 4 * (days - 1))));
+            TimeSpan.FromSeconds(Math.Min(180, 40 + 4 * (days - 1))),
+            mustContain: days > 1 ? "end of report" : null);
         timing.Mark("report generated and captured");
         return reportHtml;
     }
@@ -2772,8 +2779,14 @@ public partial class FlooidView : UserControl
         }
     }
 
-    private async Task<string> WaitForGeneratedReportHtmlAsync(string[] expectedText, string label, TimeSpan timeout)
+    /// <param name="mustContain">When given, a page is only taken once it holds this text too
+    /// (lower case) - for a report so long that it can be read before it has all arrived.</param>
+    private async Task<string> WaitForGeneratedReportHtmlAsync(string[] expectedText, string label, TimeSpan timeout, string? mustContain = null)
     {
+        bool Ready(string? html) =>
+            LooksLikeGeneratedReportHtml(html, expectedText)
+            && (mustContain is null || html!.Contains(mustContain, StringComparison.OrdinalIgnoreCase));
+
         // Stage 6A.60 safety net: never wait for a report on a product group picker
         // window. If one is still the active target at this point it can only be a
         // leftover, and following it guarantees a timeout on a page that will never
@@ -2833,7 +2846,7 @@ public partial class FlooidView : UserControl
                 // First preference: the exact HTTP body returned by Flooid's generator.
                 // This still works when its client-side renderer is slow or omits the report title.
                 var captured = GetCapturedGeneratedReportHtml();
-                if (LooksLikeGeneratedReportHtml(captured, expectedText))
+                if (Ready(captured))
                     return captured;
 
                 var onGenerator = source.Contains("htmlReportGenerator.action", StringComparison.OrdinalIgnoreCase);
@@ -2843,7 +2856,7 @@ public partial class FlooidView : UserControl
                     everSawUnsubmittedCriteriaForm = false;
                     generatorSeenAt ??= DateTime.UtcNow;
                     var rendered = await GetBestRenderedReportHtmlAsync();
-                    if (LooksLikeGeneratedReportHtml(rendered, expectedText))
+                    if (Ready(rendered))
                         return rendered;
 
                     // A real Flooid-side renderer failure is now distinguished from a title/detection timeout.
@@ -2868,7 +2881,7 @@ public partial class FlooidView : UserControl
                 if (looksLikeReport && !looksLikeCriteria)
                 {
                     var candidate = await GetDocumentHtmlContainingAsync(expectedText);
-                    if (LooksLikeGeneratedReportHtml(candidate, expectedText))
+                    if (Ready(candidate))
                         return candidate;
                 }
 
