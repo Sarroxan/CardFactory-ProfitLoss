@@ -1049,6 +1049,10 @@ public partial class MainWindow : Window
             plan.Stop();
             await WaitQuietly(planRun);
         }
+
+        // Owner, 17 Nov 2026: once per till, the add-on list is filled from the last 4 weeks
+        // (second sign-in only - nothing waits for it).
+        if (!_quietFetchStop) _ = FillAddOnListOnceAsync(loginWindow);
     }
 
     private async Task StopQuietFetchAsync(MainViewModel? viewModel = null)

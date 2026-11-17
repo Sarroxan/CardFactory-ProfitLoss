@@ -2160,10 +2160,14 @@ public partial class FlooidView : UserControl
         await CheckForImmediateCriteriaValidationErrorAsync("Item Sales By Operator");
         timing.Mark("criteria submitted");
 
+        // Owner, 17 Nov 2026: the add-on list is filled once from the last 4 weeks of all items -
+        // a far bigger report than a day's. 40 s for one day as before, 4 s more for each extra
+        // day, at most 3 minutes (only a failure waits that long).
+        var days = Math.Max(1, (toDate.Date - fromDate.Date).Days + 1);
         var reportHtml = await WaitForGeneratedReportHtmlAsync(
             new[] { "item sales by operator" },
             "Item Sales By Operator — " + group.Name,
-            TimeSpan.FromSeconds(40));
+            TimeSpan.FromSeconds(Math.Min(180, 40 + 4 * (days - 1))));
         timing.Mark("report generated and captured");
         return reportHtml;
     }

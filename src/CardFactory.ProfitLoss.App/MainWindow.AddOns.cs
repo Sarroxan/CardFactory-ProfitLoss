@@ -4,7 +4,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using CardFactory.ProfitLoss.App.Infrastructure;
 using CardFactory.ProfitLoss.App.Services;
+using CardFactory.ProfitLoss.App.Views;
+using CardFactory.ProfitLoss.ReportParsing.Parsers;
 using CardFactory.ProfitLoss.App.ViewModels;
 using CardFactory.ProfitLoss.ReportParsing.Models;
 
@@ -29,6 +32,68 @@ public partial class MainWindow
     private MainViewModel? _addOnViewModel;
 
     private static readonly CultureInfo AddOnCulture = CultureInfo.GetCultureInfo("en-GB");
+
+    // Owner, 17 Nov 2026 ("there's still stuff not showing up"; option 1, 4 weeks): the SKU
+    // box only knew items seen in reports pulled on this till, so anything not sold since was
+    // missing. Once per till (AddOnSettings.ListFilled), after the quiet fetch following a
+    // sign-in, the second sign-in pulls the all-items report for the last 28 days (to
+    // yesterday) and every item in it is remembered. Only the second sign-in is used, so a
+    // Refresh never waits for it (the app's own sign-in simply pulls everything meanwhile); if
+    // the second sign-in isn't available it is tried after the next sign-in. Nothing on screen
+    // but a status line when it has finished; figures are not touched.
+    private const int AddOnListFillDays = 28;
+    private bool _addOnListFilling;
+
+    private async Task FillAddOnListOnceAsync(FlooidLoginWindow loginWindow)
+    {
+        if (_addOnListFilling || AddOnSettings.ListFilled) return;
+        if (SecondSignInDetails(loginWindow) is not { } details) return;
+        _addOnListFilling = true;
+        var from = DateTime.Today.AddDays(-AddOnListFillDays);
+        var to = DateTime.Today.AddDays(-1);
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        void Log(string text) => AppFiles.AppendDiagnostic(
+            $"[{DateTime.Now:HH:mm:ss}] Add-on list fill ({from:dd/MM/yyyy} - {to:dd/MM/yyyy}): {text}{Environment.NewLine}");
+        Log("started on the second sign-in");
+        try
+        {
+            using var lease = await _secondSignIn.AcquireAsync(details, () => true);
+            if (lease is null)
+            {
+                Log("the second sign-in is not available - tried again after the next sign-in");
+                return;
+            }
+
+            string html;
+            try
+            {
+                html = await lease.FetchAsync(v => v.FetchAllItemSalesHtmlAsync(from, to));
+            }
+            catch (Exception ex)
+            {
+                lease.Failed("Add-on list fill", ex);
+                throw;
+            }
+
+            var report = new AllItemSalesReportParser().Parse(html);
+            var seen = _addOnSeen ?? AddOnSettings.LoadSeen();
+            var before = seen.Count;
+            _addOnSeen = AddOnSettings.RememberSeen(seen, report.Items);
+            var added = Math.Max(0, _addOnSeen.Count - before);
+            AddOnSettings.MarkListFilled(from, to, _addOnSeen.Count);
+            Log($"{report.Items.Count} lines, {added} new items, {_addOnSeen.Count} known now, {html.Length / 1024} KB, {clock.ElapsedMilliseconds} ms");
+            if (RetrievalOverlay.Visibility != Visibility.Visible && DataContext is MainViewModel viewModel)
+                viewModel.SetStatus($"Add-on list filled from the last 4 weeks · {added} items added", notify: false);
+        }
+        catch (Exception ex)
+        {
+            Log($"failed after {clock.ElapsedMilliseconds} ms - tried again after the next sign-in: {ex.Message}");
+        }
+        finally
+        {
+            _addOnListFilling = false;
+        }
+    }
 
     private void InitialiseAddOns()
     {

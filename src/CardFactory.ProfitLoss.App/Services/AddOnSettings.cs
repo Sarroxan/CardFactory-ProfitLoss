@@ -59,6 +59,33 @@ public static class AddOnSettings
         }
     }
 
+    // Owner, 17 Nov 2026: the list of names is filled once from the last 4 weeks of sales
+    // (MainWindow.FillAddOnListOnceAsync); this marks that it has been done on this till.
+    // Reset everything deletes it, so the list is filled again after that.
+    private static string ListFilledPath => Path.Combine(AppFiles.Folder, "add-on-list-filled.txt");
+
+    public static bool ListFilled
+    {
+        get
+        {
+            try { return File.Exists(ListFilledPath) && !string.IsNullOrWhiteSpace(ProtectedFiles.ReadAllText(ListFilledPath)); }
+            catch { return false; }
+        }
+    }
+
+    public static void MarkListFilled(DateTime from, DateTime to, int items)
+    {
+        try
+        {
+            ProtectedFiles.WriteAllText(ListFilledPath,
+                $"filled {DateTime.Now:yyyy-MM-dd HH:mm} from {from:yyyy-MM-dd} to {to:yyyy-MM-dd}, {items} items");
+        }
+        catch
+        {
+            // Not marked: it is simply filled again next time.
+        }
+    }
+
     /// <summary>SKU → description, for every item seen in the all-items report on this till.</summary>
     public static Dictionary<string, string> LoadSeen()
     {
