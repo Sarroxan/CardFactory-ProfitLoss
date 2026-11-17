@@ -37,6 +37,7 @@ public partial class App : Application
             Shutdown();
             return;
         }
+        _isTheOnlyCopy = true;
 
         // The safety net: an error nothing else caught is written to the diagnostic log
         // (with its stack trace) and explained, instead of the window vanishing silently.
@@ -54,8 +55,13 @@ public partial class App : Application
         new MainWindow().Show();
     }
 
+    private bool _isTheOnlyCopy;
+
     protected override void OnExit(ExitEventArgs e)
     {
+        // Owner, 17 Nov 2026: Flooid's cookies and cached pages go once the app has closed
+        // (never from a second copy that only brought the first to the front).
+        if (_isTheOnlyCopy) AppFiles.RemoveBrowserDataAfterExit();
         try { _singleInstance?.ReleaseMutex(); } catch { /* not held */ }
         _singleInstance?.Dispose();
         base.OnExit(e);

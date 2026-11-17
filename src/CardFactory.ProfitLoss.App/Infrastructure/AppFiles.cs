@@ -189,14 +189,33 @@ internal static class AppFiles
         TryDeleteFolder(appData);
         TryDeleteFolder(TempFolder);
         TryDeleteFolder(BrowserRoot);
+        RemoveAfterExit(appData, TempFolder, BrowserRoot);
+    }
 
+    /// <summary>
+    /// Owner, 17 Nov 2026: on every normal close, the built-in browser's folder (Flooid's
+    /// cookies and cached pages, kept only while the app is open) and the preview folder are
+    /// removed once the app has closed. TidyAtStartup removes them too, in case it was not
+    /// closed normally.
+    /// </summary>
+    public static void RemoveBrowserDataAfterExit() => RemoveAfterExit(BrowserRoot, TempFolder);
+
+    /// <summary>
+    /// A hidden PowerShell waits for this copy to close, then removes the folders - unless
+    /// another copy has started meanwhile (after an update, or opened again straight away),
+    /// whose folders must not be touched.
+    /// </summary>
+    private static void RemoveAfterExit(params string[] folders)
+    {
         try
         {
             static string Quote(string path) => "'" + path.Replace("'", "''") + "'";
-            var paths = string.Join(",", new[] { appData, TempFolder, BrowserRoot }.Select(Quote));
+            var paths = string.Join(",", folders.Select(Quote));
+            var name = Process.GetCurrentProcess().ProcessName;
             var script = $"Wait-Process -Id {Environment.ProcessId} -Timeout 60 -ErrorAction SilentlyContinue; "
                        + "Start-Sleep -Seconds 3; "
-                       + $"Remove-Item -LiteralPath {paths} -Recurse -Force -ErrorAction SilentlyContinue";
+                       + $"if (-not (Get-Process -Name {Quote(name)} -ErrorAction SilentlyContinue)) {{ "
+                       + $"Remove-Item -LiteralPath {paths} -Recurse -Force -ErrorAction SilentlyContinue }}";
             var start = new ProcessStartInfo("powershell.exe")
             {
                 UseShellExecute = false,

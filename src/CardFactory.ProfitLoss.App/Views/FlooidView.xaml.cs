@@ -145,13 +145,13 @@ public partial class FlooidView : UserControl
                     options: new CoreWebView2EnvironmentOptions());
                 _webViewEnvironment = environment;
 
-                // Owner, 16 Nov 2026 (option 1): the app's own sign-in uses an in-memory profile
-                // too, like the second sign-in, so Flooid's cookies, cached report pages and
-                // history are never written to disk. Its popups follow (CreatePrivateOptions).
-                // A fresh in-memory profile starts with no cookies, so every run starts signed
-                // out without the clearing below.
-                _privateProfileName = "App";
-                await Browser.EnsureCoreWebView2Async(environment, CreatePrivateOptions(environment));
+                // The app's own sign-in keeps its normal profile, as in 1.1.0. Owner, 17 Nov 2026:
+                // an in-memory profile here as well as the second sign-in's (cee7209) gave
+                // "Branch: Sign in to Flooid before retrieving reports" after signing in - the
+                // two sign-ins must not share Flooid's cookies. Nothing is left behind instead:
+                // the profile's folder is deleted after the app closes and again at start-up
+                // (AppFiles.RemoveBrowserDataAfterExit / TidyAtStartup), and by Reset everything.
+                await Browser.EnsureCoreWebView2Async(environment);
             }
 
             Browser.CoreWebView2.WebResourceResponseReceived += Browser_WebResourceResponseReceived;
