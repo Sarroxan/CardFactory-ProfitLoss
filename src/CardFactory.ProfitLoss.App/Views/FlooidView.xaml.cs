@@ -2686,11 +2686,12 @@ public partial class FlooidView : UserControl
 
         // Do not require a top-level NavigationCompleted event here. Flooid commonly submits
         // the report form inside a frame while the top WebView remains on /web/spring/redirect.
-        // Speed (16 Nov 2026): this was a fixed 900 ms on every report. What follows already
-        // waits for the real thing - the date check polls until the criteria page has gone, and
-        // WaitForGeneratedReportHtmlAsync until the report is there - so it is now a scaled
-        // pause like the other fixed waits: none on Fast (the normal setting), 900 ms on Safe.
-        await FlooidTimings.PauseAsync((int)Math.Min(900, Math.Max(300, timeout.TotalMilliseconds / 10)));
+        // A fixed pause on every report, Fast or Safe - keep it. Owner, 17 Nov 2026: making it
+        // none on Fast (16 Nov speed change) gave "Branch: Sign in to Flooid before retrieving
+        // reports" after signing in; on Safe (pause kept) it worked. While Flooid changes page
+        // the view briefly reads as signed out, and without this pause the next report could
+        // start in that moment.
+        await Task.Delay(TimeSpan.FromMilliseconds(Math.Min(900, Math.Max(300, timeout.TotalMilliseconds / 10))));
     }
 
     /// <summary>
