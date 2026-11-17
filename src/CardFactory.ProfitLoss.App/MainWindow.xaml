@@ -1497,6 +1497,9 @@
                                                             </ScrollViewer.Resources>
                                                             <Grid x:Name="TopSellersTable" Margin="10,0,10,0" VerticalAlignment="Top"/>
                                                         </ScrollViewer>
+                                                        <!-- Concept P2: the steps and the bar while the 4 weeks come from Flooid (drawn in code). -->
+                                                        <StackPanel x:Name="TopSellersProgress" Grid.Row="3" Width="520" Margin="0,22,0,0"
+                                                                    HorizontalAlignment="Center" VerticalAlignment="Top" Visibility="Collapsed"/>
                                                         <TextBlock x:Name="TopSellersNote" Grid.Row="3" Margin="24,20,24,0" VerticalAlignment="Top"
                                                                    FontFamily="Arial" FontSize="12" Foreground="{StaticResource CfMuted}" TextWrapping="Wrap" Visibility="Collapsed"/>
                                                     </Grid>

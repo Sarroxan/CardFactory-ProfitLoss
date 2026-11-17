@@ -32,6 +32,22 @@ public partial class MainWindow
     private bool _topSellersLoading;
     private string? _topSellersProblem;
 
+    // Progress while the 4 weeks come from Flooid (owner, 17 Nov 2026, concept P2): four steps,
+    // each ticked when it has really happened, and a bar that fills over the usual time (till
+    // log 17 Nov: 32-37 s) and finishes when the list arrives.
+    private const double TopSellersUsualSeconds = 35;
+    private int _topSellersStage;                         // 0 connecting · 1 asking · 2 Flooid building · 3 ranking
+    private readonly DateTime[] _topSellersStageAt = new DateTime[4];
+    private System.Windows.Threading.DispatcherTimer? _topSellersTicker;
+
+    private void TopSellersStage(int stage)
+    {
+        if (stage <= _topSellersStage && stage != 0) return;
+        _topSellersStage = stage;
+        _topSellersStageAt[stage] = DateTime.Now;
+        DrawTopSellers();
+    }
+
     private static DateTime TopSellersFrom => DateTime.Today.AddDays(-TopSellersDays);
     private static DateTime TopSellersTo => DateTime.Today.AddDays(-1);
 
@@ -90,7 +106,11 @@ public partial class MainWindow
 
         _topSellersLoading = true;
         _topSellersProblem = null;
-        DrawTopSellers();
+        TopSellersStage(0);
+        _topSellersTicker ??= new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+        _topSellersTicker.Tick -= TopSellersTicker_Tick;
+        _topSellersTicker.Tick += TopSellersTicker_Tick;
+        _topSellersTicker.Start();
         var from = TopSellersFrom;
         var to = TopSellersTo;
         var clock = Stopwatch.StartNew();
@@ -105,6 +125,7 @@ public partial class MainWindow
                 return;
             }
 
+            TopSellersStage(3);
             var report = new AllItemSalesReportParser().Parse(html);
             _topSellersAll = TopSellers.Build(report.Items);
             _topSellersDay = DateTime.Today;
@@ -123,8 +144,15 @@ public partial class MainWindow
         finally
         {
             _topSellersLoading = false;
+            _topSellersTicker?.Stop();
             DrawTopSellers();
         }
+    }
+
+    private void TopSellersTicker_Tick(object? sender, EventArgs e)
+    {
+        if (_topSellersLoading) DrawTopSellers();
+        else _topSellersTicker?.Stop();
     }
 
     /// <summary>The 4-week report: on the second sign-in, or on the app's own when there is no
@@ -137,9 +165,10 @@ public partial class MainWindow
             if (lease is not null)
             {
                 log("pulling on the second sign-in");
+                TopSellersStage(1);
                 try
                 {
-                    return await lease.FetchAsync(v => v.FetchAllItemSalesHtmlAsync(from, to));
+                    return await lease.FetchAsync(v => v.FetchAllItemSalesHtmlAsync(from, to, () => TopSellersStage(2)));
                 }
                 catch (Exception ex)
                 {
@@ -152,9 +181,10 @@ public partial class MainWindow
         if (_flooidGrabBusy || _quietFetch is { IsCompleted: false }) return null;
         log("pulling on the app's own sign-in");
         _flooidGrabBusy = true;
+        TopSellersStage(1);
         try
         {
-            return await loginWindow.FetchAllItemSalesHtmlAsync(from, to);
+            return await loginWindow.FetchAllItemSalesHtmlAsync(from, to, () => TopSellersStage(2));
         }
         finally
         {
@@ -197,14 +227,13 @@ public partial class MainWindow
         TopSellersTable.RowDefinitions.Clear();
         TopSellersTable.ColumnDefinitions.Clear();
 
-        string? note = _topSellersLoading
-            ? "Getting the last 4 weeks from Flooid… this can take a minute the first time each day."
-            : _topSellersProblem;
-        var list = _topSellersAll is null ? null : TopSellers.Top(_topSellersAll, _topSellersGroup, _topSellersByValue);
+        DrawTopSellersProgress();
+        string? note = _topSellersLoading ? null : _topSellersProblem;
+        var list = _topSellersAll is null || _topSellersLoading ? null : TopSellers.Top(_topSellersAll, _topSellersGroup, _topSellersByValue);
         if (note is null && list is { Count: 0 }) note = "Nothing sold in this group in the last 4 weeks.";
         TopSellersNote.Text = note ?? string.Empty;
         TopSellersNote.Visibility = note is null ? Visibility.Collapsed : Visibility.Visible;
-        if (note is not null || list is null) return;
+        if (note is not null || list is null || _topSellersLoading) return;
 
         foreach (var width in new[] { 40.0, -1, 110, 80, 110, 112 })
             TopSellersTable.ColumnDefinitions.Add(new ColumnDefinition
@@ -291,6 +320,90 @@ public partial class MainWindow
                 Put(track, row, 5);
             }
         }
+    }
+
+    /// <summary>Concept P2: the four steps and the bar, while the 4 weeks come from Flooid.</summary>
+    private void DrawTopSellersProgress()
+    {
+        TopSellersProgress.Children.Clear();
+        TopSellersProgress.Visibility = _topSellersLoading ? Visibility.Visible : Visibility.Collapsed;
+        if (!_topSellersLoading) return;
+
+        var now = DateTime.Now;
+        var steps = new[]
+        {
+            "Connected to Flooid",
+            $"Asked for every item sold, {TopSellersFrom.ToString("d MMM", AddOnCulture)} - {TopSellersTo.ToString("d MMM", AddOnCulture)}",
+            "Flooid is putting the report together",
+            "Ranking the top sellers",
+        };
+        for (var i = 0; i < steps.Length; i++)
+        {
+            // Step i is done once the stage after it has started; it is the current one while its stage runs.
+            var done = _topSellersStage > i;
+            var current = _topSellersStage == i;
+            var seconds = done ? (_topSellersStageAt[i + 1] - _topSellersStageAt[i]).TotalSeconds
+                        : current ? (now - _topSellersStageAt[i]).TotalSeconds : -1;
+
+            var row = new Grid { Height = 34 };
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            FrameworkElement icon = done
+                ? new Border
+                {
+                    Width = 20, Height = 20, CornerRadius = new CornerRadius(10), Background = Res("CfGood"),
+                    Child = new TextBlock { Text = "✓", Foreground = Brushes.White, FontSize = 12, FontWeight = FontWeights.Bold,
+                                            HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+                }
+                : current
+                    ? new Border { Width = 28, Height = 28, CornerRadius = new CornerRadius(14), BorderThickness = new Thickness(4),
+                                   BorderBrush = new SolidColorBrush(Color.FromRgb(0xFF, 0xF3, 0xC2)), Background = Res("CfYellow") }
+                    : new Border { Width = 20, Height = 20, CornerRadius = new CornerRadius(10), BorderThickness = new Thickness(2),
+                                   BorderBrush = Res("CfLine") };
+            icon.HorizontalAlignment = HorizontalAlignment.Left;
+            icon.VerticalAlignment = VerticalAlignment.Center;
+            row.Children.Add(icon);
+
+            var label = new TextBlock
+            {
+                Text = steps[i], FontFamily = new FontFamily("Arial"), FontSize = 13, VerticalAlignment = VerticalAlignment.Center,
+                FontWeight = current ? FontWeights.Bold : FontWeights.Normal,
+                Foreground = done || current ? Res("CfInk") : Res("CfMuted"),
+            };
+            Grid.SetColumn(label, 1);
+            row.Children.Add(label);
+
+            if (seconds >= 0)
+            {
+                var time = new TextBlock
+                {
+                    Text = $"{Math.Max(0, (int)Math.Round(seconds)).ToString(AddOnCulture)} s", FontFamily = new FontFamily("Arial"), FontSize = 11,
+                    Foreground = Res("CfMuted"), VerticalAlignment = VerticalAlignment.Center,
+                };
+                Grid.SetColumn(time, 2);
+                row.Children.Add(time);
+            }
+            TopSellersProgress.Children.Add(row);
+        }
+
+        // The bar: the usual time, never past 95% until the list is in.
+        var elapsed = (now - _topSellersStageAt[0]).TotalSeconds;
+        var share = Math.Min(0.95, elapsed / TopSellersUsualSeconds);
+        var track = new Border { Height = 10, CornerRadius = new CornerRadius(5), Background = Res("CfBlueSoft"), Margin = new Thickness(0, 12, 0, 0) };
+        var fill = new Border { Height = 10, CornerRadius = new CornerRadius(5), Background = Res("CfYellow"), HorizontalAlignment = HorizontalAlignment.Left,
+                                Width = Math.Max(10, 520 * share) };
+        track.Child = fill;
+        TopSellersProgress.Children.Add(track);
+
+        var left = TopSellersUsualSeconds - elapsed;
+        TopSellersProgress.Children.Add(new TextBlock
+        {
+            Text = (left > 2 ? $"about {(int)Math.Ceiling(left)} s left" : "almost there") + " · you can keep using the app",
+            FontFamily = new FontFamily("Arial"), FontSize = 11, Foreground = Res("CfMuted"),
+            HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 6, 0, 0),
+        });
     }
 
     /// <summary>The yellow "+ Track" pill, as on the suggestions list.</summary>

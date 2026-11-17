@@ -1415,18 +1415,20 @@ public partial class FlooidView : UserControl
     /// checked when it is read (AllItemSalesReportParser), so a group left over in Flooid's
     /// session can never pass as every item.
     /// </summary>
-    public Task<string> FetchAllItemSalesHtmlAsync(DateTime fromDate, DateTime toDate) =>
-        FetchItemSalesHtmlAsync(AllItemsGroup, fromDate, toDate);
+    /// <param name="submitted">Called once the report has been asked for (Top sellers' progress,
+    /// owner, 17 Nov 2026, concept P2).</param>
+    public Task<string> FetchAllItemSalesHtmlAsync(DateTime fromDate, DateTime toDate, Action? submitted = null) =>
+        FetchItemSalesHtmlAsync(AllItemsGroup, fromDate, toDate, submitted);
 
     private static readonly ItemSalesGroup AllItemsGroup = new("All items", "", "", "");
 
-    private async Task<string> FetchItemSalesHtmlAsync(ItemSalesGroup group, DateTime fromDate, DateTime toDate)
+    private async Task<string> FetchItemSalesHtmlAsync(ItemSalesGroup group, DateTime fromDate, DateTime toDate, Action? submitted = null)
     {
         var timing = new PhaseLog(LogPrefix + group.Name);
         var succeeded = false;
         try
         {
-            var html = await FetchGiftCardHtmlCoreAsync(group, fromDate, toDate, timing);
+            var html = await FetchGiftCardHtmlCoreAsync(group, fromDate, toDate, timing, submitted);
             succeeded = true;
             return html;
         }
@@ -1460,7 +1462,7 @@ public partial class FlooidView : UserControl
 
     private string _lastProductGroupAtOpenNote = "<not read>";
 
-    private async Task<string> FetchGiftCardHtmlCoreAsync(ItemSalesGroup group, DateTime fromDate, DateTime toDate, PhaseLog timing)
+    private async Task<string> FetchGiftCardHtmlCoreAsync(ItemSalesGroup group, DateTime fromDate, DateTime toDate, PhaseLog timing, Action? submitted = null)
     {
         await InitialiseBrowserAsync();
         EnsureReadyForAutomation();
@@ -2159,6 +2161,7 @@ public partial class FlooidView : UserControl
         await SubmitCurrentCriteriaAsync(configure, "Item Sales By Operator", TimeSpan.FromSeconds(15));
         await CheckForImmediateCriteriaValidationErrorAsync("Item Sales By Operator");
         timing.Mark("criteria submitted");
+        try { submitted?.Invoke(); } catch { }
 
         // Owner, 17 Nov 2026: the add-on list is filled once from the last 4 weeks of all items -
         // a far bigger report than a day's. 40 s for one day as before, 4 s more for each extra
