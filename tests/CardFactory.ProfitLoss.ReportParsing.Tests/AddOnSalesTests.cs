@@ -150,4 +150,32 @@ public sealed class AddOnSalesTests
         Assert.True(AddOnItem.ReusableBags.IsGroup);
         Assert.False(new AddOnItem("7000001", "x").IsGroup);
     }
+
+    [Fact]
+    public void TrackAllNamed_MatchesNameOrDepartment_AsOneColumn()
+    {
+        const string giftBags = "Everyday Party & Gifting/Everyday Party & Gifting/Wrap & Bags/Gift Bags";
+        var items = new[]
+        {
+            new GiftCardItemRecord("1", "Staff A", "2128720", "Pink BT Bag V", 1, 0.69m) { Department = giftBags },
+            new GiftCardItemRecord("2", "Staff B", "2128770", "Birthday Floral LP Bag", 2, 2.98m) { Department = giftBags },
+            new GiftCardItemRecord("2", "Staff B", "9000001", "Gift Card", 1, 20.00m) { Department = AllItemSalesParserGiftCards },
+            new GiftCardItemRecord("1", "Staff A", "2128843", "Lilac Tissue", 1, 1.39m) { Department = "Everyday Party & Gifting/Everyday Party & Gifting/Wrap & Bags/Wrap Accessories" },
+        };
+
+        var named = AddOnItem.Named("  Gift   BAG ");
+        Assert.Equal("NAMED:gift bag", named.Key);
+        Assert.Equal("Gift BAG", named.Name);
+        Assert.True(named.IsGroup);
+        Assert.Equal("gift bag", named.Words);
+
+        var column = Assert.Single(AddOnSalesSummary.Build(new[] { named }, items, stampItems: null).Columns);
+        Assert.Equal(3, column.Quantity);
+        Assert.Equal(3.67m, column.Value);
+
+        var tissue = Assert.Single(AddOnSalesSummary.Build(new[] { AddOnItem.Named("tissue") }, items, null).Columns);
+        Assert.Equal(1, tissue.Quantity);
+    }
+
+    private const string AllItemSalesParserGiftCards = "Stamps & Carrier Bags/Stamps & Carrier Bags/Stamps & Carrier Bags/Gift Cards";
 }

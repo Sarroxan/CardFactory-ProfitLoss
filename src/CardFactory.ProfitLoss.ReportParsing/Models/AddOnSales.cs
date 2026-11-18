@@ -20,11 +20,40 @@ public sealed record AddOnItem(string Key, string Name)
 
     public bool IsReusableBags => string.Equals(Key, ReusableBagsKey, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>Stamps or reusable bags: many SKUs added together as one add-on.</summary>
-    public bool IsGroup => IsStamps || IsReusableBags;
+    // Owner, 18 Nov 2026 (concept N1): "Track all named ..." - every item whose name OR Flooid
+    // department has the typed words in it, as one add-on (so "gift bag" finds "Pink BT Bag V" under
+    // ".../Wrap & Bags/Gift Bags"). The words are kept in the key after this prefix.
+    public const string NamedPrefix = "NAMED:";
+
+    public bool IsNamed => Key.StartsWith(NamedPrefix, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The words a "Track all named" add-on looks for (empty for any other).</summary>
+    public string Words => IsNamed ? Key[NamedPrefix.Length..] : string.Empty;
+
+    /// <summary>A "Track all named" add-on for these words, named as typed (first letter capital).</summary>
+    public static AddOnItem Named(string words)
+    {
+        var clean = string.Join(' ', (words ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        var name = clean.Length == 0 ? clean : char.ToUpperInvariant(clean[0]) + clean[1..];
+        return new AddOnItem(NamedPrefix + clean.ToLowerInvariant(), name);
+    }
+
+    /// <summary>True when the line's name or department has the words in it (gift cards never).</summary>
+    public static bool MatchesWords(GiftCardItemRecord line, string words)
+    {
+        if (string.IsNullOrWhiteSpace(words)) return false;
+        var department = string.Join(' ', (line.Department ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        if (department.EndsWith("/Gift Cards", StringComparison.OrdinalIgnoreCase)) return false;
+        var name = string.Join(' ', (line.Description ?? string.Empty).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        return name.Contains(words, StringComparison.OrdinalIgnoreCase) || department.Contains(words, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Stamps, reusable bags or a "Track all named": many SKUs added together as one add-on.</summary>
+    public bool IsGroup => IsStamps || IsReusableBags || IsNamed;
 
     public static bool IsGroupKey(string? key) =>
-        string.Equals(key, StampsKey, StringComparison.OrdinalIgnoreCase) || string.Equals(key, ReusableBagsKey, StringComparison.OrdinalIgnoreCase);
+        string.Equals(key, StampsKey, StringComparison.OrdinalIgnoreCase) || string.Equals(key, ReusableBagsKey, StringComparison.OrdinalIgnoreCase)
+        || (key ?? string.Empty).StartsWith(NamedPrefix, StringComparison.OrdinalIgnoreCase);
 }
 
 /// <summary>One tracked add-on for the day: how many sold, for how much, and who sold the most.</summary>
@@ -66,6 +95,7 @@ public sealed record AddOnSalesSummary(IReadOnlyList<AddOnColumn> Columns, IRead
         var lines = tracked
             .Select(item => item.IsStamps ? stamps
                 : item.IsReusableBags ? items.Where(i => TopSellers.IsReusableBag(i.Description)).ToList()
+                : item.IsNamed ? items.Where(i => AddOnItem.MatchesWords(i, item.Words)).ToList()
                 : items.Where(i => SameSku(i.ProductCode, item.Key)).ToList())
             .ToList();
 

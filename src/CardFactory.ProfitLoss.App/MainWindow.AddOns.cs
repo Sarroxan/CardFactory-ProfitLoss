@@ -22,7 +22,7 @@ namespace CardFactory.ProfitLoss.App;
 public partial class MainWindow
 {
     /// <summary>A line in the tracked list or the SKU box's suggestions.</summary>
-    public sealed record AddOnListRow(string Key, string Name, string Detail);
+    public sealed record AddOnListRow(string Key, string Name, string Detail, bool Highlight = false);
 
     private bool _addOnsActive;
     private List<AddOnItem> _addOnTracked = new();
@@ -78,6 +78,14 @@ public partial class MainWindow
         {
             AddOnSuggestPopup.IsOpen = false;
             return;
+        }
+
+        // Concept N1 (owner, 18 Nov 2026): first line - track everything with these words, as one.
+        if (query.Length >= 3 && !query.All(char.IsDigit))
+        {
+            var named = AddOnItem.Named(query);
+            if (!IsTracked(named.Key))
+                _addOnSuggestions.Add(new AddOnListRow(named.Key, $"★ Track all \"{named.Words}\"", "as one item · in the name or department", Highlight: true));
         }
 
         if ("stamps".Contains(query, StringComparison.OrdinalIgnoreCase) && query.Length >= 3 && !IsTracked(AddOnItem.StampsKey))
@@ -147,7 +155,10 @@ public partial class MainWindow
     }
 
     private void AddFromRow(AddOnListRow row) =>
-        AddTracked(row.Key == AddOnItem.StampsKey ? AddOnItem.Stamps : new AddOnItem(row.Key, row.Name));
+        AddTracked(row.Key == AddOnItem.StampsKey ? AddOnItem.Stamps
+            : AddOnItem.IsGroupKey(row.Key) && row.Key.StartsWith(AddOnItem.NamedPrefix, StringComparison.OrdinalIgnoreCase)
+                ? AddOnItem.Named(row.Key[AddOnItem.NamedPrefix.Length..])
+                : new AddOnItem(row.Key, row.Name));
 
     /// <summary>What is typed in the box, taken as a SKU. A SKU seen in a report gets its name;
     /// one not seen yet is added as it is, and gets its name once it sells.</summary>
@@ -240,7 +251,7 @@ public partial class MainWindow
         for (var i = 0; i < _addOnTracked.Count; i++)
         {
             var item = _addOnTracked[i];
-            var where = item.IsStamps ? "every stamp" : item.IsReusableBags ? "every reusable bag" : "SKU " + item.Key;
+            var where = item.IsStamps ? "every stamp" : item.IsReusableBags ? "every reusable bag" : item.IsNamed ? $"everything with \"{item.Words}\"" : "SKU " + item.Key;
             var column = summary?.Columns.FirstOrDefault(c => string.Equals(c.Item.Key, item.Key, StringComparison.OrdinalIgnoreCase));
             var sold = summary is null ? string.Empty : column is null ? " · not fetched yet" : $" · {column.Quantity} sold";
             _addOnTrackedRows.Add(new AddOnListRow(item.Key, item.Name, where + sold));
@@ -282,7 +293,8 @@ public partial class MainWindow
                 Text = column.Item.Name,
                 FontFamily = (FontFamily)FindResource("CfTitleFont"), FontSize = 16,
                 Foreground = Res("CfDeepBlue"), TextTrimming = TextTrimming.CharacterEllipsis,
-                ToolTip = column.Item.IsStamps ? "Every stamp" : column.Item.IsReusableBags ? "Every reusable bag" : "SKU " + column.Item.Key,
+                ToolTip = column.Item.IsStamps ? "Every stamp" : column.Item.IsReusableBags ? "Every reusable bag"
+                    : column.Item.IsNamed ? $"Everything with \"{column.Item.Words}\" in its name or department" : "SKU " + column.Item.Key,
             });
             var figures = new TextBlock { Margin = new Thickness(0, 2, 0, 0) };
             figures.Inlines.Add(new System.Windows.Documents.Run(column.Quantity.ToString(AddOnCulture))
