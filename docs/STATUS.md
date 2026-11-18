@@ -6,11 +6,11 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `next-features` (owner, 18 Nov 2026) - not built or released yet
+## Released - v1.1.7 (18 Nov 2026, owner's say-so: "build and release without test"), from branch `next-features`
 
 | Change | State |
 |---|---|
-| Top sellers groups: new "Reusable bags" (anything named "reusable bag", any department - kept even if filed with carrier bags) before "Stamps"; "Stamps & other" renamed "Stamps" and now only the Stamps department (helium, services, charity under All only). TopSellers.GroupOf / IsReusableBag; test ReusableBags_ByName_EvenWithCarrierBags. | Written, not built |
+| Top sellers groups: new "Reusable bags" (anything named "reusable bag", any department - kept even if filed with carrier bags) before "Stamps"; "Stamps & other" renamed "Stamps" and now only the Stamps department (helium, services, charity under All only). TopSellers.GroupOf / IsReusableBag; test ReusableBags_ByName_EvenWithCarrierBags. | Released in 1.1.7 |
 
 ## Released - v1.1.6 (18 Nov 2026, owner's say-so: "build and release all"), from branch `next-features`
 
