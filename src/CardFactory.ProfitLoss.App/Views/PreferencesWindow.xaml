@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Preferences"
         Width="430"
-        Height="392"
+        Height="300"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
@@ -66,35 +66,6 @@
                 </StackPanel>
             </Border>
 
-            <Border Grid.Row="2" Margin="0,14,0,0" Padding="12,10"
-                    Background="#FFF9F9" BorderBrush="#F0C9CD" BorderThickness="1" CornerRadius="12">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
-                        <TextBlock Text="RESET EVERYTHING"
-                                   Foreground="{StaticResource CfBad}"
-                                   FontFamily="Arial"
-                                   FontSize="9.5"
-                                   FontWeight="Bold" />
-                        <TextBlock Text="Removes everything this app keeps on this PC - saved sign-in, settings, add-ons, last year's figures and the log - then closes the app. PDFs you saved yourself are kept."
-                                   Foreground="{StaticResource CfMuted}"
-                                   FontFamily="Arial"
-                                   FontSize="9.5"
-                                   TextWrapping="Wrap"
-                                   Margin="0,4,0,0" />
-                    </StackPanel>
-                    <Button Grid.Column="1"
-                            Content="Reset everything"
-                            Width="120"
-                            Height="34"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource DangerOutlineButtonStyle}"
-                            Click="ResetSettings_Click" />
-                </Grid>
-            </Border>
 
             <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
                 <Button Content="Cancel" Width="82" Height="34" Style="{StaticResource ModernSecondaryButtonStyle}" Click="Cancel_Click" />

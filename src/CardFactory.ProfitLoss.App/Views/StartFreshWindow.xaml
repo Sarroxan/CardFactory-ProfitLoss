@@ -1,0 +1,125 @@
+<Window x:Class="CardFactory.ProfitLoss.App.Views.StartFreshWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Start fresh"
+        Width="489"
+        Height="414"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False">
+    <!-- Owner, 18 Nov 2026 (concept F1): Start fresh and Reset everything in one window - pick
+         how much to clear; the button says what will happen. -->
+    <Window.Resources>
+        <Style x:Key="FreshOptionStyle" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0,0,0,9" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Card" Background="White" BorderBrush="#D5E2F0" BorderThickness="1.5" CornerRadius="12" Padding="12,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <Ellipse x:Name="Ring" Width="16" Height="16" Stroke="{StaticResource CfLine}" StrokeThickness="2" VerticalAlignment="Top" Margin="0,1,10,0" />
+                                <ContentPresenter Grid.Column="1" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked" Value="True" />
+                                    <Condition Property="Tag" Value="{x:Null}" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource CfBlue}" />
+                                <Setter TargetName="Card" Property="Background" Value="#F4F8FD" />
+                                <Setter TargetName="Ring" Property="Stroke" Value="{StaticResource CfBlue}" />
+                                <Setter TargetName="Ring" Property="StrokeThickness" Value="5" />
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked" Value="True" />
+                                    <Condition Property="Tag" Value="Danger" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource CfBad}" />
+                                <Setter TargetName="Card" Property="Background" Value="#FFF9F9" />
+                                <Setter TargetName="Ring" Property="Stroke" Value="{StaticResource CfBad}" />
+                                <Setter TargetName="Ring" Property="StrokeThickness" Value="5" />
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Border Margin="12"
+            Padding="22"
+            Background="White"
+            BorderBrush="{StaticResource CfLine}"
+            BorderThickness="1"
+            CornerRadius="20">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="5" Opacity="0.20" Color="#183153" />
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border Margin="-22,-22,-22,0" Padding="22,16,22,16"
+                    Background="{StaticResource CfDeepBlue}" CornerRadius="19,19,0,0">
+                <Grid MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" Background="#FFF0F1" BorderBrush="#F0C9CD" BorderThickness="1" CornerRadius="12">
+                            <Path Width="20" Height="20" Data="M4,6 L16,6 M8,6 L8,4 L12,4 L12,6 M6,6 L7,17 L13,17 L14,6"
+                                  Stroke="#B03A3A" StrokeThickness="1.7" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Start fresh" Foreground="White" FontFamily="Arial" FontSize="18" FontWeight="Bold" />
+                            <TextBlock Text="Choose how much to clear" Foreground="#D6E4F5" FontFamily="Arial" FontSize="9.5" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Grid.Column="1" Width="30" Height="30" Content="×" FontSize="18"
+                            Style="{StaticResource NavyBandCloseButtonStyle}" Click="Cancel_Click" />
+                </Grid>
+            </Border>
+
+            <TextBlock Grid.Row="1" Margin="0,18,0,10" Text="What would you like to start fresh?"
+                       Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="13" FontWeight="Bold" />
+
+            <StackPanel Grid.Row="2">
+                <RadioButton x:Name="ClearFiguresOption" GroupName="Fresh" IsChecked="True" Style="{StaticResource FreshOptionStyle}" Checked="Option_Checked">
+                    <StackPanel>
+                        <TextBlock Text="Clear the figures" Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="12.5" FontWeight="Bold" />
+                        <TextBlock Margin="0,3,0,0" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10" LineHeight="14.5" TextWrapping="Wrap"
+                                   Text="Empties every section, the date, the targets and the store name. You stay signed in and keep your settings, add-ons and last year's figures." />
+                    </StackPanel>
+                </RadioButton>
+                <RadioButton x:Name="EraseEverythingOption" GroupName="Fresh" Tag="Danger" Style="{StaticResource FreshOptionStyle}" Checked="Option_Checked">
+                    <StackPanel>
+                        <TextBlock Text="Erase everything on this PC" Foreground="{StaticResource CfBad}" FontFamily="Arial" FontSize="12.5" FontWeight="Bold" />
+                        <TextBlock Margin="0,3,0,0" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10" LineHeight="14.5" TextWrapping="Wrap"
+                                   Text="Also removes the saved Flooid sign-in and store, add-ons, print, speed and target settings, last year's figures, the log and browser data - then signs out and closes. Next time it opens like the first time. PDFs you saved are kept." />
+                    </StackPanel>
+                </RadioButton>
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                <Button Content="Cancel" Width="88" Height="34" Style="{StaticResource ModernSecondaryButtonStyle}" Click="Cancel_Click" />
+                <Button x:Name="ClearButton" Content="Clear the figures" Height="34" Padding="16,0" Margin="8,0,0,0"
+                        Style="{StaticResource FlooidActionButtonStyle}" Tag="NoGlyph" FontSize="11.5" Click="Confirm_Click" />
+                <Button x:Name="EraseButton" Content="Erase everything" Width="132" Height="34" Margin="8,0,0,0" Visibility="Collapsed"
+                        Style="{StaticResource DangerOutlineButtonStyle}" Click="Confirm_Click" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

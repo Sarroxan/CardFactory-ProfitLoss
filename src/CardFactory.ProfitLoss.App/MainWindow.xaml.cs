@@ -846,12 +846,21 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ClearFigures_Click(object sender, RoutedEventArgs e)
+    // Owner, 18 Nov 2026 (concept F1): Start fresh asks first, and holds both resets - clear the
+    // figures (as before), or erase everything on this PC (was Reset everything in Store & defaults).
+    private async void ClearFigures_Click(object sender, RoutedEventArgs e)
     {
         MainMenuPopup.IsOpen = false;
         if (DataContext is not MainViewModel viewModel) return;
 
-        // Stage 6B.30: the same reset the Preferences dialog performs, one click away.
+        var choice = new StartFreshWindow { Owner = this };
+        if (choice.ShowDialog() != true) return;
+        if (choice.EraseEverything)
+        {
+            await ResetEverythingAsync(viewModel);
+            return;
+        }
+
         viewModel.ResetAppSettings();
         viewModel.SetStatus("Figures cleared");
     }
@@ -1191,7 +1200,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void PreferencesMenu_Click(object sender, RoutedEventArgs e)
+    private void PreferencesMenu_Click(object sender, RoutedEventArgs e)
     {
         MainMenuPopup.IsOpen = false;
         if (DataContext is not MainViewModel viewModel) return;
@@ -1202,12 +1211,6 @@ public partial class MainWindow : Window
         };
 
         if (preferences.ShowDialog() != true) return;
-
-        if (preferences.ResetRequested)
-        {
-            await ResetEverythingAsync(viewModel);
-            return;
-        }
 
         // Stage 6A.92: the store location is not carried between sessions. It is read back
         // out of each Flooid report's Outlet field, so the first grab repopulates it.

@@ -2287,7 +2287,7 @@
                                         <Path Data="M3,9 L10,3 L17,9 L17,17 L3,17 Z M8,17 L8,12 L12,12 L12,17" Style="{StaticResource MenuItemIconStyle}" />
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock Text="Store &amp; defaults" Style="{StaticResource MenuItemNameStyle}" />
-                                            <TextBlock Text="Store name, and reset everything" Style="{StaticResource MenuItemNoteStyle}" />
+                                            <TextBlock Text="Store name shown on saved files" Style="{StaticResource MenuItemNoteStyle}" />
                                         </StackPanel>
                                         <Path Grid.Column="2" Style="{StaticResource MenuChevronStyle}" />
                                     </Grid>
@@ -2326,7 +2326,7 @@
                                     <Path Data="M4,6 L16,6 M8,6 L8,4 L12,4 L12,6 M6,6 L7,17 L13,17 L14,6" Style="{StaticResource MenuItemIconStyle}" Stroke="#B03A3A" />
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock Text="Start fresh" Style="{StaticResource MenuItemNameStyle}" Foreground="#B03A3A" />
-                                        <TextBlock Text="Empties every section · can't be undone" Style="{StaticResource MenuItemNoteStyle}" />
+                                        <TextBlock Text="Clear the figures, or erase everything" Style="{StaticResource MenuItemNoteStyle}" />
                                     </StackPanel>
                                 </Grid>
                             </Button>
