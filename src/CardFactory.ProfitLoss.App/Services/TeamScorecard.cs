@@ -12,10 +12,9 @@ namespace CardFactory.ProfitLoss.App.Services;
 /// The Team Scorecard (owner, 21 Oct 2026): the day - or the week, when the calendar is
 /// on a date range - on one A4 page in the app's look, opened in the same preview as the Daily Briefing (7 Nov 2026).
 /// A week has its own layout since 16 Nov 2026 (concept X2, AppendWeek).
-/// Concept P1 for a day: the brand band; Sales / ABV / AUB / P&amp;L against target; Top
-/// Performers; Team with red/green ABV, AUB and P&amp;L; Branch by hour beside Reports; Notes
-/// filling the rest of the page. Concept W1 for a week: the same, with the hours replaced by
-/// the seven days (Flooid's Branch Performance for the range). No Gift Cards section.
+/// Since 18 Nov 2026 a day uses the week's layout too (concept S1): boxes with a bar to target,
+/// podium, everyone ranked, the hours as tiles, Reports and Add-on Sales, Notes. (The day's
+/// earlier layout, P1, is gone.) No Gift Cards section.
 /// Every figure is read from the app as it stands; nothing is worked out differently here.
 /// </summary>
 internal static class TeamScorecard
@@ -36,8 +35,6 @@ internal static class TeamScorecard
     public static string Build(MainViewModel vm, IReadOnlyList<AddOnItem>? addOns = null)
     {
         static string H(string? s) => WebUtility.HtmlEncode(s ?? string.Empty);
-        string M(decimal v) => v.ToString("£#,##0.00", Uk);
-        static string Cls(string? state) => state switch { "Good" => "g", "Bad" => "r", _ => string.Empty };
 
         var smiley = ResourceDataUri("Assets/HeaderSmileyFace.png", "image/png");
         var chewy = ResourceDataUri("Assets/Fonts/Chewy-Regular.ttf", "font/ttf");
@@ -56,142 +53,9 @@ internal static class TeamScorecard
           .Append("<div><div class='co'>Card Factory</div><div class='pl'>Profit &amp; Loss</div><div class='calc'><i></i>CALCULATOR<i></i></div></div>")
           .Append($"<div class='where'>{H(vm.StoreLocation)}<br><span class='kind'>{H(Title(vm))}</span><br><b>{H(vm.PeriodDisplayText)}</b></div></div><div class='rule'></div>");
 
-        // A week (owner, 16 Nov 2026, concept X2): its own layout.
-        if (vm.IsRangeMode)
-        {
-            AppendWeek(sb, vm, addOns, smileyImg);
-            sb.Append("</div></body></html>");
-            return sb.ToString();
-        }
-
-        // The day against its targets.
-        string Target(decimal t, bool money) => t > 0m ? "target " + (money ? M(t) : t.ToString("0.00", Uk)) : "no target";
-        string Arrow(string text, string state) => state is "Good" or "Bad" ? $"<span class='{(state == "Good" ? "up" : "dn")}'>{H(text)}</span>" : string.Empty;
-        sb.Append("<div class='kpis'>");
-        sb.Append($"<div class='k'><div class='h'><span>SALES</span><span>{Target(vm.SalesTarget, true)}</span></div><div class='v'><b>{M(vm.TotalSales)}</b>{Arrow(vm.SalesSummaryText, vm.SalesVarianceState)}</div></div>");
-        sb.Append($"<div class='k'><div class='h'><span>ABV</span><span>{Target(vm.AbvTarget, true)}</span></div><div class='v'><b>{M(vm.ActualAbv)}</b>{Arrow(vm.AbvSummaryText, vm.AbvSummaryState)}</div></div>");
-        sb.Append($"<div class='k'><div class='h'><span>AUB</span><span>{Target(vm.AubTarget, false)}</span></div><div class='v'><b>{vm.ActualAub.ToString("0.00", Uk)}</b>{Arrow(vm.AubSummaryText, vm.AubSummaryState)}</div></div>");
-        var plClass = vm.TotalProfitLossState == "Good" ? "up" : vm.TotalProfitLossState == "Bad" ? "dn" : string.Empty;
-        sb.Append($"<div class='k'><div class='h'><span>P&amp;L</span><span>{vm.TotalTransactions.ToString("N0", Uk)} trans</span></div><div class='v'><b class='{plClass}'>{H(vm.TotalProfitLossState == "None" ? "—" : vm.TotalProfitLossText)}</b></div></div>");
-        sb.Append("</div>");
-
-        string Section(string title, string body) =>
-            $"<div class='sec'><div class='t'>{smileyImg}{H(title)}</div>{body}</div>";
-        var week = vm.IsRangeMode ? " · week" : string.Empty;
-
-        // Top Performers, as the strip in the app shows them.
-        var chips = vm.TopPerformerChips;
-        var top = chips.Count == 0
-            ? "<div class='empty'>Not enough transactions yet to name a top performer.</div>"
-            : "<div class='tp'>" + string.Concat(chips.Select(c =>
-                $"<div><small>★ {H(c.Label)}</small><b>{H(c.Names)}</b><span class='{(c.State == "Good" ? "up" : c.State == "Bad" ? "dn" : string.Empty)}'>{H(c.Value)}</span></div>")) + "</div>";
-        sb.Append(Section("Top Performers" + week, top));
-
-        // Team.
-        var people = vm.Operators
-            .Where(o => !string.IsNullOrWhiteSpace(o.Name) && (o.CountedSales != 0m || o.ToInput().Transactions > 0))
-            .ToList();
-        var team = new StringBuilder("<table><tr><th>NAME</th><th>TOTAL SALES</th><th>GIFT CARDS</th><th>TRANS</th><th>UNITS</th><th>COUNTED SALES</th><th>ABV</th><th>AUB</th><th>P&amp;L</th></tr>");
-        foreach (var o in people)
-        {
-            var input = o.ToInput();
-            var gift = input.GiftCardQuantity > 0 || input.GiftCardValue > 0m ? $"{input.GiftCardQuantity} · {M(input.GiftCardValue)}" : string.Empty;
-            team.Append($"<tr><td>{H(o.Name.Trim())}</td><td>{M(input.Sales)}</td><td>{gift}</td><td>{input.Transactions}</td><td>{input.Units}</td><td>{M(o.CountedSales)}</td>")
-                .Append($"<td class='{Cls(o.AbvState)}'>{M(o.Abv)}</td><td class='{Cls(o.AubState)}'>{o.Aub.ToString("0.00", Uk)}</td>")
-                .Append($"<td class='{Cls(o.ProfitLossState)}'>{H(o.ProfitLossState == "None" ? "—" : o.ProfitLossText)}</td></tr>");
-        }
-        if (people.Count == 0)
-        {
-            team.Append("<tr><td colspan='9' class='none'>No team figures yet - press Refresh in Team Performance.</td></tr>");
-        }
-        else
-        {
-            var inputs = people.Select(o => o.ToInput()).ToList();
-            var giftTotal = vm.TotalGiftCardQuantity > 0 || vm.TotalGiftCards > 0m ? $"{vm.TotalGiftCardQuantity} · {M(vm.TotalGiftCards)}" : string.Empty;
-            team.Append($"<tr class='tot'><td>Totals</td><td>{M(inputs.Sum(i => i.Sales))}</td><td>{giftTotal}</td><td>{vm.TotalTransactions.ToString("N0", Uk)}</td><td>{inputs.Sum(i => i.Units).ToString("N0", Uk)}</td><td>{M(vm.TotalSales)}</td>")
-                .Append($"<td class='{Cls(vm.AbvSummaryState)}'>{M(vm.ActualAbv)}</td><td class='{Cls(vm.AubSummaryState)}'>{vm.ActualAub.ToString("0.00", Uk)}</td>")
-                .Append($"<td class='{Cls(vm.TotalProfitLossState)}'>{H(vm.TotalProfitLossState == "None" ? "—" : vm.TotalProfitLossText)}</td></tr>");
-        }
-        team.Append("</table>");
-        sb.Append(Section("Team Performance" + week, team.ToString()));
-
-        // A day: the hours. A week: the days (W1).
-        string Bar(decimal share, decimal biggest) =>
-            $"<span class='bar' style='width:{(biggest > 0m ? Math.Round(share / biggest * 46m, 1) : 0m).ToString(CultureInfo.InvariantCulture)}px'></span>{share.ToString("0", Uk)}%";
-        string left;
-        if (vm.IsRangeMode)
-        {
-            var days = vm.BranchDays;
-            if (days.Count == 0)
-            {
-                left = Section("Day by day", "<div class='empty'>Not retrieved for this week - press Refresh, then open the sheet again.</div>");
-            }
-            else
-            {
-                var weekSales = days.Sum(d => d.Sales);
-                var shares = days.Select(d => weekSales > 0m ? d.Sales / weekSales * 100m : 0m).ToList();
-                var best = days.MaxBy(d => d.Sales);
-                var t = new StringBuilder("<table><tr><th>DAY</th><th>SALES</th><th>TRANS</th><th>ABV</th><th>% OF WEEK</th></tr>");
-                for (var i = 0; i < days.Count; i++)
-                {
-                    var d = days[i];
-                    var isBest = ReferenceEquals(d, best) && d.Sales > 0m;
-                    t.Append($"<tr class='{(isBest ? "best" : string.Empty)}'><td>{(isBest ? "★ " : string.Empty)}{d.Date.ToString("ddd dd/MM", Uk)}</td><td>{M(d.Sales)}</td><td>{d.Transactions}</td><td>{M(d.Abv)}</td><td class='l'>{Bar(shares[i], shares.Max())}</td></tr>");
-                }
-                left = Section("Day by day", t.Append("</table>").ToString());
-            }
-        }
-        else
-        {
-            var hours = vm.BranchHours.Where(h => h.Sales > 0m || h.Transactions > 0).ToList();
-            if (hours.Count == 0)
-            {
-                left = Section("Branch · by hour", "<div class='empty'>Not retrieved for this day - press Refresh, then open the sheet again.</div>");
-            }
-            else
-            {
-                var biggest = hours.Max(h => h.PercentOfSales);
-                var t = new StringBuilder("<table><tr><th>TIME</th><th>SALES</th><th>TRANS</th><th>% SALES</th></tr>");
-                foreach (var h in hours)
-                {
-                    var time = DailyBriefingSheet.StartHour(h.TimeBand) is { } hour ? $"{hour:00}:00" : h.TimeBand;
-                    t.Append($"<tr class='{(h.IsStrongestHour ? "best" : string.Empty)}'><td>{(h.IsStrongestHour ? "★ " : string.Empty)}{H(time)}</td><td>{M(h.Sales)}</td><td>{h.Transactions}</td><td class='l'>{Bar(h.PercentOfSales, biggest)}</td></tr>");
-                }
-                left = Section("Branch · by hour", t.Append("</table>").ToString());
-            }
-        }
-
-        // Reports.
-        string right;
-        if (!vm.HasReportData)
-        {
-            right = Section("Reports" + week, "<div class='empty'>Not generated for this " + (vm.IsRangeMode ? "week" : "day") + " - press Generate reports in Reports, then open the sheet again.</div>");
-        }
-        else
-        {
-            // Stamps sold tile removed (owner, 16 Nov 2026): stamps are an add-on now.
-            string Tile(string label, string value, string detail, bool flagged = false) =>
-                $"<div class='{(flagged ? "flag" : string.Empty)}'><small>{label}</small><b>{H(value)}</b><i>{H(detail)}</i></div>";
-            var r = new StringBuilder("<div class='rt'>");
-            r.Append(Tile("VOIDS", M(vm.ReportVoidsValue), $"{vm.ReportVoidsQuantity} items", vm.ReportVoidsValue >= MainViewModel.VoidsFlagValue));
-            r.Append(Tile("RETURNS", M(vm.ReportRefundsValue), $"{vm.ReportRefundsQuantity} refunds", vm.ReportRefundsValue >= MainViewModel.RefundsFlagValue));
-            r.Append(Tile("NO SALES", vm.ReportNoSales.ToString(Uk), "drawer opens"));
-            r.Append(Tile("STAFF DISCOUNT", vm.ReportStaffDiscountText, vm.ReportStaffDiscountDetail));
-            r.Append("</div>");
-            var flagged = vm.ReportRows
-                .Where(p => p.VoidsFlagged || p.RefundsFlagged)
-                .Select(p => H(p.Name) + (p.VoidsFlagged ? $" {M(p.VoidsValue)} voids" : string.Empty) + (p.RefundsFlagged ? $" {M(p.RefundsValue)} returns" : string.Empty))
-                .ToList();
-            r.Append($"<div class='fl'>Voids {M(MainViewModel.VoidsFlagValue)}+ · Refunds {M(MainViewModel.RefundsFlagValue)}+ highlighted{(flagged.Count > 0 ? " · " + string.Join(" · ", flagged) : " · none today")}</div>");
-            right = Section("Reports" + week, r.ToString());
-        }
-        sb.Append("<div class='two'>").Append(left).Append(right).Append("</div>");
-
-        // Notes: the rest of the page, lined, for writing on.
-        sb.Append("<div class='notes'><div class='t'>Notes</div></div>");
-        sb.Append("<div class='foot'><span>Gift cards are taken out of sales, ABV and AUB · P&amp;L = counted sales − (ABV target × transactions) · ")
-          .Append(vm.IsRangeMode ? "Day by day" : "Branch")
-          .Append(" shows Flooid's own figures</span><span>Card Factory Profit &amp; Loss</span></div>");
+        // Week (owner, 16 Nov 2026, concept X2) and day (owner, 18 Nov 2026, concept S1): the same
+        // layout - a day shows its hours where a week shows its days.
+        AppendWeek(sb, vm, addOns, smileyImg);
         sb.Append("</div></body></html>");
         return sb.ToString();
     }
@@ -202,8 +66,13 @@ internal static class TeamScorecard
     // and Add-on Sales side by side; Notes. Every figure is read from the app as it stands -
     // the same team, branch, reports and add-on figures the screens show; nothing is worked out
     // differently, the bars and percentages only compare them with the targets.
+    // A day (owner, 18 Nov 2026, concept S1) uses this same layout: "day" for "week" in the
+    // titles, and the hours as tiles (sales, share of the day, transactions, ABV; busiest starred)
+    // where the week has its seven days.
     private static void AppendWeek(StringBuilder sb, MainViewModel vm, IReadOnlyList<AddOnItem>? tracked, string smileyImg)
     {
+        var isWeek = vm.IsRangeMode;
+        var period = isWeek ? "week" : "day";
         static string H(string? s) => WebUtility.HtmlEncode(s ?? string.Empty);
         string M(decimal v) => v.ToString("£#,##0.00", Uk);
         static string Cls(string? state) => state switch { "Good" => "g", "Bad" => "r", _ => string.Empty };
@@ -222,7 +91,7 @@ internal static class TeamScorecard
         }
         var plColour = vm.TotalProfitLossState == "Good" ? "#1D8F4E" : vm.TotalProfitLossState == "Bad" ? "#C53D46" : "#004EA1";
         sb.Append("<div class='k2'>")
-          .Append(Box("WEEK SALES", M(vm.TotalSales), vm.TotalSales, vm.SalesTarget, vm.SalesTarget > 0m ? M(vm.SalesTarget) : string.Empty))
+          .Append(Box(isWeek ? "WEEK SALES" : "DAY SALES", M(vm.TotalSales), vm.TotalSales, vm.SalesTarget, vm.SalesTarget > 0m ? M(vm.SalesTarget) : string.Empty))
           .Append(Box("ABV", M(vm.ActualAbv), vm.ActualAbv, vm.AbvTarget, vm.AbvTarget > 0m ? M(vm.AbvTarget) : string.Empty))
           .Append(Box("AUB", vm.ActualAub.ToString("0.00", Uk), vm.ActualAub, vm.AubTarget, vm.AubTarget > 0m ? vm.AubTarget.ToString("0.00", Uk) : string.Empty))
           .Append($"<div class='c'><small>P&amp;L</small><b style='color:{plColour}'>{H(vm.TotalProfitLossState == "None" ? "—" : vm.TotalProfitLossText)}</b><div class='pb'></div><em><span>{vm.TotalTransactions.ToString("N0", Uk)} transactions</span><span></span></em></div>")
@@ -256,7 +125,7 @@ internal static class TeamScorecard
             podium.Append(people.Count > 1 ? Step(people[1], "2nd", 92, "#E9EEF4") : "<div></div>");
             podium.Append(Step(people[0], "1st", 108, "#FFF1B8"));
             podium.Append(people.Count > 2 ? Step(people[2], "3rd", 82, "#F6E3CF") : "<div></div>");
-            sb.Append(Section("Podium of the week · " + (withPl ? "P&L" : "counted sales"), podium.Append("</div>").ToString()));
+            sb.Append(Section($"Podium of the {period} · " + (withPl ? "P&L" : "counted sales"), podium.Append("</div>").ToString()));
         }
 
         var showAdd = summary is not null;
@@ -283,15 +152,41 @@ internal static class TeamScorecard
                 .Append($"<span class='{Cls(vm.TotalProfitLossState)}'>{H(vm.TotalProfitLossState == "None" ? "—" : vm.TotalProfitLossText)}</span>")
                 .Append(showAdd ? $"<span>{summary!.TotalQuantity}</span>" : string.Empty).Append("</div>");
         }
-        sb.Append(Section("Everyone · the week, ranked by " + (withPl ? "P&L" : "counted sales"), rank.Append("</div>").ToString()));
+        sb.Append(Section($"Everyone · the {period}, ranked by " + (withPl ? "P&L" : "counted sales"), rank.Append("</div>").ToString()));
+
+        // A day: its hours as tiles (S1) - Flooid's own figures, as the Performance tab shows them.
+        var hours = vm.BranchHours.Where(h => h.Sales != 0m || h.Transactions != 0).ToList();
+        if (!isWeek && hours.Count == 0)
+        {
+            sb.Append(Section("Hour by hour", "<div class='empty'>Not retrieved for this day - press Refresh, then open the sheet again.</div>"));
+        }
+        else if (!isWeek)
+        {
+            var dayTotal = hours.Sum(h => h.Sales);
+            var busiest = hours.MaxBy(h => h.Sales);
+            var biggest = busiest?.Sales ?? 0m;
+            var tiles = new StringBuilder($"<div class='dt' style='grid-template-columns:repeat({hours.Count},1fr)'>");
+            foreach (var h in hours)
+            {
+                var isBest = ReferenceEquals(h, busiest) && h.Sales > 0m;
+                var abvColour = vm.AbvTarget <= 0m ? "#004EA1" : h.Abv >= vm.AbvTarget ? "#1D8F4E" : "#C53D46";
+                var start = h.TimeBand.Split('-')[0].Trim();
+                var share = dayTotal > 0m ? Math.Round(h.Sales / dayTotal * 100m).ToString("0", Uk) : "0";
+                tiles.Append($"<div class='{(isBest ? "best" : string.Empty)}'><small>{(isBest ? "★ " : string.Empty)}{H(start)}</small><b>{M(h.Sales)}</b>")
+                     .Append($"<em>{share}% of the day</em>")
+                     .Append($"<div class='pb'><i style='width:{Width(h.Sales, biggest)}%;background:#005BBB'></i></div>")
+                     .Append($"<span>{h.Transactions} trans · ABV <b class='a' style='color:{abvColour}'>{h.Abv.ToString("0.00", Uk)}</b></span></div>");
+            }
+            sb.Append(Section("Hour by hour · busiest hour starred", tiles.Append("</div>").ToString()));
+        }
 
         // The seven days, each against an even share of the week's sales target.
         var days = vm.BranchDays;
-        if (days.Count == 0)
+        if (isWeek && days.Count == 0)
         {
             sb.Append(Section("Day by day", "<div class='empty'>Not retrieved for this week - press Refresh, then open the sheet again.</div>"));
         }
-        else
+        else if (isWeek)
         {
             var share = vm.SalesTarget > 0m ? vm.SalesTarget / days.Count : 0m;
             var best = days.MaxBy(d => d.Sales);
@@ -314,7 +209,7 @@ internal static class TeamScorecard
         string reports;
         if (!vm.HasReportData)
         {
-            reports = Section("Reports · week", "<div class='empty'>Not generated for this week - press Generate reports in Reports, then open the sheet again.</div>");
+            reports = Section($"Reports · {period}", $"<div class='empty'>Not generated for this {period} - press Generate reports in Reports, then open the sheet again.</div>");
         }
         else
         {
@@ -324,7 +219,7 @@ internal static class TeamScorecard
                 .Where(p => p.VoidsFlagged || p.RefundsFlagged)
                 .Select(p => H(p.Name) + (p.VoidsFlagged ? $" {M(p.VoidsValue)} voids" : string.Empty) + (p.RefundsFlagged ? $" {M(p.RefundsValue)} returns" : string.Empty))
                 .ToList();
-            reports = Section("Reports · week", "<div class='strip'>"
+            reports = Section($"Reports · {period}", "<div class='strip'>"
                 + Tile("VOIDS", M(vm.ReportVoidsValue), $"{vm.ReportVoidsQuantity} items", vm.ReportVoidsValue >= MainViewModel.VoidsFlagValue)
                 + Tile("RETURNS", M(vm.ReportRefundsValue), $"{vm.ReportRefundsQuantity} refunds", vm.ReportRefundsValue >= MainViewModel.RefundsFlagValue)
                 + Tile("NO SALES", vm.ReportNoSales.ToString(Uk), "drawer opens")
@@ -336,11 +231,11 @@ internal static class TeamScorecard
         string addOnsSection;
         if (tracked is null || tracked.Count == 0)
         {
-            addOnsSection = Section("Add-on Sales · week", "<div class='empty'>No add-ons tracked - add them in the Add-on Sales tab.</div>");
+            addOnsSection = Section($"Add-on Sales · {period}", "<div class='empty'>No add-ons tracked - add them in the Add-on Sales tab.</div>");
         }
         else if (summary is null)
         {
-            addOnsSection = Section("Add-on Sales · week", "<div class='empty'>Not generated for this week - press Generate reports, then open the sheet again.</div>");
+            addOnsSection = Section($"Add-on Sales · {period}", $"<div class='empty'>Not generated for this {period} - press Generate reports, then open the sheet again.</div>");
         }
         else
         {
@@ -352,7 +247,7 @@ internal static class TeamScorecard
         sb.Append("<div class='duo'>").Append(reports).Append(addOnsSection).Append("</div>");
 
         sb.Append("<div class='notes'><div class='t'>Notes</div></div>");
-        sb.Append("<div class='foot'><span>Gift cards are taken out of sales, ABV and AUB · P&amp;L = counted sales − (ABV target × transactions) · Day by day shows Flooid's own figures</span><span>Card Factory Profit &amp; Loss</span></div>");
+        sb.Append($"<div class='foot'><span>Gift cards are taken out of sales, ABV and AUB · P&amp;L = counted sales − (ABV target × transactions) · {(isWeek ? "Day by day" : "Hour by hour")} shows Flooid's own figures</span><span>Card Factory Profit &amp; Loss</span></div>");
     }
 
     private const string Css =

@@ -11,6 +11,7 @@ or released without the owner's say-so. A push to `main` starts a build.
 | Change | State |
 |---|---|
 | Quick date buttons on the calendar only (owner: "On the calendar only"): the Today / Yesterday / This week buttons beside the date card (Q1, MainWindow.QuickDates.cs) removed; the calendar's own row (C1) stays. | Written, not built |
+| Daily Team Scorecard in the weekly style (concept S1): a day now uses the week's layout - DAY SALES / ABV / AUB / P&L boxes with bars, Podium of the day, Everyone ranked with add-ons, Hour by hour tiles (sales, share of the day, trans, ABV; busiest starred), Reports + Add-on Sales, Notes. The old day layout (P1) is removed. Services/TeamScorecard.cs; figures read as before. | Written, not built |
 
 ## Released - v1.1.5 (18 Nov 2026, owner's say-so: "build all to release"), from branch `next-features`
 
