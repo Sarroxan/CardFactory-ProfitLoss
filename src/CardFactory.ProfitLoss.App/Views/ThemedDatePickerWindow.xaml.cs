@@ -49,8 +49,6 @@ public partial class ThemedDatePickerWindow : Window
         DateRangeTab.Tag = _rangeMode ? "Active" : null;
         DialogTitleText.Text = _rangeMode ? "Choose dates" : "Choose date";
         DialogHintText.Text = _rangeMode ? "Click the first day, then the last" : "Click a day to use it";
-        TodayButton.Visibility = _rangeMode ? Visibility.Collapsed : Visibility.Visible;
-        ThisWeekButton.Visibility = _rangeMode ? Visibility.Visible : Visibility.Collapsed;
         RangeSummaryText.Visibility = _rangeMode ? Visibility.Visible : Visibility.Collapsed;
         UseDatesButton.Visibility = _rangeMode ? Visibility.Visible : Visibility.Collapsed;
         UpdateRangeSummary();
@@ -178,6 +176,8 @@ public partial class ThemedDatePickerWindow : Window
         var today = DateTime.Today;
         _rangeStart = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
         _rangeEnd = today;
+        _rangeMode = _rangeStart != today;   // on a Monday this week is just today (concept C1, both modes)
+        _selectedDate = today;
         DialogResult = true;
         Close();
     }
@@ -198,6 +198,16 @@ public partial class ThemedDatePickerWindow : Window
     {
         // Stage 6B.46: uses today and closes, like a click on a day.
         _selectedDate = DateTime.Today;
+        _rangeMode = false;   // concept C1: Today is offered in both modes and always means the single day
+        DialogResult = true;
+        Close();
+    }
+
+    private void Yesterday_Click(object sender, RoutedEventArgs e)
+    {
+        // Owner, 18 Nov 2026 (concept C1): uses yesterday and closes.
+        _selectedDate = DateTime.Today.AddDays(-1);
+        _rangeMode = false;
         DialogResult = true;
         Close();
     }

@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Choose Date"
         Width="410"
-        Height="577"
+        Height="623"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
@@ -176,13 +176,27 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Row="1" Margin="0,16,0,0" Height="36" Padding="3" Background="{StaticResource CfBlueSoft}" CornerRadius="12">
-                <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="3" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                    <Button x:Name="SingleDayTab" Content="Single day" Style="{StaticResource PeriodTabStyle}" Click="SingleDayTab_Click" />
-                    <Button x:Name="DateRangeTab" Grid.Column="2" Content="Date range" Style="{StaticResource PeriodTabStyle}" Click="DateRangeTab_Click" />
+            <StackPanel Grid.Row="1">
+                <!-- Owner, 18 Nov 2026 (concept C1): Today / Yesterday / This week at the top, in
+                     both modes; one tap uses the date and closes, like a click on a day. -->
+                <Grid Margin="0,16,0,0" Height="34">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" /><ColumnDefinition Width="8" /><ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="8" /><ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="TodayButton" Grid.Column="0" Content="Today" Style="{StaticResource ModernSecondaryButtonStyle}" Click="Today_Click" />
+                    <Button x:Name="YesterdayButton" Grid.Column="2" Content="Yesterday" Style="{StaticResource ModernSecondaryButtonStyle}" Click="Yesterday_Click" />
+                    <Button x:Name="ThisWeekButton" Grid.Column="4" Content="This week" Style="{StaticResource ModernSecondaryButtonStyle}" Click="ThisWeek_Click"
+                            ToolTip="Monday to today" />
                 </Grid>
-            </Border>
+                <Border Margin="0,12,0,0" Height="36" Padding="3" Background="{StaticResource CfBlueSoft}" CornerRadius="12">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="3" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Button x:Name="SingleDayTab" Content="Single day" Style="{StaticResource PeriodTabStyle}" Click="SingleDayTab_Click" />
+                        <Button x:Name="DateRangeTab" Grid.Column="2" Content="Date range" Style="{StaticResource PeriodTabStyle}" Click="DateRangeTab_Click" />
+                    </Grid>
+                </Border>
+            </StackPanel>
             <Border Grid.Row="2" Margin="0,14,0,0" Padding="10,8"
                     Background="#FFFDF4" BorderBrush="#F0DE94" BorderThickness="1" CornerRadius="13">
                 <Grid>
@@ -224,8 +238,6 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="TodayButton" Content="Today" Width="72" Height="34" HorizontalAlignment="Left" Style="{StaticResource ModernSecondaryButtonStyle}" Click="Today_Click" />
-                <Button x:Name="ThisWeekButton" Content="This week" Width="86" Height="34" HorizontalAlignment="Left" Style="{StaticResource ModernSecondaryButtonStyle}" Click="ThisWeek_Click" Visibility="Collapsed" />
                 <TextBlock x:Name="RangeSummaryText" Grid.Column="1" Margin="10,0" HorizontalAlignment="Right" VerticalAlignment="Center"
                            Foreground="{StaticResource CfDeepBlue}" FontFamily="Arial" FontSize="11" FontWeight="Bold" Visibility="Collapsed" />
                 <Button x:Name="UseDatesButton" Grid.Column="2" Content="Use dates" Height="34" Padding="16,0" IsEnabled="False"
