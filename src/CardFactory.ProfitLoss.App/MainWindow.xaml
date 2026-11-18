@@ -661,45 +661,6 @@
                                         Orientation="Horizontal"
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Center">
-                                <!-- Owner, 18 Nov 2026 (concept Q1): Today / Yesterday / This week beside the
-                                     date card - one tap sets the date, as the calendar would. MainWindow.QuickDates.cs. -->
-                                <Border Height="28" Margin="0,0,10,0" VerticalAlignment="Center" Background="#F4F7FB"
-                                        BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
-                                    <Border.Resources>
-                                        <Style x:Key="QuickDateButtonStyle" TargetType="Button">
-                                            <Setter Property="Background" Value="Transparent"/>
-                                            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}"/>
-                                            <Setter Property="FontFamily" Value="Arial"/>
-                                            <Setter Property="FontSize" Value="11"/>
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                            <Setter Property="Cursor" Value="Hand"/>
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Border x:Name="Face" Background="{TemplateBinding Background}" Padding="12,0" CornerRadius="9">
-                                                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Face" Property="Background" Value="#E3ECF7"/></Trigger>
-                                                            <Trigger Property="Tag" Value="Active">
-                                                                <Setter TargetName="Face" Property="Background" Value="{StaticResource CfDeepBlue}"/>
-                                                                <Setter Property="Foreground" Value="White"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </Border.Resources>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Button x:Name="QuickTodayButton" Content="Today" Style="{StaticResource QuickDateButtonStyle}" Click="QuickToday_Click"
-                                                ToolTip="Show today"/>
-                                        <Button x:Name="QuickYesterdayButton" Content="Yesterday" Style="{StaticResource QuickDateButtonStyle}" Click="QuickYesterday_Click"
-                                                ToolTip="Show yesterday"/>
-                                        <Button x:Name="QuickThisWeekButton" Content="This week" Style="{StaticResource QuickDateButtonStyle}" Click="QuickThisWeek_Click"
-                                                ToolTip="Monday to today"/>
-                                    </StackPanel>
-                                </Border>
                                 <!-- Stage 6B.70 (P1): the date as a card like the targets - white, the
                                      CfLine edge and a pale-blue label segment - instead of a pale-yellow
                                      pill with PERIOD floating beside it. The row is 30px tall, so the

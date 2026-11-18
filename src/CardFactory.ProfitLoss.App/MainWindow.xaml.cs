@@ -114,7 +114,6 @@ public partial class MainWindow : Window
     {
         if (e.PropertyName == nameof(MainViewModel.HasTopPerformers)) UpdateTeamSpacer();
         ByHour_ViewModelChanged(e.PropertyName);
-        QuickDates_ViewModelChanged(e.PropertyName);
     }
 
     private void Window_SourceInitialized(object? sender, EventArgs e) => WindowAppearance.PreferRoundedCorners(this);
@@ -129,7 +128,6 @@ public partial class MainWindow : Window
         SetBranchDetailView(BranchDetail.Performance);
         InitialiseAddOns();
         StartAutoRefresh();
-        UpdateQuickDateButtons();
 
         FitToWorkArea();
         CaptureOneRowWindowGeometry();

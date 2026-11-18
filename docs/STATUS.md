@@ -6,6 +6,12 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `next-features` (owner, 18 Nov 2026) - not built or released yet
+
+| Change | State |
+|---|---|
+| Quick date buttons on the calendar only (owner: "On the calendar only"): the Today / Yesterday / This week buttons beside the date card (Q1, MainWindow.QuickDates.cs) removed; the calendar's own row (C1) stays. | Written, not built |
+
 ## Released - v1.1.5 (18 Nov 2026, owner's say-so: "build all to release"), from branch `next-features`
 
 | Change | State |
