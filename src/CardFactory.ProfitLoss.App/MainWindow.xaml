@@ -1533,7 +1533,8 @@
                                                             <Button Content="Cards" Tag="Cards" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
                                                             <Button Content="Party &amp; gifting" Tag="PartyAndGifting" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
                                                             <Button Content="Wrap &amp; bags" Tag="WrapAndBags" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
-                                                            <Button Content="Stamps &amp; other" Tag="StampsAndOther" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
+                                                            <Button Content="Reusable bags" Tag="ReusableBags" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
+                                                            <Button Content="Stamps" Tag="Stamps" Style="{StaticResource AddOnChipButtonStyle}" Click="TopSellersGroup_Click"/>
                                                         </StackPanel>
                                                         <ScrollViewer Grid.Row="3" Margin="0,0,0,8" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                                             <ScrollViewer.Resources>

@@ -55,11 +55,27 @@ public sealed class TopSellersTests
         Assert.All(TopSellers.Top(all, TopSellerGroup.Cards, false), t => Assert.Equal(TopSellerGroup.Cards, t.Group));
         Assert.Equal("2145706", TopSellers.Top(all, TopSellerGroup.WrapAndBags, false)[0].Code);
         Assert.Empty(TopSellers.Top(all, TopSellerGroup.PartyAndGifting, false));
-        Assert.Equal(new[] { "6001037" }, TopSellers.Top(all, TopSellerGroup.StampsAndOther, false).Select(t => t.Code));
+        Assert.Equal(new[] { "6001037" }, TopSellers.Top(all, TopSellerGroup.Stamps, false).Select(t => t.Code));
 
         Assert.Equal(TopSellerGroup.PartyAndGifting, TopSellers.GroupOf("Seasonal Party & Gifting/Christmas Party & Gifting/Gifts/Soft Toys"));
         Assert.Equal(TopSellerGroup.Cards, TopSellers.GroupOf("Seasonal Card/Christmas Card/Core/Open"));
         Assert.Equal(TopSellerGroup.All, TopSellers.GroupOf(""));
+        Assert.Equal(TopSellerGroup.All, TopSellers.GroupOf("Stamps & Carrier Bags/Stamps & Carrier Bags/Stamps & Carrier Bags/Helium"));
+    }
+
+    [Fact]
+    public void ReusableBags_ByName_EvenWithCarrierBags()
+    {
+        var withCarrier = new GiftCardItemRecord("1", "A", "7000001", "Reusable  Bag Large Floral", 3, 5.97m) { Department = TopSellers.CarrierBagsDepartment };
+        var withWrap = new GiftCardItemRecord("1", "A", "7000002", "REUSABLE BAG Christmas", 1, 1.99m) { Department = "Seasonal Party & Gifting/Christmas Party & Gifting/Wrap & Bags/Gift Bags" };
+        var carrier = new GiftCardItemRecord("1", "A", "EFOB012", "Carrier Bag", 12, 3.00m) { Department = TopSellers.CarrierBagsDepartment };
+        var reusableOther = new GiftCardItemRecord("1", "A", "7000003", "Reusable Straw", 2, 2.00m) { Department = "Everyday Party & Gifting/Everyday Party & Gifting/Impulse/Confectionery" };
+
+        var all = TopSellers.Build(new[] { withCarrier, withWrap, carrier, reusableOther });
+
+        Assert.Equal(new[] { "7000001", "7000002" }, TopSellers.Top(all, TopSellerGroup.ReusableBags, false).Select(t => t.Code));
+        Assert.DoesNotContain(all, t => t.Code == "EFOB012");
+        Assert.Equal(TopSellerGroup.PartyAndGifting, Assert.Single(all, t => t.Code == "7000003").Group);
     }
 
     [Fact]
