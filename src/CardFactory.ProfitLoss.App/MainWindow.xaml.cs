@@ -127,6 +127,7 @@ public partial class MainWindow : Window
         SetBranchPerformanceView(false);
         SetBranchDetailView(BranchDetail.Performance);
         InitialiseAddOns();
+        StartAutoRefresh();
 
         FitToWorkArea();
         CaptureOneRowWindowGeometry();
@@ -1720,6 +1721,7 @@ public partial class MainWindow : Window
         if (!loginWindow.IsSignedIn) return false;
         await StopQuietFetchAsync(viewModel);
         if (_flooidGrabBusy || !loginWindow.IsSignedIn) return false;
+        NotePullStarted();   // automatic refresh counts its 30 minutes from here
         _pullFresh = fresh;
         _oldestPullUsed = null;
 
