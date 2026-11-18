@@ -743,7 +743,8 @@ public partial class MainWindow : Window
         if (BranchHourlyTabButton is not null) BranchHourlyTabButton.Tag = detail == BranchDetail.Performance ? "Active" : null;
         if (BranchByHourTabButton is not null) BranchByHourTabButton.Tag = detail == BranchDetail.ByHour ? "Active" : null;
         if (BranchGiftCardsTabButton is not null) BranchGiftCardsTabButton.Tag = detail == BranchDetail.GiftCards ? "Active" : null;
-        if (detail == BranchDetail.ByHour) DrawByHour();
+        if (BranchHeatPanel is not null) BranchHeatPanel.Visibility = Visibility.Hidden;
+        UpdateByHourView();   // K2: on a week, Table or Heat map (draws whichever shows)
     }
 
     // K1: one date button. Single day or date range is chosen inside the calendar, so the

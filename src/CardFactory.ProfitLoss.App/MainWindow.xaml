@@ -1623,6 +1623,40 @@
                                                     <TextBlock Text="{Binding FlooidLastUpdatedText}" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="9.5"/>
                                                 </StackPanel>
                                                 <!-- Stage 6B.01: moved to the target row beside PERIOD. -->
+                                                <!-- Owner, 18 Nov 2026 (K2): Table / Heat map, on By hour for a week only. -->
+                                                <Border x:Name="ByHourViewSwitch" Grid.Column="2" Height="28" VerticalAlignment="Center" Visibility="Collapsed"
+                                                        Background="#F4F7FB" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="10" ClipToBounds="True">
+                                                    <Border.Resources>
+                                                        <Style x:Key="ByHourViewButtonStyle" TargetType="Button">
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}"/>
+                                                            <Setter Property="FontFamily" Value="Arial"/>
+                                                            <Setter Property="FontSize" Value="11"/>
+                                                            <Setter Property="FontWeight" Value="Bold"/>
+                                                            <Setter Property="Cursor" Value="Hand"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="Button">
+                                                                        <Border x:Name="Face" Background="{TemplateBinding Background}" Padding="12,0" CornerRadius="9">
+                                                                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                                        </Border>
+                                                                        <ControlTemplate.Triggers>
+                                                                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Face" Property="Background" Value="#E3ECF7"/></Trigger>
+                                                                            <Trigger Property="Tag" Value="Active">
+                                                                                <Setter TargetName="Face" Property="Background" Value="{StaticResource CfDeepBlue}"/>
+                                                                                <Setter Property="Foreground" Value="White"/>
+                                                                            </Trigger>
+                                                                        </ControlTemplate.Triggers>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </Border.Resources>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button x:Name="ByHourTableButton" Content="Table" Style="{StaticResource ByHourViewButtonStyle}" Click="ByHourTable_Click"/>
+                                                        <Button x:Name="ByHourHeatButton" Content="Heat map" Tag="Active" Style="{StaticResource ByHourViewButtonStyle}" Click="ByHourHeat_Click"/>
+                                                    </StackPanel>
+                                                </Border>
                                             </Grid>
 
                                             <!-- Stage 6B.44: the totals strip that sat here was removed - it repeated
@@ -1782,6 +1816,37 @@
                                                                    Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="12" FontWeight="Bold" IsHitTestVisible="False"/>
                                                     </Grid>
                                                 </Border>
+                                            </Grid>
+
+                                            <!-- Week heat map (owner, 18 Nov 2026, K2): drawn in MainWindow.HeatMap.cs. -->
+                                            <Grid x:Name="BranchHeatPanel" Grid.Row="2" Margin="12,0,12,0" Visibility="Hidden">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="34"/>
+                                                    <RowDefinition Height="311"/>
+                                                </Grid.RowDefinitions>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="Below target" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10.5" VerticalAlignment="Center"/>
+                                                    <Border Width="140" Height="10" CornerRadius="5" Margin="8,0" VerticalAlignment="Center">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                <GradientStop Color="#C8454F" Offset="0"/><GradientStop Color="#F6F9FC" Offset="0.5"/><GradientStop Color="#0B7A35" Offset="1"/>
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                    </Border>
+                                                    <TextBlock Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10.5" VerticalAlignment="Center"
+                                                               Text="Above · P&amp;L per hour against the ABV target (gift cards in)"/>
+                                                </StackPanel>
+                                                <StackPanel x:Name="HeatFacts" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                <Grid Grid.Row="1">
+                                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                                        <ScrollViewer.Resources>
+                                                            <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource CfTeamScrollBarStyle}"/>
+                                                        </ScrollViewer.Resources>
+                                                        <Grid x:Name="BranchHeatGrid"/>
+                                                    </ScrollViewer>
+                                                    <TextBlock x:Name="HeatNote" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"
+                                                               Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="12" FontWeight="Bold" IsHitTestVisible="False"/>
+                                                </Grid>
                                             </Grid>
 
                                             <!-- Gift Cards use the same large table area. -->

@@ -76,6 +76,11 @@ public sealed class MainViewModel : ObservableObject
     public ObservableCollection<BranchHourlyRowViewModel> BranchHours { get; } = new();
     /// <summary>Each day of the week pulled from Branch Performance; empty for a single day.</summary>
     public IReadOnlyList<BranchDayFigure> BranchDays { get; private set; } = Array.Empty<BranchDayFigure>();
+
+    // Owner, 18 Nov 2026 (K2): a range pull's hours - each day's (the week heat map) and the
+    // period's own summary (By hour's table on a week). Empty for a single day.
+    public IReadOnlyList<BranchDayHours> BranchDayHours { get; private set; } = Array.Empty<BranchDayHours>();
+    public IReadOnlyList<BranchHourFigure> BranchPeriodHours { get; private set; } = Array.Empty<BranchHourFigure>();
     public ObservableCollection<BranchGiftCardRowViewModel> BranchGiftCards { get; } = new();
     public IReadOnlyList<string> HistoricalTargetModes { get; }
     public IRelayCommand AddOperatorCommand { get; }
@@ -381,6 +386,13 @@ public sealed class MainViewModel : ObservableObject
             BranchDays = report.Days.Count > 1
                 ? report.Days.Select(d => new BranchDayFigure(d.Date.Date, d.Total.Sales, d.Total.Transactions, d.Total.Abv, d.Total.Aub)).ToList()
                 : Array.Empty<BranchDayFigure>();
+            static BranchHourFigure Hour(BranchHourlyRecord h) => new(h.TimeBand, h.Sales, h.Transactions, h.Abv);
+            BranchDayHours = report.Days.Count > 1
+                ? report.Days.Select(d => new BranchDayHours(d.Date.Date, d.Hours.Select(Hour).ToList())).ToList()
+                : Array.Empty<BranchDayHours>();
+            BranchPeriodHours = report.Days.Count > 1
+                ? report.PeriodSummary.Select(Hour).ToList()
+                : Array.Empty<BranchHourFigure>();
             _branchReportedAbv = total.Abv;
             _branchReportedAub = total.Aub;
             BranchDataMessage = BranchHours.Count == 0
@@ -876,6 +888,12 @@ public sealed class MainViewModel : ObservableObject
 
 /// <summary>One day of a week's Branch Performance (Flooid's own figures), for the weekly Team Scorecard.</summary>
 public sealed record BranchDayFigure(DateTime Date, decimal Sales, int Transactions, decimal Abv, decimal Aub);
+
+/// <summary>One hour band from Flooid's Branch Performance report (K2, By hour on a week).</summary>
+public sealed record BranchHourFigure(string TimeBand, decimal Sales, int Transactions, decimal Abv);
+
+/// <summary>One day's hours from a range pull (the week heat map, K2).</summary>
+public sealed record BranchDayHours(DateTime Date, IReadOnlyList<BranchHourFigure> Hours);
 
 /// <summary>One chip in the top performers strip. State Good / Bad colours a P&amp;L value.</summary>
 public sealed record TopPerformerChip(string Label, string Names, string Value, string State);

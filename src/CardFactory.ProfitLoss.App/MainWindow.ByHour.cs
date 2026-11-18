@@ -33,8 +33,9 @@ public partial class MainWindow
         if (_branchDetail != BranchDetail.ByHour) return;
         if (property is nameof(MainViewModel.BranchTotalSales) or nameof(MainViewModel.BranchTotalTransactions)
             or nameof(MainViewModel.TotalProfitLoss) or nameof(MainViewModel.TotalGiftCards)
-            or nameof(MainViewModel.AbvTarget) or nameof(MainViewModel.TotalTransactions))
-            DrawByHour();
+            or nameof(MainViewModel.AbvTarget) or nameof(MainViewModel.TotalTransactions)
+            or nameof(MainViewModel.HistoricalTargetMode) or nameof(MainViewModel.IsRangeMode))
+            UpdateByHourView();   // draws the table or, on a week, the heat map
     }
 
     private void DrawByHour()
@@ -45,7 +46,12 @@ public partial class MainWindow
         table.RowDefinitions.Clear();
         table.ColumnDefinitions.Clear();
 
-        var hours = vm.BranchHours.Where(h => h.Sales != 0m || h.Transactions != 0).ToList();
+        // On a week the table uses the period's own hours (Flooid's PERIOD SUMMARY), so it adds up
+        // to the week; on a day, the day's hours as the Performance tab shows them.
+        IEnumerable<BranchHourFigure> source = vm.IsRangeMode && vm.BranchPeriodHours.Count > 0
+            ? vm.BranchPeriodHours
+            : vm.BranchHours.Select(h => new BranchHourFigure(h.TimeBand, h.Sales, h.Transactions, h.Abv));
+        var hours = source.Where(h => h.Sales != 0m || h.Transactions != 0).ToList();
         var target = vm.AbvTarget;
         string? note = hours.Count == 0 ? "No figures yet · Refresh to pull Branch Performance."
                      : target <= 0m ? "Set an ABV target to see the P&L hour by hour."
@@ -55,7 +61,7 @@ public partial class MainWindow
         if (note is not null) return;
 
         // Same rule as each person's P&L: none without transactions.
-        decimal HourPl(BranchHourlyRowViewModel h) => h.Transactions > 0 ? h.Sales - target * h.Transactions : 0m;
+        decimal HourPl(BranchHourFigure h) => h.Transactions > 0 ? h.Sales - target * h.Transactions : 0m;
         var largest = Math.Max(1m, hours.Max(h => Math.Abs(HourPl(h))));
 
         foreach (var width in new[] { 110.0, 130, 100, 100, -1, 120 })
@@ -135,7 +141,7 @@ public partial class MainWindow
         var dayBand = Band(Res("CfDeepBlue"), 32);
         dayBand.CornerRadius = new CornerRadius(0, 0, 8, 8);
         dayBand.BorderThickness = new Thickness(0);
-        Put(Text("DAY P&L", right: false, bold: true, colour: Res("CfYellow")), 0);
+        Put(Text(vm.IsRangeMode ? "PERIOD P&L" : "DAY P&L", right: false, bold: true, colour: Res("CfYellow")), 0);
         Put(Text($"£{hours.Sum(h => h.Sales) - giftCards:N2}", colour: Brushes.White), 1);
         Put(Text(hours.Sum(h => h.Transactions).ToString("N0"), colour: Brushes.White), 2);
         Put(Text(Signed(day), bold: true, colour: Res("CfYellow")), 5);
