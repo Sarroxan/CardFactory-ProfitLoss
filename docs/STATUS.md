@@ -6,15 +6,15 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `next-features` (owner, 18 Nov 2026) - not built or released yet
+## Released - v1.1.6 (18 Nov 2026, owner's say-so: "build and release all"), from branch `next-features`
 
 | Change | State |
 |---|---|
-| Quick date buttons on the calendar only (owner: "On the calendar only"): the Today / Yesterday / This week buttons beside the date card (Q1, MainWindow.QuickDates.cs) removed; the calendar's own row (C1) stays. | Written, not built |
-| Daily Team Scorecard in the weekly style (concept S1): a day now uses the week's layout - DAY SALES / ABV / AUB / P&L boxes with bars, Podium of the day, Everyone ranked with add-ons, Hour by hour tiles (sales, share of the day, trans, ABV; busiest starred), Reports + Add-on Sales, Notes. The old day layout (P1) is removed. Services/TeamScorecard.cs; figures read as before. | Written, not built |
-| Start fresh + Reset everything combined (concept F1): Menu › Start fresh now asks first in one window - "Clear the figures" (picked first; the old Start fresh, store name included) or "Erase everything on this PC" (the old Reset everything). Store & defaults loses its Reset everything box (window 392 → 300 px). Views/StartFreshWindow. | Written, not built |
-| Week heat map on By hour (concept K2): on a week, a Table / Heat map switch (heat map first); a row per day, a column per hour, each square that hour's P&L vs the ABV target (gift cards in), green / red by size, striped when no sales, each day's hours added up on the right, BEST / WORST hour chips, tooltips with the hour's figures. MainWindow.HeatMap.cs; VM BranchDayHours / BranchPeriodHours from the range pull's DATE blocks and PERIOD SUMMARY. | Written, not built |
-| Fix: By hour's table on a week now uses the week's own hours (Flooid's PERIOD SUMMARY) - since 1.1.4 it showed the last day's hours against the week's P&L. Its bottom row reads PERIOD P&L on a week. | Written, not built |
+| Quick date buttons on the calendar only (owner: "On the calendar only"): the Today / Yesterday / This week buttons beside the date card (Q1, MainWindow.QuickDates.cs) removed; the calendar's own row (C1) stays. | Released in 1.1.6 |
+| Daily Team Scorecard in the weekly style (concept S1): a day now uses the week's layout - DAY SALES / ABV / AUB / P&L boxes with bars, Podium of the day, Everyone ranked with add-ons, Hour by hour tiles (sales, share of the day, trans, ABV; busiest starred), Reports + Add-on Sales, Notes. The old day layout (P1) is removed. Services/TeamScorecard.cs; figures read as before. | Released in 1.1.6 |
+| Start fresh + Reset everything combined (concept F1): Menu › Start fresh now asks first in one window - "Clear the figures" (picked first; the old Start fresh, store name included) or "Erase everything on this PC" (the old Reset everything). Store & defaults loses its Reset everything box (window 392 → 300 px). Views/StartFreshWindow. | Released in 1.1.6 |
+| Week heat map on By hour (concept K2): on a week, a Table / Heat map switch (heat map first); a row per day, a column per hour, each square that hour's P&L vs the ABV target (gift cards in), green / red by size, striped when no sales, each day's hours added up on the right, BEST / WORST hour chips, tooltips with the hour's figures. MainWindow.HeatMap.cs; VM BranchDayHours / BranchPeriodHours from the range pull's DATE blocks and PERIOD SUMMARY. | Released in 1.1.6 |
+| Fix: By hour's table on a week now uses the week's own hours (Flooid's PERIOD SUMMARY) - since 1.1.4 it showed the last day's hours against the week's P&L. Its bottom row reads PERIOD P&L on a week. | Released in 1.1.6 |
 
 ## Released - v1.1.5 (18 Nov 2026, owner's say-so: "build all to release"), from branch `next-features`
 
