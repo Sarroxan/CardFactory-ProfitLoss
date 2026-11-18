@@ -114,6 +114,7 @@ public partial class MainWindow : Window
     {
         if (e.PropertyName == nameof(MainViewModel.HasTopPerformers)) UpdateTeamSpacer();
         ByHour_ViewModelChanged(e.PropertyName);
+        QuickDates_ViewModelChanged(e.PropertyName);
     }
 
     private void Window_SourceInitialized(object? sender, EventArgs e) => WindowAppearance.PreferRoundedCorners(this);
@@ -128,6 +129,7 @@ public partial class MainWindow : Window
         SetBranchDetailView(BranchDetail.Performance);
         InitialiseAddOns();
         StartAutoRefresh();
+        UpdateQuickDateButtons();
 
         FitToWorkArea();
         CaptureOneRowWindowGeometry();
@@ -1721,7 +1723,7 @@ public partial class MainWindow : Window
         if (!loginWindow.IsSignedIn) return false;
         await StopQuietFetchAsync(viewModel);
         if (_flooidGrabBusy || !loginWindow.IsSignedIn) return false;
-        NotePullStarted();   // automatic refresh counts its 30 minutes from here
+        NotePullStarted();   // automatic refresh counts its hour from here
         _pullFresh = fresh;
         _oldestPullUsed = null;
 

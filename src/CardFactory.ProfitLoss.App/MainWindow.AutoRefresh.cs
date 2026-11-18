@@ -8,7 +8,7 @@ namespace CardFactory.ProfitLoss.App;
 
 /// <summary>
 /// Automatic refresh (owner, 18 Nov 2026: "add 6"). While the app is open on today, it presses
-/// Refresh by itself every 30 minutes - exactly as the button does (same progress panel, same
+/// Refresh by itself every hour - exactly as the button does (same progress panel, same
 /// reports) - so the figures are never far behind. It only does so when it can't get in anyone's
 /// way: signed in, nothing being pulled, no other window or the menu open, nobody has touched the
 /// mouse or keyboard for 2 minutes, and nothing has been typed into the window since the last pull
@@ -16,7 +16,7 @@ namespace CardFactory.ProfitLoss.App;
 /// </summary>
 public partial class MainWindow
 {
-    private static readonly TimeSpan AutoRefreshEvery = TimeSpan.FromMinutes(30);
+    private static readonly TimeSpan AutoRefreshEvery = TimeSpan.FromMinutes(60);
     private static readonly TimeSpan AutoRefreshIdleFor = TimeSpan.FromMinutes(2);
 
     private DispatcherTimer? _autoRefreshTimer;
@@ -38,7 +38,7 @@ public partial class MainWindow
         _autoRefreshTimer.Start();
     }
 
-    /// <summary>Called when a pull starts (button, sign-in or automatic): the 30 minutes start again.</summary>
+    /// <summary>Called when a pull starts (button, sign-in or automatic): the hour starts again.</summary>
     private void NotePullStarted()
     {
         _lastPullAt = DateTime.Now;
@@ -60,7 +60,7 @@ public partial class MainWindow
         if (Mouse.Captured is not null) return;
         if (AnyPopupOpen()) return;
 
-        AppFiles.AppendDiagnostic($"[{now:HH:mm:ss}] Automatic refresh (30 minutes since the last pull, nobody using the app){Environment.NewLine}");
+        AppFiles.AppendDiagnostic($"[{now:HH:mm:ss}] Automatic refresh (an hour since the last pull, nobody using the app){Environment.NewLine}");
         await GrabFlooidReportsAsync(fresh: !_reportsActive);
     }
 

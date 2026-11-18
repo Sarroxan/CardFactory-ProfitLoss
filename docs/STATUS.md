@@ -10,7 +10,8 @@ or released without the owner's say-so. A push to `main` starts a build.
 
 | Change | State |
 |---|---|
-| Automatic refresh (owner: "add 6"): every 30 minutes the app presses Refresh by itself (same panel, same reports) - only on today's date (not a range), after a first pull, when signed in, nothing pulling, no other window / menu open, nobody has used mouse or keyboard for 2 minutes, and nothing typed since the last pull (a Refresh would replace typed figures). Logged as "Automatic refresh". MainWindow.AutoRefresh.cs. | Written, not built |
+| Automatic refresh (owner: "add 6", then "every hour"): every hour the app presses Refresh by itself (same panel, same reports) - only on today's date (not a range), after a first pull, when signed in, nothing pulling, no other window / menu open, nobody has used mouse or keyboard for 2 minutes, and nothing typed since the last pull (a Refresh would replace typed figures). Logged as "Automatic refresh". MainWindow.AutoRefresh.cs. | Written, not built |
+| Quick date buttons (concept Q1): Today / Yesterday / This week (Monday to today, as the calendar's own) beside the date card; each sets the date as the calendar would, the one on show is highlighted navy. MainWindow.QuickDates.cs. | Written, not built |
 
 ## Released - v1.1.4 (17 Nov 2026, owner's say-so: "release all"), from branch `next-features`
 
