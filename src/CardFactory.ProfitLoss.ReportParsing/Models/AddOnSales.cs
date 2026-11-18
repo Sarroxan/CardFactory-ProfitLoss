@@ -2,7 +2,9 @@ namespace CardFactory.ProfitLoss.ReportParsing.Models;
 
 /// <summary>
 /// An add-on the store tracks (owner, 16 Nov 2026): one SKU, added in the Add-on Sales tab, or
-/// every stamp at once (<see cref="StampsKey"/>), which replaces the Daily Briefing's Stamp Count.
+/// every stamp at once (<see cref="StampsKey"/>), which replaces the Daily Briefing's Stamp Count,
+/// or every reusable bag at once (<see cref="ReusableBagsKey"/> - owner, 18 Nov 2026, concept A1:
+/// every item named "reusable bag", as Top sellers' Reusable bags button).
 /// </summary>
 public sealed record AddOnItem(string Key, string Name)
 {
@@ -11,6 +13,18 @@ public sealed record AddOnItem(string Key, string Name)
     public static AddOnItem Stamps { get; } = new(StampsKey, "Stamps");
 
     public bool IsStamps => string.Equals(Key, StampsKey, StringComparison.OrdinalIgnoreCase);
+
+    public const string ReusableBagsKey = "REUSABLEBAGS";
+
+    public static AddOnItem ReusableBags { get; } = new(ReusableBagsKey, "Reusable bags");
+
+    public bool IsReusableBags => string.Equals(Key, ReusableBagsKey, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Stamps or reusable bags: many SKUs added together as one add-on.</summary>
+    public bool IsGroup => IsStamps || IsReusableBags;
+
+    public static bool IsGroupKey(string? key) =>
+        string.Equals(key, StampsKey, StringComparison.OrdinalIgnoreCase) || string.Equals(key, ReusableBagsKey, StringComparison.OrdinalIgnoreCase);
 }
 
 /// <summary>One tracked add-on for the day: how many sold, for how much, and who sold the most.</summary>
@@ -50,7 +64,9 @@ public sealed record AddOnSalesSummary(IReadOnlyList<AddOnColumn> Columns, IRead
 
         // Each column's lines, then everyone who appears in any of them, in report order.
         var lines = tracked
-            .Select(item => item.IsStamps ? stamps : items.Where(i => SameSku(i.ProductCode, item.Key)).ToList())
+            .Select(item => item.IsStamps ? stamps
+                : item.IsReusableBags ? items.Where(i => TopSellers.IsReusableBag(i.Description)).ToList()
+                : items.Where(i => SameSku(i.ProductCode, item.Key)).ToList())
             .ToList();
 
         var people = new List<(string Id, string Name)>();

@@ -204,7 +204,9 @@ public partial class MainWindow
     }
 
     private bool IsTracked(string key) =>
-        _addOnTracked.Any(i => key == AddOnItem.StampsKey ? i.IsStamps : !i.IsStamps && AddOnSalesSummary.SameSku(i.Key, key));
+        _addOnTracked.Any(i => AddOnItem.IsGroupKey(key)
+            ? string.Equals(i.Key, key, StringComparison.OrdinalIgnoreCase)
+            : !i.IsGroup && AddOnSalesSummary.SameSku(i.Key, key));
 
     private void ShowAddOnNote(string text)
     {
@@ -224,7 +226,7 @@ public partial class MainWindow
         for (var i = 0; i < _addOnTracked.Count; i++)
         {
             var item = _addOnTracked[i];
-            if (item.IsStamps || item.Name != item.Key || _addOnSeen is null) continue;
+            if (item.IsGroup || item.Name != item.Key || _addOnSeen is null) continue;
             var seen = _addOnSeen.FirstOrDefault(p => AddOnSalesSummary.SameSku(p.Key, item.Key));
             if (seen.Key is null) continue;
             _addOnTracked[i] = item with { Name = seen.Value };
@@ -238,7 +240,7 @@ public partial class MainWindow
         for (var i = 0; i < _addOnTracked.Count; i++)
         {
             var item = _addOnTracked[i];
-            var where = item.IsStamps ? "every stamp" : "SKU " + item.Key;
+            var where = item.IsStamps ? "every stamp" : item.IsReusableBags ? "every reusable bag" : "SKU " + item.Key;
             var column = summary?.Columns.FirstOrDefault(c => string.Equals(c.Item.Key, item.Key, StringComparison.OrdinalIgnoreCase));
             var sold = summary is null ? string.Empty : column is null ? " · not fetched yet" : $" · {column.Quantity} sold";
             _addOnTrackedRows.Add(new AddOnListRow(item.Key, item.Name, where + sold));
@@ -280,7 +282,7 @@ public partial class MainWindow
                 Text = column.Item.Name,
                 FontFamily = (FontFamily)FindResource("CfTitleFont"), FontSize = 16,
                 Foreground = Res("CfDeepBlue"), TextTrimming = TextTrimming.CharacterEllipsis,
-                ToolTip = column.Item.IsStamps ? "Every stamp" : "SKU " + column.Item.Key,
+                ToolTip = column.Item.IsStamps ? "Every stamp" : column.Item.IsReusableBags ? "Every reusable bag" : "SKU " + column.Item.Key,
             });
             var figures = new TextBlock { Margin = new Thickness(0, 2, 0, 0) };
             figures.Inlines.Add(new System.Windows.Documents.Run(column.Quantity.ToString(AddOnCulture))

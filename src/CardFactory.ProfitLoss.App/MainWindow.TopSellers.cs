@@ -81,6 +81,12 @@ public partial class MainWindow
         DrawTopSellers();
     }
 
+    private void TopSellersTrackAll_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: AddOnItem item }) return;
+        AddTracked(item);   // one item for the whole group (concept A1); redraws both views
+    }
+
     private void TopSellersTrack_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { Tag: TopSeller item }) return;
@@ -304,10 +310,64 @@ public partial class MainWindow
         Put(Text("SOLD", right: true, header: true), 0, 3);
         Put(Text("£ VALUE", right: true, header: true), 0, 4);
 
+        // Concept A1 (owner, 18 Nov 2026): Reusable bags and Stamps start with a starred "All" row -
+        // everything in the group added together (stamps without Christmas stamps, as tracked) -
+        // whose "+ Track all" adds ONE item to Items to track.
+        var first = 1;
+        AddOnItem? groupItem = _topSellersGroup switch
+        {
+            TopSellerGroup.ReusableBags => AddOnItem.ReusableBags,
+            TopSellerGroup.Stamps => AddOnItem.Stamps,
+            _ => null,
+        };
+        if (groupItem is not null)
+        {
+            var members = _topSellersAll!.Where(t => t.Group == _topSellersGroup
+                && (!groupItem.IsStamps || !StampsSold.IsChristmas(t.Name))).ToList();
+            Line(1, 36);
+            var band = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xFB, 0xEA)), BorderBrush = Res("CfYellow"),
+                BorderThickness = new Thickness(1.5), CornerRadius = new CornerRadius(9), Margin = new Thickness(0, 2, 0, 2),
+            };
+            Grid.SetRow(band, 1);
+            Grid.SetColumnSpan(band, 6);
+            TopSellersTable.Children.Add(band);
+            Put(Text("★", bold: true, blue: true), 1, 0);
+            var allName = Text(groupItem.IsStamps ? "All stamps" : "All reusable bags", bold: true, blue: true);
+            allName.ToolTip = groupItem.IsStamps
+                ? "Every stamp added together (Christmas stamps left out, as on the Stamp Count)"
+                : "Every item named \"reusable bag\" added together";
+            Put(allName, 1, 1);
+            Put(Text($"{members.Count} items", muted: true), 1, 2);
+            Put(Text(members.Sum(t => t.Quantity).ToString("#,##0", AddOnCulture), right: true, bold: true), 1, 3);
+            Put(Text(members.Sum(t => t.Value).ToString("£#,##0.00", AddOnCulture), right: true), 1, 4);
+            if (IsTracked(groupItem.Key))
+            {
+                var tracking = Text("✓ Tracking", right: true, bold: true);
+                tracking.FontSize = 11;
+                tracking.Foreground = Res("CfGood");
+                Put(tracking, 1, 5);
+            }
+            else
+            {
+                var trackAll = new Button
+                {
+                    Tag = groupItem, Cursor = System.Windows.Input.Cursors.Hand,
+                    ToolTip = "Track " + (groupItem.IsStamps ? "every stamp" : "every reusable bag") + " as one item in Add-on Sales",
+                    HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0),
+                    Template = TrackButtonTemplate("+ Track all"),
+                };
+                trackAll.Click += TopSellersTrackAll_Click;
+                Put(trackAll, 1, 5);
+            }
+            first = 2;
+        }
+
         for (var i = 0; i < list.Count; i++)
         {
             var item = list[i];
-            var row = i + 1;
+            var row = i + first;
             Line(row, 32);
 
             Put(new Border
@@ -434,14 +494,14 @@ public partial class MainWindow
     }
 
     /// <summary>The yellow "+ Track" pill, as on the suggestions list.</summary>
-    private ControlTemplate TrackButtonTemplate()
+    private ControlTemplate TrackButtonTemplate(string label = "+ Track")
     {
         var border = new FrameworkElementFactory(typeof(Border));
         border.SetValue(Border.BackgroundProperty, Res("CfYellow"));
         border.SetValue(Border.CornerRadiusProperty, new CornerRadius(7));
         border.SetValue(Border.PaddingProperty, new Thickness(9, 3, 9, 3));
         var text = new FrameworkElementFactory(typeof(TextBlock));
-        text.SetValue(TextBlock.TextProperty, "+ Track");
+        text.SetValue(TextBlock.TextProperty, label);
         text.SetValue(TextBlock.FontFamilyProperty, new FontFamily("Arial"));
         text.SetValue(TextBlock.FontSizeProperty, 10.5);
         text.SetValue(TextBlock.FontWeightProperty, FontWeights.Bold);

@@ -129,4 +129,25 @@ public sealed class AddOnSalesTests
     [InlineData("EFOB012", "", false)]
     public void Skus_AreMatchedAsTyped(string reported, string typed, bool same) =>
         Assert.Equal(same, AddOnSalesSummary.SameSku(reported, typed));
+
+    [Fact]
+    public void ReusableBags_AllAddedTogether_AsOneColumn()
+    {
+        var items = new[]
+        {
+            new GiftCardItemRecord("1", "Staff A", "7000001", "Reusable Bag Large Floral", 3, 5.97m) { Department = TopSellers.CarrierBagsDepartment },
+            new GiftCardItemRecord("2", "Staff B", "7000002", "REUSABLE BAG Christmas", 1, 1.99m),
+            new GiftCardItemRecord("1", "Staff A", "EFOB012", "Carrier Bag", 12, 3.00m) { Department = TopSellers.CarrierBagsDepartment },
+            new GiftCardItemRecord("2", "Staff B", "7000003", "Reusable Straw", 2, 2.00m),
+        };
+
+        var summary = AddOnSalesSummary.Build(new[] { AddOnItem.ReusableBags }, items, stampItems: null);
+
+        var column = Assert.Single(summary.Columns);
+        Assert.Equal(4, column.Quantity);
+        Assert.Equal(7.96m, column.Value);
+        Assert.Equal(2, summary.People.Count);
+        Assert.True(AddOnItem.ReusableBags.IsGroup);
+        Assert.False(new AddOnItem("7000001", "x").IsGroup);
+    }
 }

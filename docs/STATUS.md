@@ -6,6 +6,12 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## Released - v1.1.8 (18 Nov 2026, owner's say-so: "A1 and build and release without test"), from branch `next-features`
+
+| Change | State |
+|---|---|
+| Track all (concept A1): Top sellers' Reusable bags and Stamps start with a starred "All reusable bags" / "All stamps" row (group totals; stamps without Christmas stamps) and "+ Track all", which adds ONE tracked item: new AddOnItem.ReusableBags (key REUSABLEBAGS, every item named "reusable bag") or the existing all-stamps item. AddOnItem.IsGroup / IsGroupKey; test ReusableBags_AllAddedTogether_AsOneColumn. | Released in 1.1.8 |
+
 ## Released - v1.1.7 (18 Nov 2026, owner's say-so: "build and release without test"), from branch `next-features`
 
 | Change | State |
