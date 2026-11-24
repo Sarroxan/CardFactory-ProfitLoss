@@ -6,11 +6,11 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `next-features` (owner, 18 Nov 2026) - not built or released yet
+## Released - v1.1.9 (24 Nov 2026, owner's say-so: "build and release"), from branch `next-features`
 
 | Change | State |
 |---|---|
-| Track all named (concept N1): typing 3+ characters (not just digits) in Items to track puts a yellow "★ Track all \"…\"" line first; it tracks ONE item (key NAMED:words) counting every item whose name or Flooid department has the words (so "gift bag" finds "... LP Bag" under Wrap & Bags/Gift Bags); gift cards never. AddOnItem.Named / MatchesWords / IsNamed; test TrackAllNamed_MatchesNameOrDepartment_AsOneColumn. | Written, not built |
+| Track all named (concept N1): typing 3+ characters (not just digits) in Items to track puts a yellow "★ Track all \"…\"" line first; it tracks ONE item (key NAMED:words) counting every item whose name or Flooid department has the words (so "gift bag" finds "... LP Bag" under Wrap & Bags/Gift Bags); gift cards never. AddOnItem.Named / MatchesWords / IsNamed; test TrackAllNamed_MatchesNameOrDepartment_AsOneColumn. | Released in 1.1.9 |
 
 ## Released - v1.1.8 (18 Nov 2026, owner's say-so: "A1 and build and release without test"), from branch `next-features`
 
