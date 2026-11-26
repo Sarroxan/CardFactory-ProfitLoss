@@ -6,6 +6,12 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
+## On branch `next-features` (owner, 26 Nov 2026) - not built or released yet
+
+| Change | State |
+|---|---|
+| Stamps add-on counts Christmas stamps too (owner: "Track all stamps doesn't track Christmas stamps" → "Count them in Stamps"). The 21 Oct rule (skip lines naming Christmas / Xmas) is dropped in AddOnSalesSummary and the Top sellers "All stamps" row; StampsSold.IsChristmas kept, unused. Test renamed / updated. | Written, not built |
+
 ## Released - v1.1.9 (24 Nov 2026, owner's say-so: "build and release"), from branch `next-features`
 
 | Change | State |

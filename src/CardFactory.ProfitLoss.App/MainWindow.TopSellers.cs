@@ -311,7 +311,7 @@ public partial class MainWindow
         Put(Text("£ VALUE", right: true, header: true), 0, 4);
 
         // Concept A1 (owner, 18 Nov 2026): Reusable bags and Stamps start with a starred "All" row -
-        // everything in the group added together (stamps without Christmas stamps, as tracked) -
+        // everything in the group added together (every stamp, Christmas ones too, as tracked) -
         // whose "+ Track all" adds ONE item to Items to track.
         var first = 1;
         AddOnItem? groupItem = _topSellersGroup switch
@@ -322,8 +322,7 @@ public partial class MainWindow
         };
         if (groupItem is not null)
         {
-            var members = _topSellersAll!.Where(t => t.Group == _topSellersGroup
-                && (!groupItem.IsStamps || !StampsSold.IsChristmas(t.Name))).ToList();
+            var members = _topSellersAll!.Where(t => t.Group == _topSellersGroup).ToList();
             Line(1, 36);
             var band = new Border
             {
@@ -336,7 +335,7 @@ public partial class MainWindow
             Put(Text("★", bold: true, blue: true), 1, 0);
             var allName = Text(groupItem.IsStamps ? "All stamps" : "All reusable bags", bold: true, blue: true);
             allName.ToolTip = groupItem.IsStamps
-                ? "Every stamp added together (Christmas stamps left out, as on the Stamp Count)"
+                ? "Every stamp added together, Christmas stamps included"
                 : "Every item named \"reusable bag\" added together";
             Put(allName, 1, 1);
             Put(Text($"{members.Count} items", muted: true), 1, 2);

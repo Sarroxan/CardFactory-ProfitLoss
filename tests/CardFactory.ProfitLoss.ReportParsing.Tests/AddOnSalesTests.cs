@@ -87,7 +87,7 @@ public sealed class AddOnSalesTests
     }
 
     [Fact]
-    public void Stamps_ComeFromTheStampsReport_WithoutChristmasStamps()
+    public void Stamps_ComeFromTheStampsReport_ChristmasStampsIncluded()
     {
         GiftCardItemRecord Line(string id, string name, string code, string d, int q, decimal v) => new(id, name, code, d, q, v);
         var stamps = new[]
@@ -99,8 +99,9 @@ public sealed class AddOnSalesTests
 
         var summary = AddOnSalesSummary.Build(new[] { AddOnItem.Stamps }, Array.Empty<GiftCardItemRecord>(), stamps);
 
-        Assert.Equal(3, summary.Columns[0].Quantity);
-        Assert.Equal(27.76m, summary.Columns[0].Value);
+        // Owner, 26 Nov 2026: Christmas stamps count too.
+        Assert.Equal(6, summary.Columns[0].Quantity);
+        Assert.Equal(57.76m, summary.Columns[0].Value);
         Assert.Equal(new[] { "Staff A", "Staff B" }, summary.People.Select(p => p.Name));
     }
 

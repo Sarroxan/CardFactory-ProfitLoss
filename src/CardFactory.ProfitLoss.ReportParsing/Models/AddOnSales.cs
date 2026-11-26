@@ -69,7 +69,7 @@ public sealed record AddOnPerson(string OperatorId, string Name, IReadOnlyList<i
 
 /// <summary>
 /// Add-on sales for the day or range, from Item Sales By Operator with every item in it (SKUs)
-/// and its Stamps department (stamps, Christmas stamps left out as on the Stamp Count). People are
+/// and its Stamps department (every stamp, Christmas stamps included - owner, 26 Nov 2026). People are
 /// ordered by add-ons sold, most first; only people who sold at least one tracked add-on appear.
 /// </summary>
 public sealed record AddOnSalesSummary(IReadOnlyList<AddOnColumn> Columns, IReadOnlyList<AddOnPerson> People)
@@ -87,9 +87,8 @@ public sealed record AddOnSalesSummary(IReadOnlyList<AddOnColumn> Columns, IRead
         IEnumerable<GiftCardItemRecord>? stampItems)
     {
         var items = allItems.ToList();
-        var stamps = (stampItems ?? Array.Empty<GiftCardItemRecord>())
-            .Where(s => !StampsSold.IsChristmas(s.Description))
-            .ToList();
+        // Owner, 26 Nov 2026: Christmas stamps count too (they were left out from 21 Oct).
+        var stamps = (stampItems ?? Array.Empty<GiftCardItemRecord>()).ToList();
 
         // Each column's lines, then everyone who appears in any of them, in report order.
         var lines = tracked
