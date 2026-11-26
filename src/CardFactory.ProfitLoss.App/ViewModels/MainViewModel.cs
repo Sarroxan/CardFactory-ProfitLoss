@@ -767,6 +767,9 @@ public sealed class MainViewModel : ObservableObject
 
     public bool HasAddOnData => _reportAllItems is not null;
 
+    /// <summary>Every line of the all-items report for the date on the calendar (Item lookup, concept L1); null before it is fetched.</summary>
+    public IReadOnlyList<GiftCardItemRecord>? AllItemLines => _reportAllItems;
+
     public void ApplyAllItemSales(IReadOnlyList<GiftCardItemRecord>? items)
     {
         _reportAllItems = items;

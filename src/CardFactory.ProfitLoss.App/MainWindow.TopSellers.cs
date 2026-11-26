@@ -27,6 +27,7 @@ public partial class MainWindow
     private const int TopSellersDays = 28;
 
     private bool _addOnTopView;
+    private IReadOnlyList<GiftCardItemRecord>? _topSellersLines;   // the 4 weeks' lines, for Item lookup (concept L1)
     private TopSellerGroup _topSellersGroup = TopSellerGroup.All;
     private bool _topSellersByValue;
     private IReadOnlyList<TopSeller>? _topSellersAll;
@@ -56,15 +57,21 @@ public partial class MainWindow
 
     private void AddOnViewSwitch_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { Tag: string tag }) SetAddOnView(tag == "top");
+        if (sender is FrameworkElement { Tag: string tag }) SetAddOnView(tag);
     }
 
-    private void SetAddOnView(bool top)
+    /// <summary>"tracked", "top" (Top sellers) or "lookup" (Item lookup, concept L1).</summary>
+    private void SetAddOnView(string view)
     {
+        var top = view == "top";
+        var lookup = view == "lookup";
         _addOnTopView = top;
+        _addOnLookupView = lookup;
         TopSellersPanel.Visibility = top ? Visibility.Visible : Visibility.Collapsed;
+        ItemLookupPanel.Visibility = lookup ? Visibility.Visible : Visibility.Collapsed;
         RedrawAddOns();
         if (top) _ = LoadTopSellersAsync();
+        if (lookup) OpenItemLookup();
     }
 
     private void TopSellersSort_Click(object sender, RoutedEventArgs e)
@@ -97,6 +104,7 @@ public partial class MainWindow
     private void ForgetTopSellers()
     {
         _topSellersAll = null;
+        _topSellersLines = null;
         _topSellersProblem = null;
         _topSellersGeneration++;
     }
@@ -141,7 +149,7 @@ public partial class MainWindow
             if (html is null)
             {
                 if (quiet) Log("the second sign-in is not available - pulled when Top sellers is opened");
-                if (!quiet || _addOnTopView) _topSellersProblem = "Flooid is busy with another report. Open Top sellers again in a moment.";
+                if (!quiet || _addOnTopView || _addOnLookupView) _topSellersProblem = "Flooid is busy with another report. Open Top sellers again in a moment.";
                 return;
             }
 
@@ -149,6 +157,7 @@ public partial class MainWindow
             TopSellersStage(3);
             var report = new AllItemSalesReportParser().Parse(html);
             _topSellersAll = TopSellers.Build(report.Items);
+            _topSellersLines = report.Items;
             _topSellersDay = DateTime.Today;
 
             // The same report fills the add-on list too.
@@ -169,7 +178,7 @@ public partial class MainWindow
         catch (Exception ex)
         {
             // In the background nothing is shown: opening Top sellers simply pulls it again.
-            if ((!quiet || _addOnTopView) && generation == _topSellersGeneration)
+            if ((!quiet || _addOnTopView || _addOnLookupView) && generation == _topSellersGeneration)
                 _topSellersProblem = "The top sellers couldn't be fetched from Flooid. Open Top sellers again to try once more.";
             Log($"failed after {clock.ElapsedMilliseconds} ms: {ex.Message}");
         }
@@ -178,6 +187,7 @@ public partial class MainWindow
             _topSellersLoading = false;
             _topSellersTicker?.Stop();
             DrawTopSellers();
+            if (_addOnLookupView) DrawItemLookup();
         }
     }
 
@@ -194,7 +204,7 @@ public partial class MainWindow
     {
         if (SecondSignInDetails(loginWindow) is { } details)
         {
-            using var lease = await _secondSignIn.AcquireAsync(details, () => quiet || _addOnTopView);
+            using var lease = await _secondSignIn.AcquireAsync(details, () => quiet || _addOnTopView || _addOnLookupView);
             if (lease is not null)
             {
                 log("pulling on the second sign-in");
@@ -229,11 +239,14 @@ public partial class MainWindow
 
     private void DrawAddOnSwitches()
     {
+        var tracked = !_addOnTopView && !_addOnLookupView;
         foreach (var (button, on) in new[]
                  {
-                     (AddOnSwitchTrackedA, !_addOnTopView), (AddOnSwitchTopA, _addOnTopView),
-                     (AddOnSwitchTrackedB, !_addOnTopView), (AddOnSwitchTopB, _addOnTopView),
-                     (AddOnSwitchTrackedC, !_addOnTopView), (AddOnSwitchTopC, _addOnTopView),
+                     (AddOnSwitchTrackedA, tracked), (AddOnSwitchTopA, _addOnTopView), (AddOnSwitchLookupA, _addOnLookupView),
+                     (AddOnSwitchTrackedB, tracked), (AddOnSwitchTopB, _addOnTopView), (AddOnSwitchLookupB, _addOnLookupView),
+                     (AddOnSwitchTrackedC, tracked), (AddOnSwitchTopC, _addOnTopView), (AddOnSwitchLookupC, _addOnLookupView),
+                     (AddOnSwitchTrackedD, tracked), (AddOnSwitchTopD, _addOnTopView), (AddOnSwitchLookupD, _addOnLookupView),
+                     (ItemLookupWeeks, !_itemLookupCalendar), (ItemLookupCalendar, _itemLookupCalendar),
                      (TopSellersByNumber, !_topSellersByValue), (TopSellersByValue, _topSellersByValue),
                  })
         {

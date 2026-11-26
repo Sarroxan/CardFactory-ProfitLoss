@@ -31,10 +31,11 @@ public partial class MainWindow
         PreviewMouseDown += (_, _) => _lastInputAt = DateTime.Now;
         PreviewMouseWheel += (_, _) => _lastInputAt = DateTime.Now;
         PreviewKeyDown += (_, _) => _lastInputAt = DateTime.Now;
-        PreviewTextInput += (_, _) => { _lastInputAt = DateTime.Now; _typedSinceLastPull = true; };
+        PreviewTextInput += (_, _) => { _lastInputAt = DateTime.Now; if (!_locked) _typedSinceLastPull = true; };   // a PIN or password typed on the lock isn't figures
+        StartLockWatch();
 
         _autoRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
-        _autoRefreshTimer.Tick += async (_, _) => await AutoRefreshIfDueAsync();
+        _autoRefreshTimer.Tick += async (_, _) => { LockIfIdle(); await AutoRefreshIfDueAsync(); };
         _autoRefreshTimer.Start();
     }
 

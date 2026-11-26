@@ -1,0 +1,164 @@
+<Window x:Class="CardFactory.ProfitLoss.App.Views.LockSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Lock"
+        Width="500"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False">
+    <!-- Owner, 26 Nov 2026 (concept P1): lock the app with a 4-digit PIN after a while unused. -->
+    <Window.Resources>
+        <Style x:Key="SegmentStyle" TargetType="RadioButton">
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="B" Background="Transparent" CornerRadius="8" Padding="13,6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{StaticResource CfDeepBlue}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="Width" Value="96" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <!-- An on/off switch, as in concept P1. -->
+        <Style x:Key="ToggleStyle" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="Track" Width="50" Height="30" CornerRadius="15" Background="#C9D6E6">
+                            <Ellipse x:Name="Knob" Width="22" Height="22" Fill="White" HorizontalAlignment="Left" Margin="4,0" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Track" Property="Background" Value="{StaticResource CfBlue}" />
+                                <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#D5E2F0" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="16,11" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+        <Style x:Key="CardTitleStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource CfDeepBlue}" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style x:Key="CardNoteStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,2,0,0" />
+            <Setter Property="Foreground" Value="{StaticResource CfMuted}" />
+            <Setter Property="FontFamily" Value="Arial" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </Window.Resources>
+    <Border Margin="12" Padding="22" Background="White" BorderBrush="{StaticResource CfLine}" BorderThickness="1" CornerRadius="20">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="5" Opacity="0.20" Color="#183153" />
+        </Border.Effect>
+        <StackPanel>
+            <Border Margin="-22,-22,-22,18" Padding="22,14,16,14" Background="{StaticResource CfDeepBlue}" CornerRadius="19,19,0,0">
+                <Grid MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Settings › Lock" Foreground="White" FontFamily="{StaticResource CfTitleFont}" FontSize="26" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Width="30" Height="30" Content="×" FontSize="18"
+                            Style="{StaticResource NavyBandCloseButtonStyle}" Click="Cancel_Click" />
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,14,0">
+                        <TextBlock Text="Lock when not used" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock Style="{StaticResource CardNoteStyle}" Text="Covers the figures until the PIN is entered. You stay signed in to Flooid." />
+                    </StackPanel>
+                    <CheckBox x:Name="LockOnToggle" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource ToggleStyle}"
+                              Checked="Choice_Changed" Unchecked="Choice_Changed" />
+                </Grid>
+            </Border>
+
+            <Border x:Name="AfterRow" Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,14,0" VerticalAlignment="Center">
+                        <TextBlock Text="After" Style="{StaticResource CardTitleStyle}" />
+                        <TextBlock Style="{StaticResource CardNoteStyle}" Text="No mouse or keyboard for this long" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Background="{StaticResource CfBlueSoft}" CornerRadius="10" Padding="3" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="After30" GroupName="After" Content="30 min" Style="{StaticResource SegmentStyle}" />
+                            <RadioButton x:Name="After60" GroupName="After" Content="1 hour" Style="{StaticResource SegmentStyle}" />
+                            <RadioButton x:Name="After120" GroupName="After" Content="2 hours" Style="{StaticResource SegmentStyle}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Border x:Name="PinRow" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,14,0" VerticalAlignment="Center">
+                            <TextBlock Text="PIN" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock Style="{StaticResource CardNoteStyle}" Text="4 digits · kept encrypted on this PC" />
+                        </StackPanel>
+                        <Button x:Name="ChangePinButton" Grid.Column="1" Content="Change PIN" Height="32" Padding="14,0" VerticalAlignment="Center"
+                                Style="{StaticResource ModernSecondaryButtonStyle}" Click="ChangePin_Click" />
+                    </Grid>
+                    <StackPanel x:Name="PinBoxes" Margin="0,12,0,0" Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="NEW PIN" Width="84" VerticalAlignment="Center" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10" FontWeight="Bold" />
+                            <PasswordBox x:Name="PinBox" Width="110" MaxLength="4" Style="{StaticResource SignInPasswordStyle}" PreviewTextInput="Pin_PreviewTextInput" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock Text="PIN AGAIN" Width="84" VerticalAlignment="Center" Foreground="{StaticResource CfMuted}" FontFamily="Arial" FontSize="10" FontWeight="Bold" />
+                            <PasswordBox x:Name="PinAgainBox" Width="110" MaxLength="4" Style="{StaticResource SignInPasswordStyle}" PreviewTextInput="Pin_PreviewTextInput" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock x:Name="ErrorText" Margin="0,2,0,0" Visibility="Collapsed" Foreground="{StaticResource CfBad}" FontFamily="Arial" FontSize="11" FontWeight="Bold" TextWrapping="Wrap" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                <Button Content="Cancel" Width="88" Height="34" Style="{StaticResource ModernSecondaryButtonStyle}" Click="Cancel_Click" />
+                <Button Content="Save" Width="96" Height="34" Margin="8,0,0,0" Style="{StaticResource FlooidActionButtonStyle}" Tag="NoGlyph" FontSize="11.5" Click="Save_Click" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

@@ -260,7 +260,7 @@ public partial class MainWindow
         AddOnPeriodText.Text = viewModel?.PeriodDisplayText ?? string.Empty;
 
         // Top sellers (concept T1) covers the right side; the empty state only shows on Tracked add-ons.
-        AddOnEmptyState.Visibility = summary is null && !_addOnTopView ? Visibility.Visible : Visibility.Collapsed;
+        AddOnEmptyState.Visibility = summary is null && !_addOnTopView && !_addOnLookupView ? Visibility.Visible : Visibility.Collapsed;
         AddOnEmptyText.Text = _addOnTracked.Count == 0
             ? "Add a SKU on the left, then press Generate reports to see how many sold."
             : "They come with the reports. Press Generate reports to fetch them.";
@@ -268,6 +268,7 @@ public partial class MainWindow
         DrawAddOnCards(summary);
         DrawAddOnTable(summary);
         DrawTopSellers();   // the switches, and "+ Track" / "✓ Tracking" after a change
+        DrawItemLookup();   // the same on Item lookup (concept L1), and new figures for the calendar date
     }
 
     private void DrawAddOnCards(AddOnSalesSummary? summary)
