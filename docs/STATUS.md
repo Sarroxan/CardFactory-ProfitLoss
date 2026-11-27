@@ -6,13 +6,13 @@ Update this whenever something is confirmed or found broken, so no one repeats w
 Owner's rule: features and fixes are gathered first. Nothing is pushed to `main`, built
 or released without the owner's say-so. A push to `main` starts a build.
 
-## On branch `next-features` (owner, 26 Nov 2026) - not built or released yet
+## Released - v1.2.0 (27 Nov 2026, owner's say-so: "Release"), from branch `next-features`
 
 | Change | State |
 |---|---|
-| Stamps add-on counts Christmas stamps too (owner: "Track all stamps doesn't track Christmas stamps" → "Count them in Stamps"). The 21 Oct rule (skip lines naming Christmas / Xmas) is dropped in AddOnSalesSummary and the Top sellers "All stamps" row; StampsSold.IsChristmas kept, unused. Test renamed / updated. | Written, not built |
-| Item lookup (concept L1): Add-on Sales gets a third switch, "Item lookup" - type a SKU or part of a name; best match (sold, £, department, "+ Track this item"), who sold it, other matches. Periods: Last 4 weeks (the Top sellers report, kept as lines) or the date on the calendar (the all-items report from Generate reports). "Today" and "days it sold" from the concept left out - they'd need extra Flooid pulls. ItemLookup.Find + 5 tests. | Written, not built |
-| Lock (concept P1): Menu › Settings › Lock - on/off, after 30 min / 1 hour / 2 hours with no mouse or keys in any app window, 4-digit PIN (salted PBKDF2 hash in the DPAPI file lock-settings.json). Lock screen covers the window; Flooid stays signed in, pulls and the hourly refresh carry on. 5 wrong tries → 30 s wait. Forgot PIN → the saved Flooid password unlocks, then a new PIN is asked for. Closing and reopening the app is not locked (it signs in by itself). | Written, not built |
+| Stamps add-on counts Christmas stamps too (owner: "Track all stamps doesn't track Christmas stamps" → "Count them in Stamps"). The 21 Oct rule (skip lines naming Christmas / Xmas) is dropped in AddOnSalesSummary and the Top sellers "All stamps" row; StampsSold.IsChristmas kept, unused. Test renamed / updated. | Released in 1.2.0 |
+| Item lookup (concept L1): Add-on Sales gets a third switch, "Item lookup" - type a SKU or part of a name; best match (sold, £, department, "+ Track this item"), who sold it, other matches. Periods: Last 4 weeks (the Top sellers report, kept as lines) or the date on the calendar (the all-items report from Generate reports). "Today" and "days it sold" from the concept left out - they'd need extra Flooid pulls. ItemLookup.Find + 5 tests. | Released in 1.2.0 |
+| Lock (concept P1): Menu › Settings › Lock - on/off, after 30 min / 1 hour / 2 hours with no mouse or keys in any app window, 4-digit PIN (salted PBKDF2 hash in the DPAPI file lock-settings.json). Lock screen covers the window; Flooid stays signed in, pulls and the hourly refresh carry on. 5 wrong tries → 30 s wait. Forgot PIN → the saved Flooid password unlocks, then a new PIN is asked for. Closing and reopening the app is not locked (it signs in by itself). | Released in 1.2.0 |
 
 ## Released - v1.1.9 (24 Nov 2026, owner's say-so: "build and release"), from branch `next-features`
 
