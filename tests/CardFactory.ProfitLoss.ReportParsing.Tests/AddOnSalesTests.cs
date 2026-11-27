@@ -102,7 +102,8 @@ public sealed class AddOnSalesTests
         // Owner, 26 Nov 2026: Christmas stamps count too.
         Assert.Equal(6, summary.Columns[0].Quantity);
         Assert.Equal(57.76m, summary.Columns[0].Value);
-        Assert.Equal(new[] { "Staff A", "Staff B" }, summary.People.Select(p => p.Name));
+        // Most sold first: Staff B 4 (with the Christmas book), Staff A 2.
+        Assert.Equal(new[] { "Staff B", "Staff A" }, summary.People.Select(p => p.Name));
     }
 
     [Fact]
